@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
 const FEATURED_VENUES = [
   {
     name: "Pietro's Prime",
@@ -35,6 +37,28 @@ const GENRE_QUICK = [
   "Punk","Metal","Pop","Soul","Funk","Bluegrass",
 ];
 
+// Genre → search-friendly venue type keywords for Google Places
+const GENRE_VENUE_KEYWORDS = {
+  EDM: "nightclub dance club",
+  Acoustic: "acoustic live music bar cafe",
+  Jazz: "jazz club lounge",
+  Rock: "rock bar live music venue",
+  Country: "country bar honky tonk",
+  Blues: "blues bar live music",
+  "R&B": "R&B lounge bar live music",
+  "Hip Hop": "hip hop nightclub bar",
+  Folk: "folk music venue coffee house",
+  Indie: "indie music bar venue",
+  Classical: "concert hall symphony orchestra",
+  Reggae: "reggae bar live music",
+  Punk: "punk rock bar venue",
+  Metal: "metal rock bar venue",
+  Pop: "live music bar venue",
+  Soul: "soul R&B lounge bar",
+  Funk: "funk soul bar live music",
+  Bluegrass: "bluegrass folk bar venue",
+};
+
 const GENRE_COLORS = {
   Rock:"#e85d04", Jazz:"#1D9E75", Country:"#BA7517", Pop:"#D4537E",
   Blues:"#378ADD", "Cover Band":"#888780", Folk:"#639922", "R&B":"#D85a30",
@@ -58,8 +82,6 @@ const VENUE_PHOTOS = {
   ],
 };
 
-// ─── System Prompts ────────────────────────────────────────────────────────────
-
 const LOCATION_PROMPT = `You are a live music event finder. The user provides a location. Find live music events near that specific location only.
 
 Return a JSON array of up to 6 realistic live music events. Each result must have:
@@ -71,32 +93,7 @@ RULES:
 3. Never return "Unknown".
 Return ONLY valid JSON array, nothing else.`;
 
-const BAND_PROMPT = `You are a live music event finder. The user provides a band/artist name AND a location with a search radius. Find upcoming live shows for that specific artist within or near that radius.
-
-Return a JSON array of up to 8 upcoming shows. Each result must have:
-- band, venue, date (e.g. "Friday, May 9"), time (e.g. "8:00 PM"), genre, address (full with city/state), tickets ("Check venue website", a URL, or "Free"), notes, venueBio (2 sentences), bandBio (2 sentences), confidence ("high" or "medium"), distanceMiles (estimated miles from the search location as a number)
-
-RULES:
-1. Focus on shows WITHIN or near the specified radius from the given location.
-2. The same band name may refer to different acts — use location context to find the right one.
-3. Sort results by distance (closest first).
-4. Never return "Unknown".
-Return ONLY valid JSON array, nothing else.`;
-
-const GENRE_PROMPT = `You are a live music event finder. The user provides a music genre and a location with a search radius. Find live music events of that genre near that location.
-
-Return a JSON array of up to 8 upcoming events matching the genre. Each result must have:
-- band, venue, date (e.g. "Friday, May 9"), time (e.g. "8:00 PM"), genre (matching requested genre), address (full with city/state), tickets ("Check venue website", a URL, or "Free"), notes, venueBio (2 sentences), bandBio (2 sentences or ""), confidence ("high" or "medium"), distanceMiles (estimated miles from the search location as a number)
-
-RULES:
-1. Only return events matching or very closely related to the requested genre.
-2. Stay within or near the specified radius from the given location.
-3. Use venues appropriate for the genre: EDM at clubs, acoustic at coffee shops/small bars, jazz at jazz clubs, bluegrass at folk venues, metal at rock clubs, classical at concert halls.
-4. Sort results by distance (closest first).
-5. Never return "Unknown".
-Return ONLY valid JSON array, nothing else.`;
-
-// ─── Photo Gallery Component ───────────────────────────────────────────────────
+// ─── Photo Gallery ────────────────────────────────────────────────────────────
 
 function VenuePhotoGallery({ venueName, color }) {
   const [active, setActive] = useState(0);
@@ -122,41 +119,254 @@ function VenuePhotoGallery({ venueName, color }) {
   );
 }
 
+// ─── Band Search Links Panel ──────────────────────────────────────────────────
+
+function BandSearchPanel({ bandName }) {
+  if (!bandName.trim()) return null;
+  const enc = encodeURIComponent(bandName.trim());
+  const links = [
+    {
+      label: "🌐 Their Website",
+      desc: "Find the band's official site for tour dates",
+      href: `https://www.google.com/search?q=${enc}+band+official+website`,
+      color: "#0f172a", bg: "#f1f5f9",
+    },
+    {
+      label: "🎵 Songkick",
+      desc: "Upcoming tour dates & ticket links",
+      href: `https://www.songkick.com/search?query=${enc}`,
+      color: "#fff", bg: "#f97316",
+    },
+    {
+      label: "🎸 Bandsintown",
+      desc: "Show alerts & event listings",
+      href: `https://www.bandsintown.com/search?query=${enc}`,
+      color: "#fff", bg: "#16a34a",
+    },
+    {
+      label: "🎟 Ticketmaster",
+      desc: "Tickets for larger venue shows",
+      href: `https://www.ticketmaster.com/search?q=${enc}`,
+      color: "#fff", bg: "#2563eb",
+    },
+    {
+      label: "👍 Facebook",
+      desc: "Facebook Events & band page",
+      href: `https://www.facebook.com/search/events/?q=${enc}`,
+      color: "#fff", bg: "#1877f2",
+    },
+    {
+      label: "📸 Instagram",
+      desc: "Show announcements & stories",
+      href: `https://www.instagram.com/explore/search/keyword/?q=${enc}`,
+      color: "#fff", bg: "#c026d3",
+    },
+    {
+      label: "▶️ YouTube",
+      desc: "Live performances & music videos",
+      href: `https://www.youtube.com/results?search_query=${enc}+live`,
+      color: "#fff", bg: "#dc2626",
+    },
+    {
+      label: "🔍 Google Shows",
+      desc: `Search "${bandName.trim()} upcoming shows"`,
+      href: `https://www.google.com/search?q=${enc}+upcoming+shows+2026`,
+      color: "#fff", bg: "#374151",
+    },
+  ];
+
+  return (
+    <div style={{ padding: "0 0 1.5rem" }}>
+      <div style={{ background: "#fff8f0", border: "1px solid #fed7aa", borderRadius: 12, padding: "14px 16px", marginBottom: 16 }}>
+        <p style={{ fontWeight: 600, fontSize: 14, margin: "0 0 4px", color: "#92400e" }}>🎸 Finding shows for <em>{bandName.trim()}</em></p>
+        <p style={{ fontSize: 12, color: "#b45309", margin: 0 }}>
+          AI can't reliably know local band schedules — these real sources will. Click any link to find their actual upcoming shows.
+        </p>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        {links.map((l, i) => (
+          <a key={i} href={l.href} target="_blank" rel="noreferrer"
+            style={{ display: "flex", flexDirection: "column", padding: "12px 14px", borderRadius: 12, background: l.bg, color: l.color, textDecoration: "none", border: l.bg === "#f1f5f9" ? "1px solid #e2e8f0" : "none" }}>
+            <span style={{ fontWeight: 600, fontSize: 13, marginBottom: 3 }}>{l.label}</span>
+            <span style={{ fontSize: 11, opacity: 0.8, lineHeight: 1.4 }}>{l.desc}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Genre Search Panel ───────────────────────────────────────────────────────
+
+function GenreVenueFinder({ genre, location, radius, onFindVenues, localVenues, localLoading, localError, scanningVenue, scannedVenues, onScrape }) {
+  if (!genre || !location) return null;
+  const enc = encodeURIComponent(genre);
+  const locEnc = encodeURIComponent(location);
+  const venueKeywords = GENRE_VENUE_KEYWORDS[genre] || "live music bar venue";
+
+  return (
+    <div style={{ padding: "0 0 1.5rem" }}>
+      {/* Info box */}
+      <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 12, padding: "14px 16px", marginBottom: 16 }}>
+        <p style={{ fontWeight: 600, fontSize: 14, margin: "0 0 4px", color: "#0369a1" }}>🎶 Finding <em>{genre}</em> near <em>{location}</em></p>
+        <p style={{ fontSize: 12, color: "#0284c7", margin: "0 0 10px" }}>
+          We'll find bars and venues near you that likely host {genre} music. Scan their sites for real event listings.
+        </p>
+        <button
+          onClick={onFindVenues}
+          disabled={localLoading}
+          style={{ fontSize: 12, padding: "7px 16px", borderRadius: 99, background: localLoading ? "#e2e8f0" : "#0369a1", color: localLoading ? "#94a3b8" : "#fff", border: "none", cursor: localLoading ? "default" : "pointer", fontWeight: 600 }}>
+          {localLoading ? "🔍 Searching…" : `🔍 Find ${genre} Venues Near Me`}
+        </button>
+      </div>
+
+      {/* Direct search links */}
+      <p style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 8px" }}>🔗 Search these sources directly</p>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
+        {[
+          { label: "🎵 Songkick", desc: `${genre} shows near ${location}`, href: `https://www.songkick.com/search?query=${enc}+${locEnc}`, bg: "#f97316" },
+          { label: "🎸 Bandsintown", desc: "Browse by genre & location", href: `https://www.bandsintown.com/search?query=${enc}`, bg: "#16a34a" },
+          { label: "📅 Facebook Events", desc: `${genre} events near ${location}`, href: `https://www.facebook.com/events/search/?q=${enc}+${locEnc}`, bg: "#1877f2" },
+          { label: "🔍 Google", desc: `${genre} live music near ${location}`, href: `https://www.google.com/search?q=${enc}+live+music+near+${locEnc}+this+weekend`, bg: "#374151" },
+        ].map((l, i) => (
+          <a key={i} href={l.href} target="_blank" rel="noreferrer"
+            style={{ display: "flex", flexDirection: "column", padding: "12px 14px", borderRadius: 12, background: l.bg, color: "#fff", textDecoration: "none" }}>
+            <span style={{ fontWeight: 600, fontSize: 13, marginBottom: 3 }}>{l.label}</span>
+            <span style={{ fontSize: 11, opacity: 0.85, lineHeight: 1.4 }}>{l.desc}</span>
+          </a>
+        ))}
+      </div>
+
+      {/* Venue results from Places API */}
+      {localError && <div style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{localError}</div>}
+      {localVenues !== null && !localLoading && (
+        localVenues.length === 0
+          ? <p style={{ fontSize: 13, color: "#64748b" }}>No venues found. Try expanding the radius.</p>
+          : <>
+              <p style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 8px" }}>
+                🍺 Nearby venues likely hosting {genre} music
+              </p>
+              <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 10px" }}>
+                {localVenues.length} venues found • Tap "Scan Site" to check for real event listings
+              </p>
+              {localVenues.map((v, vi) => {
+                const scoreColor = v.musicScore === "high" ? "#16a34a" : v.musicScore === "medium" ? "#d97706" : "#94a3b8";
+                const scoreLabel = v.musicScore === "high" ? "🎵 Likely has music" : v.musicScore === "medium" ? "🎲 Possible music" : "🍽 Unknown";
+                const isScanning = scanningVenue === v.website;
+                const scanned = scannedVenues[v.website];
+                return (
+                  <div key={vi} style={{ background: "#f8fafc", borderRadius: 14, padding: "14px 16px", marginBottom: 10, border: "1px solid #e2e8f0", borderLeft: `4px solid ${scoreColor}` }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+                      <p style={{ fontWeight: 700, fontSize: 15, margin: 0, color: "#0f172a" }}>{v.name}</p>
+                      <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: scoreColor + "22", color: scoreColor, fontWeight: 600 }}>{scoreLabel}</span>
+                      {v.isOpen === true && <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: "#dcfce7", color: "#16a34a", fontWeight: 600 }}>Open Now</span>}
+                      {v.isOpen === false && <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: "#fee2e2", color: "#dc2626", fontWeight: 600 }}>Closed</span>}
+                    </div>
+                    <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 2px" }}>📍 {v.address}</p>
+                    {v.rating && <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 6px" }}>⭐ {v.rating} ({v.totalRatings?.toLocaleString()} reviews)</p>}
+                    {v.summary && <p style={{ fontSize: 12, color: "#64748b", margin: "0 0 8px", fontStyle: "italic" }}>{v.summary}</p>}
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {v.website && (
+                        <button onClick={() => onScrape(v.website)} disabled={isScanning}
+                          style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: isScanning ? "#e2e8f0" : "#e85d04", color: isScanning ? "#94a3b8" : "#fff", border: "none", cursor: isScanning ? "default" : "pointer", fontWeight: 500 }}>
+                          {isScanning ? "🔍 Scanning…" : "🔍 Scan Site for Events"}
+                        </button>
+                      )}
+                      <a href={`https://www.google.com/search?q=${encodeURIComponent(v.name + " " + v.address + " " + genre + " live music events")}`}
+                        target="_blank" rel="noreferrer"
+                        style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#64748b", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>
+                        🌐 Search Events
+                      </a>
+                      {v.website && (
+                        <a href={v.website} target="_blank" rel="noreferrer"
+                          style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#64748b", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>
+                          🌍 Visit Site
+                        </a>
+                      )}
+                      {v.instagram && (
+                        <a href={v.instagram} target="_blank" rel="noreferrer"
+                          style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#c026d3", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>
+                          📸 Instagram
+                        </a>
+                      )}
+                      {v.facebook && (
+                        <a href={v.facebook} target="_blank" rel="noreferrer"
+                          style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#1d4ed8", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>
+                          👍 Facebook
+                        </a>
+                      )}
+                    </div>
+                    {/* Scanned events */}
+                    {scanned !== undefined && (
+                      <div style={{ marginTop: 10 }}>
+                        {scanned.length === 0
+                          ? <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>No event pages found on this site.</p>
+                          : <>
+                              <p style={{ fontSize: 11, fontWeight: 600, color: "#16a34a", margin: "0 0 6px" }}>✓ Events found on their website:</p>
+                              {scanned.map((e, ei) => (
+                                <div key={ei} style={{ background: "#fff", borderRadius: 10, padding: "10px 12px", marginBottom: 6, border: "1px solid #e2e8f0", borderLeft: "3px solid #e85d04" }}>
+                                  <p style={{ fontWeight: 600, fontSize: 14, margin: "0 0 4px", color: "#0f172a" }}>{e.band}</p>
+                                  <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px", fontSize: 12, color: "#64748b" }}>
+                                    {e.date && <span>📅 {e.date}</span>}
+                                    {e.time && <span>🕐 {e.time}</span>}
+                                    {e.notes && <span>ℹ️ {e.notes}</span>}
+                                  </div>
+                                </div>
+                              ))}
+                            </>
+                        }
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </>
+      )}
+    </div>
+  );
+}
+
 // ─── Main App ─────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [searchMode, setSearchMode]     = useState("By Location");
-  const [query, setQuery]               = useState("");         // location mode
-  const [bandName, setBandName]         = useState("");         // band mode — artist name
-  const [bandLocation, setBandLocation] = useState("");         // band mode — city/zip
-  const [genreQuery, setGenreQuery]     = useState("");         // genre mode — genre
-  const [genreLocation, setGenreLocation] = useState("");       // genre mode — city/zip
-  const [dateFilter, setDateFilter]     = useState("Next 7 Days");
-  const [radius, setRadius]             = useState(10);
-  const [results, setResults]           = useState(null);
-  const [loading, setLoading]           = useState(false);
-  const [locating, setLocating]         = useState(false);
-  const [error, setError]               = useState("");
-  const [searched, setSearched]         = useState("");
-  const [expanded, setExpanded]         = useState(null);
-  const [showFeatured, setShowFeatured] = useState(false);
-  const [localVenues, setLocalVenues]   = useState(null);
-  const [localLoading, setLocalLoading] = useState(false);
-  const [localError, setLocalError]     = useState("");
+  const [searchMode, setSearchMode]       = useState("By Location");
+
+  // By Location state
+  const [query, setQuery]                 = useState("");
+  const [dateFilter, setDateFilter]       = useState("Next 7 Days");
+  const [radius, setRadius]               = useState(10);
+  const [results, setResults]             = useState(null);
+  const [loading, setLoading]             = useState(false);
+  const [locating, setLocating]           = useState(false);
+  const [error, setError]                 = useState("");
+  const [searched, setSearched]           = useState("");
+  const [expanded, setExpanded]           = useState(null);
+  const [showFeatured, setShowFeatured]   = useState(false);
+  const [localVenues, setLocalVenues]     = useState(null);
+  const [localLoading, setLocalLoading]   = useState(false);
+  const [localError, setLocalError]       = useState("");
   const [scanningVenue, setScanningVenue] = useState(null);
   const [scannedVenues, setScannedVenues] = useState({});
 
-  const QUICK      = ["19382 (West Chester)", "Sea Isle, NJ", "Kennett Square, PA", "Malvern, PA", "Phoenixville, PA", "Pocono Lake, PA"];
+  // By Band state
+  const [bandName, setBandName]           = useState("");
+  const [bandSearched, setBandSearched]   = useState("");
 
+  // By Genre state
+  const [genreQuery, setGenreQuery]       = useState("");
+  const [genreLocation, setGenreLocation] = useState("");
+  const [genreSearched, setGenreSearched] = useState(false);
+  const [genreVenues, setGenreVenues]     = useState(null);
+  const [genreLoading, setGenreLoading]   = useState(false);
+  const [genreError, setGenreError]       = useState("");
+  const [genreScanningVenue, setGenreScanningVenue] = useState(null);
+  const [genreScannedVenues, setGenreScannedVenues] = useState({});
+
+  const QUICK = ["19382 (West Chester)", "Sea Isle, NJ", "Kennett Square, PA", "Malvern, PA", "Phoenixville, PA", "Pocono Lake, PA"];
 
   const isLocationMode = searchMode === "By Location";
   const isBandMode     = searchMode === "By Band";
   const isGenreMode    = searchMode === "By Genre";
-
-  const isDisabled = loading ||
-    (isLocationMode && !query.trim()) ||
-    (isBandMode  && (!bandName.trim() || !bandLocation.trim())) ||
-    (isGenreMode && (!genreQuery.trim() || !genreLocation.trim()));
 
   const getDateRange = (f) => {
     const today = new Date();
@@ -166,35 +376,14 @@ export default function App() {
     return `the next 7 days starting ${day}`;
   };
 
-  const resetSearch = (label) => {
-    setLoading(true); setError(""); setResults(null); setSearched(label);
-    setExpanded(null); setLocalVenues(null); setLocalError(""); setScannedVenues({});
-    setShowFeatured(false);
-  };
-
-  const callAPI = async (system, userMsg) => {
-    const res = await fetch("/api/search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ system, messages: [{ role: "user", content: userMsg }] }),
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    const block = data.content?.find(b => b.type === "text");
-    if (!block) throw new Error("No response received.");
-    const cleaned = block.text.trim().replace(/```json|```/g, "").trim();
-    const match = cleaned.match(/\[[\s\S]*\]/);
-    if (!match) throw new Error("No event data returned.");
-    return JSON.parse(match[0]);
-  };
+  // ── Location search ────────────────────────────────────────────────────────
 
   const findLocalVenues = async (loc) => {
     if (!loc) return;
     setLocalLoading(true); setLocalError(""); setLocalVenues(null);
     try {
       const res = await fetch("/api/venues", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ location: loc, radius }),
       });
       const data = await res.json();
@@ -204,68 +393,54 @@ export default function App() {
     finally { setLocalLoading(false); }
   };
 
-  const scrapeVenue = async (url) => {
+  const scrapeVenue = async (url, isGenre = false) => {
     if (!url) return;
-    setScanningVenue(url);
-    try {
-      const res = await fetch("/api/scrape", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
-      });
-      const data = await res.json();
-      setScannedVenues(prev => ({ ...prev, [url]: data.error ? [] : (data.events || []) }));
-    } catch { setScannedVenues(prev => ({ ...prev, [url]: [] })); }
-    finally { setScanningVenue(null); }
+    if (isGenre) {
+      setGenreScanningVenue(url);
+      try {
+        const res = await fetch("/api/scrape", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) });
+        const data = await res.json();
+        setGenreScannedVenues(prev => ({ ...prev, [url]: data.error ? [] : (data.events || []) }));
+      } catch { setGenreScannedVenues(prev => ({ ...prev, [url]: [] })); }
+      finally { setGenreScanningVenue(null); }
+    } else {
+      setScanningVenue(url);
+      try {
+        const res = await fetch("/api/scrape", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) });
+        const data = await res.json();
+        setScannedVenues(prev => ({ ...prev, [url]: data.error ? [] : (data.events || []) }));
+      } catch { setScannedVenues(prev => ({ ...prev, [url]: [] })); }
+      finally { setScanningVenue(null); }
+    }
   };
-
-  // ── Search handlers ────────────────────────────────────────────────────────
 
   const searchByLocation = async (q) => {
     const sq = (q || query).trim();
     if (!sq) return;
     const wc = isWestChester(sq);
-    resetSearch(sq);
+    setLoading(true); setError(""); setResults(null); setSearched(sq);
+    setExpanded(null); setLocalVenues(null); setLocalError(""); setScannedVenues({});
     setShowFeatured(wc);
     findLocalVenues(sq);
     if (wc) { setResults([]); setLoading(false); return; }
     try {
-      const msgs = `Find live music events near: "${sq}" within ${radius} miles, for ${getDateRange(dateFilter)}.`;
-      setResults(await callAPI(LOCATION_PROMPT, msgs));
+      const res = await fetch("/api/search", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system: LOCATION_PROMPT,
+          messages: [{ role: "user", content: `Find live music events near: "${sq}" within ${radius} miles, for ${getDateRange(dateFilter)}.` }],
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      const block = data.content?.find(b => b.type === "text");
+      if (!block) throw new Error("No response received.");
+      const cleaned = block.text.trim().replace(/```json|```/g, "").trim();
+      const match = cleaned.match(/\[[\s\S]*\]/);
+      if (!match) throw new Error("No event data returned.");
+      setResults(JSON.parse(match[0]));
     } catch (e) { setError(`Error: ${e.message}`); }
     finally { setLoading(false); }
-  };
-
-  const searchByBand = async () => {
-    const name = bandName.trim();
-    const loc  = bandLocation.trim();
-    if (!name || !loc) return;
-    const label = `${name} near ${loc}`;
-    resetSearch(label);
-    try {
-      const msg = `Find upcoming live shows for the band/artist: "${name}" within ${radius} miles of "${loc}", for ${getDateRange(dateFilter)}. Include distanceMiles for each show.`;
-      setResults(await callAPI(BAND_PROMPT, msg));
-    } catch (e) { setError(`Error: ${e.message}`); }
-    finally { setLoading(false); }
-  };
-
-  const searchByGenre = async () => {
-    const genre = genreQuery.trim();
-    const loc   = genreLocation.trim();
-    if (!genre || !loc) return;
-    const label = `${genre} near ${loc}`;
-    resetSearch(label);
-    try {
-      const msg = `Find live ${genre} music events within ${radius} miles of "${loc}", for ${getDateRange(dateFilter)}. Include distanceMiles for each event.`;
-      setResults(await callAPI(GENRE_PROMPT, msg));
-    } catch (e) { setError(`Error: ${e.message}`); }
-    finally { setLoading(false); }
-  };
-
-  const handleSearch = () => {
-    if (isLocationMode) searchByLocation();
-    else if (isBandMode) searchByBand();
-    else searchByGenre();
   };
 
   const useLocation = () => {
@@ -284,7 +459,26 @@ export default function App() {
     );
   };
 
-  // ── Styles ─────────────────────────────────────────────────────────────────
+  // ── Genre venue search ─────────────────────────────────────────────────────
+
+  const findGenreVenues = async () => {
+    const loc = genreLocation.trim();
+    if (!loc || !genreQuery) return;
+    setGenreLoading(true); setGenreError(""); setGenreVenues(null); setGenreScannedVenues({});
+    setGenreSearched(true);
+    try {
+      const res = await fetch("/api/venues", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ location: loc, radius, keywords: GENRE_VENUE_KEYWORDS[genreQuery] || "live music" }),
+      });
+      const data = await res.json();
+      if (data.error) { setGenreError(`Error: ${data.error.message}`); return; }
+      setGenreVenues(data.venues);
+    } catch (e) { setGenreError(`Error: ${e.message}`); }
+    finally { setGenreLoading(false); }
+  };
+
+  // ── Styles ────────────────────────────────────────────────────────────────
 
   const s = {
     wrap:      { fontFamily:"system-ui,sans-serif", maxWidth:700, margin:"0 auto", borderRadius:20, overflow:"hidden", boxShadow:"0 4px 24px rgba(0,0,0,0.12)" },
@@ -312,10 +506,6 @@ export default function App() {
     bioText:   { fontSize:13, color:"#64748b", margin:0, lineHeight:1.5 },
   };
 
-  const modeIcon  = isGenreMode ? "🎶" : isBandMode ? "🎸" : "🎵";
-  const loadText  = isGenreMode ? `Finding ${searched}…` : isBandMode ? `Finding shows for ${searched}…` : `Finding live music near ${searched}…`;
-  const loadSub   = isGenreMode ? "Scanning venues for that vibe" : isBandMode ? "Searching tour dates & venues" : "Scanning venues & events";
-
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
@@ -334,7 +524,7 @@ export default function App() {
         <div style={{ display:"flex", gap:6, marginBottom:12, flexWrap:"wrap" }}>
           {SEARCH_MODES.map(m => (
             <button key={m} style={s.modeBtn(searchMode===m)}
-              onClick={() => { setSearchMode(m); setResults(null); setError(""); setExpanded(null); }}>
+              onClick={() => { setSearchMode(m); setError(""); setExpanded(null); }}>
               {m==="By Location"?"📍 By Location": m==="By Band"?"🎸 By Band":"🎶 By Genre"}
             </button>
           ))}
@@ -342,146 +532,164 @@ export default function App() {
 
         {/* ── By Location ── */}
         {isLocationMode && (
-          <div style={s.row}>
-            <input style={s.input} type="text" value={query} onChange={e=>setQuery(e.target.value)}
-              onKeyDown={e=>e.key==="Enter"&&searchByLocation()} placeholder="Zip code, city, venue, or restaurant…" />
-            <button style={s.btnLoc} onClick={useLocation} title="Use my location">{locating?"⏳":"📍"}</button>
-            <button style={s.btnSearch(isDisabled)} onClick={handleSearch} disabled={isDisabled}>{loading?"…":"Search"}</button>
-          </div>
+          <>
+            <div style={s.row}>
+              <input style={s.input} type="text" value={query}
+                onChange={e=>setQuery(e.target.value)}
+                onKeyDown={e=>e.key==="Enter"&&searchByLocation()}
+                placeholder="Zip code, city, venue, or restaurant…" />
+              <button style={s.btnLoc} onClick={useLocation} title="Use my location">{locating?"⏳":"📍"}</button>
+              <button style={s.btnSearch(loading||!query.trim())} onClick={()=>searchByLocation()} disabled={loading||!query.trim()}>
+                {loading?"…":"Search"}
+              </button>
+            </div>
+            <div style={{ display:"flex", gap:6, marginBottom:10 }}>
+              {DATE_FILTERS.map(f => (
+                <button key={f} style={s.filterBtn(dateFilter===f)} onClick={()=>setDateFilter(f)}>{f}</button>
+              ))}
+            </div>
+            <div style={{ display:"flex", gap:6, marginBottom:10, alignItems:"center" }}>
+              <span style={{ fontSize:11, color:"#94a3b8", whiteSpace:"nowrap" }}>📍 Within:</span>
+              {RADIUS_OPTIONS.map(r => (
+                <button key={r} style={s.filterBtn(radius===r)} onClick={()=>setRadius(r)}>{r} mi</button>
+              ))}
+            </div>
+            <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:"1.25rem" }}>
+              {QUICK.map(sq => (
+                <button key={sq} style={s.quickBtn} onClick={()=>{ setQuery(sq); searchByLocation(sq); }}>{sq}</button>
+              ))}
+            </div>
+          </>
         )}
 
         {/* ── By Band ── */}
         {isBandMode && (
           <>
-            <div style={{ fontSize:11, color:"#94a3b8", marginBottom:6 }}>
-              Enter the band or artist name <strong>and</strong> your location — helps find the right act when names overlap.
+            <div style={{ fontSize:12, color:"#64748b", marginBottom:8, lineHeight:1.5 }}>
+              Enter a band or artist name and we'll point you to the best real sources for their actual show schedule — no AI guessing.
             </div>
             <div style={s.row}>
-              <input style={s.inputSm} type="text" value={bandName} onChange={e=>setBandName(e.target.value)}
-                onKeyDown={e=>e.key==="Enter"&&searchByBand()} placeholder="Band or artist name…" />
-              <input style={s.inputSm} type="text" value={bandLocation} onChange={e=>setBandLocation(e.target.value)}
-                onKeyDown={e=>e.key==="Enter"&&searchByBand()} placeholder="Your city or zip code…" />
-              <button style={s.btnSearch(isDisabled)} onClick={handleSearch} disabled={isDisabled}>{loading?"…":"Search"}</button>
+              <input style={s.input} type="text" value={bandName}
+                onChange={e=>setBandName(e.target.value)}
+                onKeyDown={e=>e.key==="Enter"&&setBandSearched(bandName)}
+                placeholder="Band or artist name…" />
+              <button style={s.btnSearch(!bandName.trim())} onClick={()=>setBandSearched(bandName)} disabled={!bandName.trim()}>
+                Find
+              </button>
             </div>
+            <div style={{ marginBottom:"1rem" }} />
           </>
         )}
 
         {/* ── By Genre ── */}
         {isGenreMode && (
           <>
-            <div style={{ fontSize:11, color:"#94a3b8", marginBottom:6 }}>
-              Pick a genre below or type your own, then enter your location:
+            <div style={{ fontSize:12, color:"#64748b", marginBottom:8, lineHeight:1.5 }}>
+              Pick a genre and enter your location — we'll find nearby venues that host that type of music and let you scan their sites for real listings.
             </div>
             <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:10 }}>
               {GENRE_QUICK.map(g => (
-                <button key={g} style={s.genreChip(genreQuery===g)} onClick={()=>setGenreQuery(g)}>{g}</button>
+                <button key={g} style={s.genreChip(genreQuery===g)} onClick={()=>{ setGenreQuery(g); setGenreSearched(false); setGenreVenues(null); }}>
+                  {g}
+                </button>
               ))}
             </div>
             <div style={s.row}>
-              <input style={s.inputSm} type="text" value={genreQuery} onChange={e=>setGenreQuery(e.target.value)}
-                onKeyDown={e=>e.key==="Enter"&&searchByGenre()} placeholder="Genre (e.g. EDM, Acoustic, Jazz…)" />
-              <input style={s.inputSm} type="text" value={genreLocation} onChange={e=>setGenreLocation(e.target.value)}
-                onKeyDown={e=>e.key==="Enter"&&searchByGenre()} placeholder="City or zip code…" />
-              <button style={s.btnSearch(isDisabled)} onClick={handleSearch} disabled={isDisabled}>{loading?"…":"Search"}</button>
+              <input style={s.inputSm} type="text" value={genreQuery}
+                onChange={e=>setGenreQuery(e.target.value)}
+                placeholder="Genre (e.g. EDM, Acoustic, Jazz…)" />
+              <input style={s.inputSm} type="text" value={genreLocation}
+                onChange={e=>setGenreLocation(e.target.value)}
+                onKeyDown={e=>e.key==="Enter"&&setGenreSearched(true)}
+                placeholder="City or zip code…" />
+              <button style={s.btnSearch(!genreQuery.trim()||!genreLocation.trim())}
+                onClick={()=>setGenreSearched(true)}
+                disabled={!genreQuery.trim()||!genreLocation.trim()}>
+                Find
+              </button>
             </div>
+            <div style={{ display:"flex", gap:6, marginBottom:10, alignItems:"center", marginTop:8 }}>
+              <span style={{ fontSize:11, color:"#94a3b8", whiteSpace:"nowrap" }}>📍 Within:</span>
+              {RADIUS_OPTIONS.map(r => (
+                <button key={r} style={s.filterBtn(radius===r)} onClick={()=>setRadius(r)}>{r} mi</button>
+              ))}
+            </div>
+            <div style={{ marginBottom:"0.5rem" }} />
           </>
         )}
-
-        {/* Date Filter */}
-        <div style={{ display:"flex", gap:6, marginBottom:10 }}>
-          {DATE_FILTERS.map(f => (
-            <button key={f} style={s.filterBtn(dateFilter===f)} onClick={()=>setDateFilter(f)}>{f}</button>
-          ))}
-        </div>
-
-        {/* Radius — shown for all modes */}
-        <div style={{ display:"flex", gap:6, marginBottom:10, alignItems:"center" }}>
-          <span style={{ fontSize:11, color:"#94a3b8", whiteSpace:"nowrap" }}>📍 Within:</span>
-          {RADIUS_OPTIONS.map(r => (
-            <button key={r} style={s.filterBtn(radius===r)} onClick={()=>setRadius(r)}>{r} mi</button>
-          ))}
-        </div>
-
-        {/* Quick picks */}
-        {isLocationMode && (
-          <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:"1.25rem" }}>
-            {QUICK.map(sq => (
-              <button key={sq} style={s.quickBtn} onClick={()=>{ setQuery(sq); searchByLocation(sq); }}>{sq}</button>
-            ))}
-          </div>
-        )}
-        {isBandMode && <div style={{ marginBottom:"1rem" }} />}
-        {isGenreMode && <div style={{ marginBottom:"1rem" }} />}
       </div>
 
-      {/* Results Area */}
-      <div style={{ ...s.results, minHeight:100 }}>
-        {error && (
-          <div style={{ background:"#fee2e2", border:"0.5px solid #fca5a5", borderRadius:10, padding:"10px 14px", fontSize:13, color:"#dc2626", marginBottom:12 }}>{error}</div>
-        )}
+      {/* ── Band Results Panel ── */}
+      {isBandMode && bandSearched && (
+        <div style={{ background:"#fff", borderTop:"1px solid #e2e8f0", padding:"1.25rem 1.5rem 0" }}>
+          <BandSearchPanel bandName={bandSearched} />
+        </div>
+      )}
 
-        {loading && (
-          <div style={{ textAlign:"center", padding:"2.5rem 0", color:"#64748b" }}>
-            <div style={{ fontSize:32, marginBottom:12 }}>{modeIcon}</div>
-            <div style={{ fontSize:15, fontWeight:500, marginBottom:4 }}>{loadText}</div>
-            <div style={{ fontSize:12, color:"#94a3b8" }}>{dateFilter} • {loadSub}</div>
-          </div>
-        )}
+      {/* ── Genre Results Panel ── */}
+      {isGenreMode && genreSearched && (
+        <div style={{ background:"#fff", borderTop:"1px solid #e2e8f0", padding:"1.25rem 1.5rem 0" }}>
+          <GenreVenueFinder
+            genre={genreQuery}
+            location={genreLocation}
+            radius={radius}
+            onFindVenues={findGenreVenues}
+            localVenues={genreVenues}
+            localLoading={genreLoading}
+            localError={genreError}
+            scanningVenue={genreScanningVenue}
+            scannedVenues={genreScannedVenues}
+            onScrape={(url) => scrapeVenue(url, true)}
+          />
+        </div>
+      )}
 
-        {results !== null && !loading && (
-          <>
-            {/* West Chester featured venues */}
-            {showFeatured && (
-              <div style={{ marginBottom:16 }}>
-                <p style={{ fontSize:11, fontWeight:600, color:"#e85d04", textTransform:"uppercase", letterSpacing:"1px", margin:"0 0 8px" }}>⭐ Featured West Chester Venues</p>
-                <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                  {FEATURED_VENUES.map((v,i) => (
-                    <div key={i} style={{ flex:"1 1 260px", background:`linear-gradient(135deg,${v.color}22,${v.color}08)`, border:`1.5px solid ${v.color}44`, borderRadius:14, padding:"14px 16px" }}>
-                      <p style={{ fontWeight:700, fontSize:15, margin:"0 0 4px", color:"#0f172a" }}>{v.name}</p>
-                      <span style={{ fontSize:11, padding:"2px 8px", borderRadius:99, background:v.color+"22", color:v.color, fontWeight:600 }}>{v.tag}</span>
-                      <VenuePhotoGallery venueName={v.name} color={v.color} />
-                      <p style={{ fontSize:12, color:"#64748b", margin:"10px 0 8px", lineHeight:1.5 }}>{v.description}</p>
-                      <p style={{ fontSize:11, color:"#94a3b8", margin:"0 0 10px" }}>📍 {v.address}</p>
-                      <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                        <a href={v.scheduleUrl} target="_blank" rel="noreferrer"
-                          style={{ fontSize:12, padding:"6px 14px", borderRadius:99, background:v.color, color:"#fff", textDecoration:"none", fontWeight:500 }}>🎵 View Schedule</a>
-                        <a href={v.reserveUrl} target="_blank" rel="noreferrer"
-                          style={{ fontSize:12, padding:"6px 14px", borderRadius:99, background:"#f1f5f9", color:"#64748b", textDecoration:"none", border:"0.5px solid #e2e8f0" }}>Reserve</a>
+      {/* ── Location Results ── */}
+      {isLocationMode && (
+        <div style={{ ...s.results, minHeight: results !== null || loading ? 100 : 0 }}>
+          {error && (
+            <div style={{ background:"#fee2e2", border:"0.5px solid #fca5a5", borderRadius:10, padding:"10px 14px", fontSize:13, color:"#dc2626", marginBottom:12 }}>{error}</div>
+          )}
+          {loading && (
+            <div style={{ textAlign:"center", padding:"2.5rem 0", color:"#64748b" }}>
+              <div style={{ fontSize:32, marginBottom:12 }}>🎵</div>
+              <div style={{ fontSize:15, fontWeight:500, marginBottom:4 }}>Finding live music near {searched}…</div>
+              <div style={{ fontSize:12, color:"#94a3b8" }}>{dateFilter} • Scanning venues & events</div>
+            </div>
+          )}
+
+          {results !== null && !loading && (
+            <>
+              {/* Featured West Chester */}
+              {showFeatured && (
+                <div style={{ marginBottom:16 }}>
+                  <p style={{ fontSize:11, fontWeight:600, color:"#e85d04", textTransform:"uppercase", letterSpacing:"1px", margin:"0 0 8px" }}>⭐ Featured West Chester Venues</p>
+                  <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                    {FEATURED_VENUES.map((v,i) => (
+                      <div key={i} style={{ flex:"1 1 260px", background:`linear-gradient(135deg,${v.color}22,${v.color}08)`, border:`1.5px solid ${v.color}44`, borderRadius:14, padding:"14px 16px" }}>
+                        <p style={{ fontWeight:700, fontSize:15, margin:"0 0 4px", color:"#0f172a" }}>{v.name}</p>
+                        <span style={{ fontSize:11, padding:"2px 8px", borderRadius:99, background:v.color+"22", color:v.color, fontWeight:600 }}>{v.tag}</span>
+                        <VenuePhotoGallery venueName={v.name} color={v.color} />
+                        <p style={{ fontSize:12, color:"#64748b", margin:"10px 0 8px", lineHeight:1.5 }}>{v.description}</p>
+                        <p style={{ fontSize:11, color:"#94a3b8", margin:"0 0 10px" }}>📍 {v.address}</p>
+                        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                          <a href={v.scheduleUrl} target="_blank" rel="noreferrer"
+                            style={{ fontSize:12, padding:"6px 14px", borderRadius:99, background:v.color, color:"#fff", textDecoration:"none", fontWeight:500 }}>🎵 View Schedule</a>
+                          <a href={v.reserveUrl} target="_blank" rel="noreferrer"
+                            style={{ fontSize:12, padding:"6px 14px", borderRadius:99, background:"#f1f5f9", color:"#64748b", textDecoration:"none", border:"0.5px solid #e2e8f0" }}>Reserve</a>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Band/Genre verification notice */}
-            {(isBandMode || isGenreMode) && results.length > 0 && (
-              <div style={{ background:"#f0fdf4", border:"1px solid #bbf7d0", borderRadius:10, padding:"10px 14px", marginBottom:12, fontSize:12, color:"#15803d" }}>
-                {isBandMode
-                  ? <>🎸 Showing shows for <strong>{bandName}</strong> near <strong>{bandLocation}</strong> within <strong>{radius} mi</strong> — verify on the artist's official site.</>
-                  : <>🎶 Showing <strong>{genreQuery}</strong> events near <strong>{genreLocation}</strong> within <strong>{radius} mi</strong> — always verify before heading out.</>
-                }
-                <div style={{ display:"flex", gap:8, marginTop:8, flexWrap:"wrap" }}>
-                  <a href={`https://www.songkick.com/search?query=${encodeURIComponent(isBandMode?bandName:genreQuery)}`} target="_blank" rel="noreferrer"
-                    style={{ fontSize:11, padding:"4px 12px", borderRadius:99, background:"#f97316", color:"#fff", textDecoration:"none", fontWeight:500 }}>🎵 Songkick</a>
-                  <a href={`https://www.bandsintown.com/search?query=${encodeURIComponent(isBandMode?bandName:genreQuery)}`} target="_blank" rel="noreferrer"
-                    style={{ fontSize:11, padding:"4px 12px", borderRadius:99, background:"#16a34a", color:"#fff", textDecoration:"none", fontWeight:500 }}>🎸 Bandsintown</a>
-                  {isBandMode && (
-                    <a href={`https://www.ticketmaster.com/search?q=${encodeURIComponent(bandName)}`} target="_blank" rel="noreferrer"
-                      style={{ fontSize:11, padding:"4px 12px", borderRadius:99, background:"#2563eb", color:"#fff", textDecoration:"none", fontWeight:500 }}>🎟 Ticketmaster</a>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* AI Event Cards */}
-            {results.length > 0 && (
-              <>
-                <p style={{ fontSize:11, fontWeight:600, color:"#64748b", textTransform:"uppercase", letterSpacing:"1px", margin:"0 0 8px" }}>
-                  {isGenreMode ? `🎶 ${genreQuery} Events` : isBandMode ? `🎸 Shows for ${bandName}` : showFeatured ? "🎸 More Live Music Nearby" : "🎸 Live Music Events"}
-                </p>
-
-                {isLocationMode && (
+              {/* AI Event Cards */}
+              {results.length > 0 && (
+                <>
+                  <p style={{ fontSize:11, fontWeight:600, color:"#64748b", textTransform:"uppercase", letterSpacing:"1px", margin:"0 0 8px" }}>
+                    {showFeatured?"🎸 More Live Music Nearby":"🎸 Live Music Events"}
+                  </p>
                   <div style={{ background:"#fff8f0", border:"1px solid #fed7aa", borderRadius:10, padding:"10px 14px", marginBottom:12, fontSize:12, color:"#92400e" }}>
                     ⚠️ <strong>Always verify before you go</strong> — AI results may not be accurate.
                     <div style={{ display:"flex", gap:8, marginTop:8, flexWrap:"wrap" }}>
@@ -493,86 +701,62 @@ export default function App() {
                         style={{ fontSize:11, padding:"4px 12px", borderRadius:99, background:"#3b82f6", color:"#fff", textDecoration:"none", fontWeight:500 }}>🔍 Google</a>
                     </div>
                   </div>
-                )}
-
-                {results.map((r,i) => (
-                  <div key={i} style={s.card(r.genre)}>
-                    <div style={s.cardInner}>
-                      <div style={s.cardTop}>
-                        <div>
-                          <p style={s.bandName}>{r.band}</p>
-                          <p style={s.venueName}>{r.venue}</p>
+                  {results.map((r,i) => (
+                    <div key={i} style={s.card(r.genre)}>
+                      <div style={s.cardInner}>
+                        <div style={s.cardTop}>
+                          <div>
+                            <p style={s.bandName}>{r.band}</p>
+                            <p style={s.venueName}>{r.venue}</p>
+                          </div>
+                          <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4 }}>
+                            {r.genre && <span style={s.badge(r.genre)}>{r.genre}</span>}
+                            {r.confidence==="medium" && <span style={{ fontSize:9, padding:"2px 8px", borderRadius:99, background:"#fef9c3", color:"#854d0e", fontWeight:600 }}>⚠️ Unverified</span>}
+                          </div>
                         </div>
-                        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4 }}>
-                          {r.genre && <span style={s.badge(r.genre)}>{r.genre}</span>}
-                          {r.distanceMiles != null && (
-                            <span style={{ fontSize:10, padding:"2px 8px", borderRadius:99, background:"#f1f5f9", color:"#64748b", fontWeight:600 }}>
-                              📍 ~{Math.round(r.distanceMiles)} mi
-                            </span>
-                          )}
-                          {r.confidence==="medium" && (
-                            <span style={{ fontSize:9, padding:"2px 8px", borderRadius:99, background:"#fef9c3", color:"#854d0e", fontWeight:600 }}>⚠️ Unverified</span>
-                          )}
+                        <div style={s.meta}>
+                          {r.date    && <span>📅 {r.date}</span>}
+                          {r.time    && <span>🕐 {r.time}</span>}
+                          {r.address && <span>📍 {r.address}</span>}
+                          {r.notes   && <span>ℹ️ {r.notes}</span>}
+                          {r.tickets && r.tickets.startsWith("http")
+                            ? <a href={r.tickets} target="_blank" rel="noreferrer" style={{ color:"#e85d04", fontWeight:500 }}>🎟 Tickets</a>
+                            : r.tickets ? <span>🎟 {r.tickets}</span> : null}
                         </div>
+                        <button style={s.expandBtn} onClick={()=>setExpanded(expanded===i?null:i)}>
+                          {expanded===i?"▲ Hide details":"▼ Show venue & artist info"}
+                        </button>
                       </div>
-                      <div style={s.meta}>
-                        {r.date    && <span>📅 {r.date}</span>}
-                        {r.time    && <span>🕐 {r.time}</span>}
-                        {r.address && <span>📍 {r.address}</span>}
-                        {r.notes   && <span>ℹ️ {r.notes}</span>}
-                        {r.tickets && r.tickets.startsWith("http")
-                          ? <a href={r.tickets} target="_blank" rel="noreferrer" style={{ color:"#e85d04", fontWeight:500 }}>🎟 Tickets</a>
-                          : r.tickets ? <span>🎟 {r.tickets}</span> : null}
-                      </div>
-                      <button style={s.expandBtn} onClick={()=>setExpanded(expanded===i?null:i)}>
-                        {expanded===i?"▲ Hide details":"▼ Show venue & artist info"}
-                      </button>
+                      {expanded===i && (
+                        <div style={s.expandBox}>
+                          {r.venueBio && <div style={{ marginBottom:12 }}><p style={s.bioLabel}>🏠 About the Venue</p><p style={s.bioText}>{r.venueBio}</p></div>}
+                          {r.bandBio && r.bandBio.trim().length>10 && <div style={{ marginBottom:12 }}><p style={s.bioLabel}>🎤 About the Artist</p><p style={s.bioText}>{r.bandBio}</p></div>}
+                          <div style={{ borderTop:"1px solid #f1f5f9", paddingTop:10 }}>
+                            <p style={s.bioLabel}>🔍 Verify this event</p>
+                            <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginTop:6 }}>
+                              <a href={`https://www.google.com/search?q=${encodeURIComponent((r.band||"")+" "+(r.venue||""))}`} target="_blank" rel="noreferrer"
+                                style={{ fontSize:11, padding:"4px 10px", borderRadius:99, background:"#3b82f6", color:"#fff", textDecoration:"none" }}>🔍 Google</a>
+                              <a href={`https://www.songkick.com/search?query=${encodeURIComponent(r.band||"")}`} target="_blank" rel="noreferrer"
+                                style={{ fontSize:11, padding:"4px 10px", borderRadius:99, background:"#f97316", color:"#fff", textDecoration:"none" }}>🎵 Songkick</a>
+                              <a href={`https://www.bandsintown.com/search?query=${encodeURIComponent(r.band||"")}`} target="_blank" rel="noreferrer"
+                                style={{ fontSize:11, padding:"4px 10px", borderRadius:99, background:"#16a34a", color:"#fff", textDecoration:"none" }}>🎸 Bandsintown</a>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    {expanded===i && (
-                      <div style={s.expandBox}>
-                        {r.venueBio && (
-                          <div style={{ marginBottom:12 }}>
-                            <p style={s.bioLabel}>🏠 About the Venue</p>
-                            <p style={s.bioText}>{r.venueBio}</p>
-                          </div>
-                        )}
-                        {r.bandBio && r.bandBio.trim().length > 10 && (
-                          <div style={{ marginBottom:12 }}>
-                            <p style={s.bioLabel}>🎤 About the Artist</p>
-                            <p style={s.bioText}>{r.bandBio}</p>
-                          </div>
-                        )}
-                        <div style={{ borderTop:"1px solid #f1f5f9", paddingTop:10 }}>
-                          <p style={s.bioLabel}>🔍 Verify this event</p>
-                          <p style={{ fontSize:12, color:"#94a3b8", margin:"0 0 8px", lineHeight:1.5 }}>
-                            {r.confidence==="high"
-                              ? "High confidence — still confirm with the venue before heading out."
-                              : "AI suggestion based on typical schedules. Please verify directly."}
-                          </p>
-                          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                            <a href={`https://www.google.com/search?q=${encodeURIComponent((r.band||"")+" "+(r.venue||""))}`} target="_blank" rel="noreferrer"
-                              style={{ fontSize:11, padding:"4px 10px", borderRadius:99, background:"#3b82f6", color:"#fff", textDecoration:"none" }}>🔍 Google</a>
-                            <a href={`https://www.songkick.com/search?query=${encodeURIComponent(r.band||"")}`} target="_blank" rel="noreferrer"
-                              style={{ fontSize:11, padding:"4px 10px", borderRadius:99, background:"#f97316", color:"#fff", textDecoration:"none" }}>🎵 Songkick</a>
-                            <a href={`https://www.bandsintown.com/search?query=${encodeURIComponent(r.band||"")}`} target="_blank" rel="noreferrer"
-                              style={{ fontSize:11, padding:"4px 10px", borderRadius:99, background:"#16a34a", color:"#fff", textDecoration:"none" }}>🎸 Bandsintown</a>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </>
-            )}
+                  ))}
+                </>
+              )}
+              {results.length===0 && !showFeatured && (
+                <p style={{ fontSize:13, color:"#64748b", padding:"1rem 0" }}>No events found. Try expanding the radius or check Songkick / Bandsintown directly.</p>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
-            {results.length === 0 && !showFeatured && (
-              <p style={{ fontSize:13, color:"#64748b", padding:"1rem 0" }}>No events found. Try expanding the radius or check Songkick / Bandsintown directly.</p>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Nearby Bars & Restaurants — location mode only */}
+      {/* ── Nearby Bars & Restaurants (Location mode) ── */}
       {isLocationMode && (localLoading || localVenues !== null || localError) && (
         <div style={{ background:"#fff", borderTop:"1px solid #e2e8f0", padding:"1.25rem 1.5rem" }}>
           <p style={{ fontSize:12, fontWeight:600, color:"#e85d04", textTransform:"uppercase", letterSpacing:"1px", margin:"0 0 6px" }}>🍺 Nearby Bars & Restaurants</p>
@@ -584,11 +768,11 @@ export default function App() {
           )}
           {localError && <div style={{ fontSize:12, color:"#dc2626", marginTop:8 }}>{localError}</div>}
           {localVenues !== null && !localLoading && (
-            localVenues.length === 0
+            localVenues.length===0
               ? <p style={{ fontSize:13, color:"#64748b", margin:"8px 0" }}>No venues found nearby.</p>
               : <>
                   <p style={{ fontSize:11, color:"#94a3b8", margin:"0 0 10px" }}>
-                    Found {localVenues.length} venues • Sorted by music likelihood • Tap "Scan Site" to check for events
+                    Found {localVenues.length} venues • Sorted by music likelihood • Tap "Scan Site" to check for real events
                   </p>
                   {localVenues.map((v,vi) => {
                     const scoreColor = v.musicScore==="high"?"#16a34a": v.musicScore==="medium"?"#d97706":"#94a3b8";
@@ -597,20 +781,16 @@ export default function App() {
                     const scanned    = scannedVenues[v.website];
                     return (
                       <div key={vi} style={{ background:"#f8fafc", borderRadius:14, padding:"14px 16px", marginBottom:10, border:"1px solid #e2e8f0", borderLeft:`4px solid ${scoreColor}` }}>
-                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
-                          <div style={{ flex:1 }}>
-                            <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:2 }}>
-                              <p style={{ fontWeight:700, fontSize:15, margin:0, color:"#0f172a" }}>{v.name}</p>
-                              <span style={{ fontSize:10, padding:"2px 8px", borderRadius:99, background:scoreColor+"22", color:scoreColor, fontWeight:600 }}>{scoreLabel}</span>
-                              {v.isOpen===true  && <span style={{ fontSize:10, padding:"2px 8px", borderRadius:99, background:"#dcfce7", color:"#16a34a", fontWeight:600 }}>Open Now</span>}
-                              {v.isOpen===false && <span style={{ fontSize:10, padding:"2px 8px", borderRadius:99, background:"#fee2e2", color:"#dc2626", fontWeight:600 }}>Closed</span>}
-                            </div>
-                            <p style={{ fontSize:11, color:"#94a3b8", margin:"0 0 2px" }}>📍 {v.address}</p>
-                            {v.rating && <p style={{ fontSize:11, color:"#94a3b8", margin:0 }}>⭐ {v.rating} ({v.totalRatings?.toLocaleString()} reviews)</p>}
-                            {v.summary && <p style={{ fontSize:12, color:"#64748b", margin:"4px 0 0", fontStyle:"italic" }}>{v.summary}</p>}
-                          </div>
+                        <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:4 }}>
+                          <p style={{ fontWeight:700, fontSize:15, margin:0, color:"#0f172a" }}>{v.name}</p>
+                          <span style={{ fontSize:10, padding:"2px 8px", borderRadius:99, background:scoreColor+"22", color:scoreColor, fontWeight:600 }}>{scoreLabel}</span>
+                          {v.isOpen===true  && <span style={{ fontSize:10, padding:"2px 8px", borderRadius:99, background:"#dcfce7", color:"#16a34a", fontWeight:600 }}>Open Now</span>}
+                          {v.isOpen===false && <span style={{ fontSize:10, padding:"2px 8px", borderRadius:99, background:"#fee2e2", color:"#dc2626", fontWeight:600 }}>Closed</span>}
                         </div>
-                        <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginTop:8 }}>
+                        <p style={{ fontSize:11, color:"#94a3b8", margin:"0 0 2px" }}>📍 {v.address}</p>
+                        {v.rating && <p style={{ fontSize:11, color:"#94a3b8", margin:"0 0 6px" }}>⭐ {v.rating} ({v.totalRatings?.toLocaleString()} reviews)</p>}
+                        {v.summary && <p style={{ fontSize:12, color:"#64748b", margin:"0 0 8px", fontStyle:"italic" }}>{v.summary}</p>}
+                        <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                           {v.website && (
                             <button onClick={()=>scrapeVenue(v.website)} disabled={isScanning}
                               style={{ fontSize:11, padding:"5px 12px", borderRadius:99, background:isScanning?"#e2e8f0":"#e85d04", color:isScanning?"#94a3b8":"#fff", border:"none", cursor:isScanning?"default":"pointer", fontWeight:500 }}>
@@ -622,28 +802,11 @@ export default function App() {
                             style={{ fontSize:11, padding:"5px 12px", borderRadius:99, background:"#f1f5f9", color:"#64748b", textDecoration:"none", border:"0.5px solid #e2e8f0" }}>
                             🌐 Search Events
                           </a>
-                          {v.website && (
-                            <a href={v.website} target="_blank" rel="noreferrer"
-                              style={{ fontSize:11, padding:"5px 12px", borderRadius:99, background:"#f1f5f9", color:"#64748b", textDecoration:"none", border:"0.5px solid #e2e8f0" }}>
-                              🌍 Visit Site
-                            </a>
-                          )}
-                          {v.instagram && (
-                            <a href={v.instagram} target="_blank" rel="noreferrer"
-                              style={{ fontSize:11, padding:"5px 12px", borderRadius:99, background:"#f1f5f9", color:"#c026d3", textDecoration:"none", border:"0.5px solid #e2e8f0" }}>
-                              📸 Instagram
-                            </a>
-                          )}
-                          {v.facebook && (
-                            <a href={v.facebook} target="_blank" rel="noreferrer"
-                              style={{ fontSize:11, padding:"5px 12px", borderRadius:99, background:"#f1f5f9", color:"#1d4ed8", textDecoration:"none", border:"0.5px solid #e2e8f0" }}>
-                              👍 Facebook
-                            </a>
-                          )}
+                          {v.website && <a href={v.website} target="_blank" rel="noreferrer" style={{ fontSize:11, padding:"5px 12px", borderRadius:99, background:"#f1f5f9", color:"#64748b", textDecoration:"none", border:"0.5px solid #e2e8f0" }}>🌍 Visit Site</a>}
+                          {v.instagram && <a href={v.instagram} target="_blank" rel="noreferrer" style={{ fontSize:11, padding:"5px 12px", borderRadius:99, background:"#f1f5f9", color:"#c026d3", textDecoration:"none", border:"0.5px solid #e2e8f0" }}>📸 Instagram</a>}
+                          {v.facebook  && <a href={v.facebook}  target="_blank" rel="noreferrer" style={{ fontSize:11, padding:"5px 12px", borderRadius:99, background:"#f1f5f9", color:"#1d4ed8", textDecoration:"none", border:"0.5px solid #e2e8f0" }}>👍 Facebook</a>}
                         </div>
-
-                        {/* Pre-loaded venue events */}
-                        {v.events && v.events.length > 0 && !scanned && (
+                        {v.events && v.events.length>0 && !scanned && (
                           <div style={{ marginTop:10 }}>
                             <p style={{ fontSize:11, fontWeight:600, color:"#16a34a", margin:"0 0 6px" }}>✓ Live events found on their website:</p>
                             {v.events.map((e,ei) => (
@@ -658,11 +821,9 @@ export default function App() {
                             ))}
                           </div>
                         )}
-
-                        {/* On-demand scanned events */}
-                        {scanned !== undefined && (
+                        {scanned!==undefined && (
                           <div style={{ marginTop:10 }}>
-                            {scanned.length === 0
+                            {scanned.length===0
                               ? <p style={{ fontSize:12, color:"#94a3b8", margin:0 }}>No event pages found on this site.</p>
                               : <>
                                   <p style={{ fontSize:11, fontWeight:600, color:"#16a34a", margin:"0 0 6px" }}>✓ Live events found on their website:</p>
