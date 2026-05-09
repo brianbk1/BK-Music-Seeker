@@ -2,29 +2,27 @@ export async function POST(req) {
   try {
     const { url } = await req.json();
 
-    // Common event page paths — tried in priority order, with AND without trailing slash
-    const EVENT_PATHS = [
-      "/live-music/", "/live-music",
-      "/music-events/", "/music-events",
-      "/entertainment/", "/entertainment",
-      "/events/", "/events",
-      "/music/", "/music",
-      "/calendar/", "/calendar",
-      "/shows/", "/shows",
-      "/whats-on/", "/whats-on",
-      "/schedule/", "/schedule",
-      "/band-schedule/", "/band-schedule",
-      "/performances/", "/performances",
-      "/live/", "/live",
-      "/gigs/", "/gigs",
-      "/concerts/", "/concerts",
+    // Keywords that suggest a URL or link text is event-related
+    const URL_EVENT_KEYWORDS = [
+      "music", "event", "entertainment", "calendar", "show", "schedule",
+      "live", "band", "gig", "concert", "perform", "whats-on", "what-on",
+      "lineup", "upcoming", "tonight", "weekend", "ticket",
     ];
 
-    const fetchAndClean = async (fetchUrl) => {
+    // Keywords that suggest page CONTENT has event listings
+    const CONTENT_EVENT_KEYWORDS = [
+      "band", "live music", "entertainment", "show", "perform",
+      "schedule", "event", "pm", "doors open", "tickets", "admission",
+      "cover charge", "dj", "acoustic", "karaoke", "open mic",
+      "tonight", "this weekend", "upcoming", "lineup",
+    ];
+
+    const fetchPage = async (fetchUrl) => {
       try {
         const res = await fetch(fetchUrl, {
           headers: { "User-Agent": "Mozilla/5.0 (compatible; BBKMusicSeeker/1.0)" },
           signal: AbortSignal.timeout(7000),
+          redirect: "follow",
         });
         if (!res.ok) return null;
         const html = await res.text();
@@ -40,96 +38,85 @@ export async function POST(req) {
       }
     };
 
-    const scoreEventContent = (text) => {
-      const lower = text.toLowerCase();
-      return [
-        "band", "live music", "entertainment", "show", "perform",
-        "schedule", "event", "tonight", "this weekend", "pm",
-        "doors open", "tickets", "admission", "cover charge",
-        "dj", "acoustic", "karaoke", "open mic",
-      ].filter(kw => lower.includes(kw)).length;
+    const scoreUrl = (href, anchorText = "") => {
+      const combined = (href + " " + anchorText).toLowerCase();
+      return URL_EVENT_KEYWORDS.filter(kw => combined.includes(kw)).length;
     };
 
-    const baseUrl = new URL(url).origin;
-    let bestText = null;
-    let bestScore = 0;
-    let foundEventPage = false;
+    const scoreContent = (text) => {
+      const lower = text.toLowerCase();
+      return CONTENT_EVENT_KEYWORDS.filter(kw => lower.includes(kw)).length;
+    };
 
-    // Step 1: Try all common event paths FIRST (highest priority, most reliable)
-    for (const path of EVENT_PATHS) {
-      const candidateUrl = baseUrl + path;
-      if (candidateUrl === url) continue;
+    // ── Step 1: Fetch the starting URL ────────────────────────────────────────
+    const startPage = await fetchPage(url);
+    if (!startPage) {
+      return Response.json({ error: { message: "Could not fetch page" } });
+    }
+
+    const baseUrl = new URL(url).origin;
+
+    // ── Step 2: Score the starting page itself ────────────────────────────────
+    const startScore = scoreContent(startPage.text);
+    let bestText = startPage.text.slice(0, 12000);
+    let bestScore = startScore;
+    let foundEventPage = startScore >= 4;
+
+    // ── Step 3: Extract and score ALL internal links from the page ────────────
+    // Pull href + anchor text together for better scoring
+    const linkPattern = /<a[^>]+href=["']([^"'#?][^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi;
+    const candidates = new Map(); // url → score
+    let match;
+
+    while ((match = linkPattern.exec(startPage.html)) !== null) {
+      let href = match[1].trim();
+      const anchorText = match[2].replace(/<[^>]+>/g, "").trim();
+
+      // Normalize to absolute URL
       try {
-        const result = await fetchAndClean(candidateUrl);
-        if (!result) continue;
-        const score = scoreEventContent(result.text);
-        if (score >= 3 && score > bestScore) {
-          bestText = result.text.slice(0, 12000);
-          bestScore = score;
-          foundEventPage = true;
-          if (score >= 6) break; // Good enough, stop searching
+        if (href.startsWith("//")) href = "https:" + href;
+        else if (href.startsWith("/")) href = baseUrl + href;
+        else if (!href.startsWith("http")) continue;
+
+        const parsed = new URL(href);
+        // Only follow same-domain links
+        if (parsed.origin !== baseUrl) continue;
+        // Skip obvious non-event pages
+        if (/\.(jpg|jpeg|png|gif|pdf|zip|css|js|svg|ico)$/i.test(parsed.pathname)) continue;
+        if (/\/(wp-admin|wp-login|wp-json|feed|rss|sitemap|privacy|terms|contact|about|menu|food|drink|order|gift|merch|partner)/i.test(parsed.pathname)) continue;
+
+        const score = scoreUrl(parsed.pathname, anchorText);
+        if (score > 0) {
+          // Keep highest score per URL
+          candidates.set(href, Math.max(candidates.get(href) || 0, score));
         }
       } catch { continue; }
     }
 
-    // Step 2: Fetch the provided URL (homepage) and scan for event links
-    const initial = await fetchAndClean(url);
-    if (!initial && !bestText) {
-      return Response.json({ error: { message: "Could not fetch page" } });
-    }
+    // ── Step 4: Sort candidates by score, fetch top ones ─────────────────────
+    const sorted = [...candidates.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8); // check up to 8 most promising links
 
-    // If we already found a great event page, skip link scanning
-    if (!foundEventPage && initial) {
-      // If the URL itself looks like an event page, score it
-      const urlScore = scoreEventContent(initial.text);
-      if (urlScore >= 3) {
-        bestText = initial.text.slice(0, 12000);
-        bestScore = urlScore;
-        foundEventPage = true;
-      }
+    for (const [candidateUrl, urlScore] of sorted) {
+      if (candidateUrl === url) continue;
+      try {
+        const page = await fetchPage(candidateUrl);
+        if (!page) continue;
 
-      if (!foundEventPage) {
-        // Scan homepage HTML for event/music page links
-        const linkPattern = /href=["']([^"']*(?:music|event|entertainment|calendar|shows?|schedule|live|band|gig|concert|perform)[^"']*)["']/gi;
-        const discoveredLinks = new Set();
-        let match;
+        const contentScore = scoreContent(page.text);
+        const totalScore = urlScore + contentScore;
 
-        while ((match = linkPattern.exec(initial.html)) !== null) {
-          let href = match[1];
-          if (href.startsWith("/")) href = baseUrl + href;
-          else if (!href.startsWith("http")) continue;
-          if (new URL(href).origin === baseUrl) {
-            discoveredLinks.add(href);
-          }
+        if (contentScore >= 3 && totalScore > bestScore) {
+          bestText = page.text.slice(0, 12000);
+          bestScore = totalScore;
+          foundEventPage = true;
+          if (totalScore >= 10) break; // Very confident — stop early
         }
-
-        for (const candidateUrl of discoveredLinks) {
-          if (candidateUrl === url) continue;
-          try {
-            const result = await fetchAndClean(candidateUrl);
-            if (!result) continue;
-            const score = scoreEventContent(result.text);
-            if (score >= 3 && score > bestScore) {
-              bestText = result.text.slice(0, 12000);
-              bestScore = score;
-              foundEventPage = true;
-              if (score >= 6) break;
-            }
-          } catch { continue; }
-        }
-      }
+      } catch { continue; }
     }
 
-    // Step 3: Fall back to homepage text if nothing better found
-    if (!bestText && initial) {
-      bestText = initial.text.slice(0, 12000);
-    }
-
-    if (!bestText) {
-      return Response.json({ events: [], foundEventPage: false });
-    }
-
-    // Step 4: Send to Claude to extract events
+    // ── Step 5: Send best page to Claude ─────────────────────────────────────
     const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
