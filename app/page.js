@@ -14,7 +14,7 @@ const STATION142_EVENTS = [
 const today = new Date(); today.setHours(0,0,0,0);
 
 const WC_ZIPS = ["19380","19381","19382","19383","west chester","westchester"];
-const isWestChester = (q) => WC_ZIPS.some(z => q.toLowerCase().includes(z));
+const isWestChester = (q) => q && WC_ZIPS.some(z => q.toLowerCase().includes(z));
 const DATE_FILTERS = ["Today", "This Weekend", "Next 7 Days"];
 const GENRE_COLORS = {
   Rock:"#e85d04", Jazz:"#1D9E75", Country:"#BA7517", Pop:"#D4537E",
@@ -75,7 +75,7 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           system: SYSTEM_PROMPT,
-          messages: [{ role: "user", content: `Find live music events near: "${sq}" for ${getDateRange(dateFilter)}.` }],
+          messages: [{ role: "user", content: `Find live music events near or at: "${sq}" for ${getDateRange(dateFilter)}. This could be a zip code, city, neighborhood, or a specific venue or restaurant name. If it is a specific venue, focus results on that venue and nearby venues in the same area.` }],
         }),
       });
       const data = await res.json();
@@ -247,11 +247,33 @@ export default function App() {
                       </div>
                     )}
                     {r.bandBio && r.bandBio.trim().length>10 && (
-                      <div>
+                      <div style={{marginBottom:12}}>
                         <p style={styles.bioLabel}>🎤 About the Artist</p>
                         <p style={styles.bioText}>{r.bandBio}</p>
                       </div>
                     )}
+                    <div style={{borderTop:"1px solid #f1f5f9",paddingTop:10,marginTop:4}}>
+                      <p style={styles.bioLabel}>🔍 How we found this</p>
+                      <p style={{fontSize:12,color:"#94a3b8",margin:"0 0 8px",lineHeight:1.5}}>
+                        {r.confidence === "high"
+                          ? "This event was identified from Claude's training data with high confidence. Still, always confirm with the venue before heading out."
+                          : "This is an AI-suggested event based on typical schedules for this venue. It may not be accurate — please verify directly."}
+                      </p>
+                      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                        <a href={`https://www.google.com/search?q=${encodeURIComponent(r.band+" "+r.venue)}`} target="_blank" rel="noreferrer"
+                          style={{fontSize:11,padding:"4px 10px",borderRadius:99,background:"#3b82f6",color:"#fff",textDecoration:"none"}}>
+                          🔍 Google this event
+                        </a>
+                        <a href={`https://www.songkick.com/search?query=${encodeURIComponent(r.band)}`} target="_blank" rel="noreferrer"
+                          style={{fontSize:11,padding:"4px 10px",borderRadius:99,background:"#f97316",color:"#fff",textDecoration:"none"}}>
+                          🎵 Find on Songkick
+                        </a>
+                        <a href={`https://www.bandsintown.com/search?query=${encodeURIComponent(r.band)}`} target="_blank" rel="noreferrer"
+                          style={{fontSize:11,padding:"4px 10px",borderRadius:99,background:"#16a34a",color:"#fff",textDecoration:"none"}}>
+                          🎸 Find on Bandsintown
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
