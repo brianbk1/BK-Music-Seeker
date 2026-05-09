@@ -85,7 +85,16 @@ export default function App() {
     const sq = (q || query).trim();
     if (!sq) return;
     setLoading(true); setError(""); setResults(null); setSearched(sq); setExpanded(null);
-    setShowFeatured(isWestChester(sq));
+    const wc = isWestChester(sq);
+    setShowFeatured(wc);
+
+    // For West Chester, skip AI and just show featured venues + scraper
+    if (wc) {
+      setResults([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/search", {
         method: "POST",
@@ -212,20 +221,8 @@ export default function App() {
           </div>
         )}
 
-        {results !== null && !loading && results.length === 0 && (
-          <div style={{textAlign:"center",padding:"2.5rem 0",color:"#64748b"}}>
-            <div style={{fontSize:32,marginBottom:8}}>🔇</div>
-            <div>No events found near <strong>"{searched}"</strong>. Try a different location or date range.</div>
-          </div>
-        )}
-
-        {results && results.length > 0 && !loading && (
+        {results !== null && !loading && (
           <>
-            <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 12px",fontStyle:"italic"}}>
-              {results.length} event{results.length!==1?"s":""} near "{searched}" • {dateFilter} • Verify with venues directly
-            </p>
-
-            {/* Featured Venues */}
             {showFeatured && (
               <div style={{marginBottom:16}}>
                 <p style={{fontSize:11,fontWeight:600,color:"#e85d04",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 8px"}}>⭐ Featured West Chester Venues</p>
@@ -243,12 +240,14 @@ export default function App() {
                     </div>
                   ))}
                 </div>
+                <div style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:10,padding:"10px 14px",marginTop:12,fontSize:12,color:"#166534"}}>
+                  💡 <strong>Tip:</strong> Use the <strong>"Check a Venue's Event Page"</strong> section below to scan Pietro's or Station 142's website for their live schedule!
+                </div>
               </div>
             )}
 
-            <p style={{fontSize:11,fontWeight:600,color:"#64748b",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 8px"}}>
-              {showFeatured ? "🎸 More Live Music Nearby" : "🎸 Live Music Events"}
-            </p>
+            {results.length > 0 && (
+              <>
 
             {/* Verify bar */}
             <div style={{background:"#fff8f0",border:"1px solid #fed7aa",borderRadius:10,padding:"10px 14px",marginBottom:12,fontSize:12,color:"#92400e"}}>
@@ -327,6 +326,8 @@ export default function App() {
                 )}
               </div>
             ))}
+            </>
+            )}
           </>
         )}
       </div>
