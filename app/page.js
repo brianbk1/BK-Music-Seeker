@@ -88,10 +88,14 @@ export default function App() {
     const sq = (q || query).trim();
     if (!sq) return;
     setLoading(true); setError(""); setResults(null); setSearched(sq); setExpanded(null);
+    setLocalVenues(null); setLocalError("");
     const wc = isWestChester(sq);
     setShowFeatured(wc);
 
-    // For West Chester, skip AI and just show featured venues + scraper
+    // Always kick off local venue search in parallel
+    findLocalVenues(sq);
+
+    // For West Chester, skip AI results
     if (wc) {
       setResults([]);
       setLoading(false);
@@ -352,33 +356,22 @@ export default function App() {
         )}
       </div>
 
-      {/* Local Venue Finder */}
+      {/* Local Venue Finder - auto triggered by search */}
+      {(localLoading || localVenues !== null || localError) && (
       <div style={{background:"#fff",borderTop:"1px solid #e2e8f0",padding:"1.25rem 1.5rem"}}>
-        <p style={{fontSize:12,fontWeight:600,color:"#e85d04",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 6px"}}>🍺 Find Local Restaurant & Bar Events</p>
-        <p style={{fontSize:12,color:"#64748b",margin:"0 0 10px"}}>We'll search bars and restaurants near your location, check their websites for live music pages, and return real events.</p>
-        <div style={{display:"flex",gap:8,marginBottom:8}}>
-          <input type="text" value={query} readOnly
-            style={{flex:1,fontSize:13,borderRadius:10,padding:"8px 12px",border:"1px solid #e2e8f0",background:"#f8fafc",color:"#64748b"}}
-            placeholder="Search a location above first…"
-          />
-          <button onClick={()=>findLocalVenues()} disabled={localLoading||(!searched&&!query.trim())}
-            style={{padding:"0 16px",fontSize:13,fontWeight:500,borderRadius:10,border:"none",
-              background:localLoading||(!searched&&!query.trim())?"#e2e8f0":"#e85d04",
-              color:localLoading||(!searched&&!query.trim())?"#94a3b8":"#fff",
-              cursor:localLoading||(!searched&&!query.trim())?"default":"pointer",whiteSpace:"nowrap"}}>
-            {localLoading?"Searching…":"Find Venue Events"}
-          </button>
-        </div>
+        <p style={{fontSize:12,fontWeight:600,color:"#e85d04",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 6px"}}>🍺 Local Restaurant & Bar Events</p>
+        <p style={{fontSize:12,color:"#64748b",margin:"0 0 10px"}}>Scanning nearby venue websites for live music pages…</p>
+
         {localLoading && (
-          <div style={{fontSize:13,color:"#64748b",padding:"12px 0"}}>
-            <div style={{marginBottom:4}}>🔍 Finding bars & restaurants nearby…</div>
-            <div style={{fontSize:11,color:"#94a3b8"}}>Checking each venue's website for live music pages. This may take 20–30 seconds.</div>
+          <div style={{fontSize:13,color:"#64748b",padding:"8px 0"}}>
+            <div style={{marginBottom:4}}>🔍 Checking venue websites nearby…</div>
+            <div style={{fontSize:11,color:"#94a3b8"}}>This may take 20–30 seconds.</div>
           </div>
         )}
         {localError && <div style={{fontSize:12,color:"#dc2626",marginTop:8}}>{localError}</div>}
         {localVenues !== null && !localLoading && (
           localVenues.length === 0
-            ? <p style={{fontSize:13,color:"#64748b",margin:"8px 0"}}>No venue event pages found nearby. Try the manual URL scanner below.</p>
+            ? <p style={{fontSize:13,color:"#64748b",margin:"8px 0"}}>No venue event pages found nearby. Try the URL scanner below.</p>
             : <div style={{marginTop:10}}>
                 <p style={{fontSize:11,color:"#16a34a",fontWeight:600,margin:"0 0 10px"}}>✓ Found live music at {localVenues.length} venue{localVenues.length!==1?"s":""} — pulled directly from their websites!</p>
                 {localVenues.map((v,vi)=>(
@@ -408,6 +401,7 @@ export default function App() {
               </div>
         )}
       </div>
+      )}
 
       {/* Venue Scraper */}
       <div style={{background:"#f8fafc",borderTop:"1px solid #e2e8f0",padding:"1.25rem 1.5rem"}}>
