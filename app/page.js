@@ -204,7 +204,7 @@ export default function App() {
       {/* Hero */}
       <div style={{background:"linear-gradient(135deg,#e85d04 0%,#c44a00 100%)", textAlign:"center", padding:"12px 0 0"}}>
         <p style={{margin:"0 0 8px", fontSize:11, color:"rgba(255,255,255,0.85)", letterSpacing:"2px", textTransform:"uppercase"}}>Find live music anywhere</p>
-        <img src="/hero.png" alt="" style={{width:"100%", display:"block", objectFit:"cover", maxHeight:220}} />
+        <img src="/hero.png" alt="" style={{width:"100%", display:"block", objectFit:"cover", objectPosition:"center top", maxHeight:220}} />
       </div>
 
       {/* Search */}
