@@ -291,14 +291,14 @@ function BandPicker({ bands, loading, onSelect }) {
 function BandResultsPanel({ band, location, radius, bandVenues, bandVenuesLoading, bandVenuesError, bandScanningVenue, bandScannedVenues, onFindVenues, onScrape, onChangeBand }) {
   const enc = encodeURIComponent(band.name);
   const links = [
-    { label: "🔍 Google Shows",  desc: `"${band.name} upcoming shows"`,      href: `https://www.google.com/search?q=${enc}+upcoming+shows+2026`,                    color: "#fff", bg: "#374151" },
-    { label: "▶️ YouTube",       desc: "Live performances & videos",         href: `https://www.youtube.com/results?search_query=${enc}+live`,                       color: "#fff", bg: "#dc2626" },
-    { label: "📸 Instagram",     desc: "Show announcements & stories",       href: `https://www.instagram.com/explore/search/keyword/?q=${enc}`,                     color: "#fff", bg: "#c026d3" },
-    { label: "👍 Facebook",      desc: "Events & band page",                 href: `https://www.facebook.com/search/events/?q=${enc}`,                              color: "#fff", bg: "#1877f2" },
-    { label: "🎟 Ticketmaster",  desc: "Tickets for larger venues",          href: `https://www.ticketmaster.com/search?q=${enc}`,                                   color: "#fff", bg: "#2563eb" },
-    { label: "🎸 Bandsintown",   desc: "Show alerts & listings",             href: `https://www.bandsintown.com/search?query=${enc}`,                                color: "#fff", bg: "#16a34a" },
-    { label: "🎵 Songkick",      desc: "Tour dates & ticket links",          href: `https://www.songkick.com/search?query=${enc}`,                                   color: "#fff", bg: "#f97316" },
     { label: "🌐 Their Website", desc: band.websiteHint ? `Visit ${band.websiteHint}` : "Find their official site", href: band.websiteHint || `https://www.google.com/search?q=${enc}+band+official+website`, color: "#0f172a", bg: "#f1f5f9" },
+    { label: "🎵 Songkick",      desc: "Tour dates & ticket links",          href: `https://www.songkick.com/search?query=${enc}`,                                   color: "#fff", bg: "#f97316" },
+    { label: "🎸 Bandsintown",   desc: "Show alerts & listings",             href: `https://www.bandsintown.com/search?query=${enc}`,                                color: "#fff", bg: "#16a34a" },
+    { label: "🎟 Ticketmaster",  desc: "Tickets for larger venues",          href: `https://www.ticketmaster.com/search?q=${enc}`,                                   color: "#fff", bg: "#2563eb" },
+    { label: "👍 Facebook",      desc: "Events & band page",                 href: `https://www.facebook.com/search/events/?q=${enc}`,                              color: "#fff", bg: "#1877f2" },
+    { label: "📸 Instagram",     desc: "Show announcements & stories",       href: `https://www.instagram.com/explore/search/keyword/?q=${enc}`,                     color: "#fff", bg: "#c026d3" },
+    { label: "▶️ YouTube",       desc: "Live performances & videos",         href: `https://www.youtube.com/results?search_query=${enc}+live`,                       color: "#fff", bg: "#dc2626" },
+    { label: "🔍 Google Shows",  desc: `"${band.name} upcoming shows"`,      href: `https://www.google.com/search?q=${enc}+upcoming+shows+2026`,                    color: "#fff", bg: "#374151" },
   ];
   return (
     <div style={{ padding: "0 0 1.5rem" }}>
@@ -317,15 +317,6 @@ function BandResultsPanel({ band, location, radius, bandVenues, bandVenuesLoadin
       </div>
       <div style={{ background: "#fff8f0", border: "1px solid #fed7aa", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 12, color: "#92400e" }}>
         ⚠️ AI can't reliably know band schedules — especially for local acts. Use these real sources.
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
-        {links.map((l, i) => (
-          <a key={i} href={l.href} target="_blank" rel="noreferrer"
-            style={{ display: "flex", flexDirection: "column", padding: "12px 14px", borderRadius: 12, background: l.bg, color: l.color, textDecoration: "none", border: l.bg === "#f1f5f9" ? "1px solid #e2e8f0" : "none" }}>
-            <span style={{ fontWeight: 600, fontSize: 13, marginBottom: 3 }}>{l.label}</span>
-            <span style={{ fontSize: 11, opacity: 0.8, lineHeight: 1.4 }}>{l.desc}</span>
-          </a>
-        ))}
       </div>
       <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 16 }}>
         <p style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 6px" }}>🍺 Nearby Venues Near {location}</p>
@@ -394,6 +385,18 @@ function BandResultsPanel({ band, location, radius, bandVenues, bandVenuesLoadin
                 })}
               </>
         )}
+      </div>
+      <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 16, marginTop: 4 }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 8px" }}>🔗 Find them on these sources</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {links.map((l, i) => (
+            <a key={i} href={l.href} target="_blank" rel="noreferrer"
+              style={{ display: "flex", flexDirection: "column", padding: "12px 14px", borderRadius: 12, background: l.bg, color: l.color, textDecoration: "none", border: l.bg === "#f1f5f9" ? "1px solid #e2e8f0" : "none" }}>
+              <span style={{ fontWeight: 600, fontSize: 13, marginBottom: 3 }}>{l.label}</span>
+              <span style={{ fontSize: 11, opacity: 0.8, lineHeight: 1.4 }}>{l.desc}</span>
+            </a>
+          ))}
+        </div>
       </div>
     </div>
   );
