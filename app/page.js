@@ -205,19 +205,7 @@ export default function App() {
       <div style={{position:"relative", overflow:"hidden", textAlign:"center", padding:"1.5rem"}}>
         <img src="/hero.png" alt="" style={{position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top"}} />
         <div style={{position:"absolute", inset:0, background:"linear-gradient(135deg,rgba(232,93,4,0.75) 0%,rgba(26,10,0,0.85) 100%)"}} />
-        <div style={{position:"relative", zIndex:1}}>
-          <svg width="300" height="60" viewBox="0 0 300 60" fill="none" style={{marginBottom:6}}>
-            <text x="0" y="48" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="48" fill="#fff" letterSpacing="-1">BBK</text>
-            <g transform="translate(158,6)">
-              <ellipse cx="8" cy="34" rx="7" ry="5.5" fill="#fff" transform="rotate(-15 8 34)"/>
-              <rect x="14.5" y="8" width="3" height="26" rx="1.5" fill="#fff"/>
-              <ellipse cx="28" cy="40" rx="7" ry="5.5" fill="#fff" transform="rotate(-15 28 40)"/>
-              <rect x="34.5" y="14" width="3" height="26" rx="1.5" fill="#fff"/>
-              <rect x="14.5" y="8" width="23" height="4" rx="2" fill="#fff"/>
-            </g>
-            <text x="208" y="28" fontFamily="Arial,sans-serif" fontWeight="700" fontSize="15" fill="#fff" letterSpacing="3">MUSIC</text>
-            <text x="208" y="48" fontFamily="Arial,sans-serif" fontWeight="700" fontSize="15" fill="#fff" letterSpacing="3">SEEKER</text>
-          </svg>
+        <div style={{position:"relative", zIndex:1, padding:"1rem 0"}}>
           <p style={{margin:0, fontSize:11, color:"rgba(255,255,255,0.65)", letterSpacing:"2px", textTransform:"uppercase"}}>Find live music anywhere</p>
         </div>
       </div>
