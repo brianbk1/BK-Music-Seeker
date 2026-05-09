@@ -43,7 +43,7 @@ export async function POST(req) {
     const venues = await Promise.all(unique.map(async (place) => {
       try {
         const detailRes = await fetch(
-          `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,website,formatted_address,formatted_phone_number,opening_hours,rating,user_ratings_total,types,editorial_summary,reviews&key=${apiKey}`
+          `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,website,formatted_address,formatted_phone_number,opening_hours,rating,user_ratings_total,types,editorial_summary,reviews,photos&key=${apiKey}`
         );
         const detail = await detailRes.json();
         const r = detail.result || {};
@@ -126,6 +126,11 @@ export async function POST(req) {
           } catch { /* ignore */ }
         }
 
+        // Get up to 3 photos
+        const photos = (r.photos || []).slice(0, 3).map(p =>
+          `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${p.photo_reference}&key=${apiKey}`
+        );
+
         return {
           name: r.name || place.name,
           address: r.formatted_address || place.formatted_address || "",
@@ -140,6 +145,7 @@ export async function POST(req) {
           instagram,
           facebook,
           events,
+          photos,
         };
       } catch {
         return null;

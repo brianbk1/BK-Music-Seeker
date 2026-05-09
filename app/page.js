@@ -71,7 +71,7 @@ export default function App() {
   const [localVenues, setLocalVenues] = useState(null);
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState("");
-  const [venueUrl, setVenueUrl] = useState("");
+  const [activeQuick, setActiveQuick] = useState("");
   const [venueEvents, setVenueEvents] = useState(null);
   const [venueLoading, setVenueLoading] = useState(false);
   const [venueError, setVenueError] = useState("");
@@ -105,20 +105,24 @@ export default function App() {
   };
 
   const scrapeVenue = async (url) => {
-    const target = url || venueUrl;
-    if (!target) return;
-    setVenueLoading(true); setVenueError(""); setVenueEvents(null);
+    if (!url) return;
+    setScanningVenue(url);
     try {
       const res = await fetch("/api/scrape", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: target }),
+        body: JSON.stringify({ url }),
       });
       const data = await res.json();
-      if (data.error) { setVenueError(`Error: ${data.error.message}`); return; }
-      setVenueEvents(data.events);
-    } catch(e) { setVenueError(`Error: ${e.message}`); }
-    finally { setVenueLoading(false); }
+      setScannedVenues(prev => ({
+        ...prev,
+        [url]: data.error ? [] : (data.events || [])
+      }));
+    } catch(e) {
+      setScannedVenues(prev => ({ ...prev, [url]: [] }));
+    } finally {
+      setScanningVenue(null);
+    }
   };
 
   const search = async (q) => {
@@ -378,11 +382,23 @@ export default function App() {
                             {v.summary && <p style={{fontSize:12,color:"#64748b",margin:"4px 0 0",fontStyle:"italic"}}>{v.summary}</p>}
                           </div>
                         </div>
+                        {/* Photos */}
+                        {v.photos && v.photos.length > 0 && (
+                          <div style={{display:"flex", gap:6, marginTop:10, overflowX:"auto"}}>
+                            {v.photos.map((src, pi) => (
+                              <img key={pi} src={src} alt={v.name}
+                                style={{height:90, width:130, objectFit:"cover", borderRadius:8, flexShrink:0, border:"1px solid #e2e8f0"}}
+                              />
+                            ))}
+                          </div>
+                        )}
+
                         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:8}}>
                           {v.website && (
                             <button onClick={()=>scrapeVenue(v.website)}
-                              style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#e85d04",color:"#fff",border:"none",cursor:"pointer",fontWeight:500}}>
-                              🔍 Scan Site for Events
+                              disabled={scanningVenue===v.website}
+                              style={{fontSize:11,padding:"5px 12px",borderRadius:99,background: scanningVenue===v.website?"#e2e8f0":"#e85d04",color:scanningVenue===v.website?"#94a3b8":"#fff",border:"none",cursor:scanningVenue===v.website?"default":"pointer",fontWeight:500}}>
+                              {scanningVenue===v.website?"🔍 Scanning…":"🔍 Scan Site for Events"}
                             </button>
                           )}
                           <a href={`https://www.google.com/search?q=${encodeURIComponent(v.name+" "+v.address+" live music events")}`}
@@ -426,24 +442,24 @@ export default function App() {
                             ))}
                           </div>
                         )}
-                        {/* Show scanned events inline */}
-                        {venueLoading && venueUrl===v.website && (
-                          <div style={{fontSize:12,color:"#64748b",marginTop:8}}>🔍 Scanning website…</div>
-                        )}
-                        {venueEvents && venueUrl===v.website && !venueLoading && (
+                        {/* Scanned events */}
+                        {scannedVenues[v.website] !== undefined && (
                           <div style={{marginTop:10}}>
-                            {venueEvents.length===0
+                            {scannedVenues[v.website].length === 0
                               ? <p style={{fontSize:12,color:"#94a3b8",margin:0}}>No event pages found on this site.</p>
-                              : venueEvents.map((e,ei)=>(
-                                <div key={ei} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #e85d04"}}>
-                                  <p style={{fontWeight:600,fontSize:14,margin:"0 0 4px",color:"#0f172a"}}>{e.band}</p>
-                                  <div style={{display:"flex",flexWrap:"wrap",gap:"4px 14px",fontSize:12,color:"#64748b"}}>
-                                    {e.date && <span>📅 {e.date}</span>}
-                                    {e.time && <span>🕐 {e.time}</span>}
-                                    {e.notes && <span>ℹ️ {e.notes}</span>}
-                                  </div>
-                                </div>
-                              ))
+                              : <>
+                                  <p style={{fontSize:11,fontWeight:600,color:"#16a34a",margin:"0 0 6px"}}>✓ Live events found on their website:</p>
+                                  {scannedVenues[v.website].map((e,ei)=>(
+                                    <div key={ei} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #e85d04"}}>
+                                      <p style={{fontWeight:600,fontSize:14,margin:"0 0 4px",color:"#0f172a"}}>{e.band}</p>
+                                      <div style={{display:"flex",flexWrap:"wrap",gap:"4px 14px",fontSize:12,color:"#64748b"}}>
+                                        {e.date && <span>📅 {e.date}</span>}
+                                        {e.time && <span>🕐 {e.time}</span>}
+                                        {e.notes && <span>ℹ️ {e.notes}</span>}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </>
                             }
                           </div>
                         )}
