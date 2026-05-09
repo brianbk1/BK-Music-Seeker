@@ -55,7 +55,7 @@ export default function App() {
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState("");
   const [searched, setSearched] = useState("");
-  const [expanded, setExpanded] = useState(null);
+  const [showFeatured, setShowFeatured] = useState(false);
 
   const getDateRange = (filter) => {
     const today = new Date();
@@ -69,6 +69,7 @@ export default function App() {
     const sq = (q || query).trim();
     if (!sq) return;
     setLoading(true); setError(""); setResults(null); setSearched(sq); setExpanded(null);
+    setShowFeatured(isWestChester(sq));
     try {
       const res = await fetch("/api/search", {
         method: "POST",
@@ -107,7 +108,26 @@ export default function App() {
     );
   };
 
-  const QUICK = ["19382 (West Chester)", "Sea Isle, NJ", "Kennett Square, PA", "Malvern, PA", "Phoenixville, PA", "Pocono Lake, PA"];
+  const [venueUrl, setVenueUrl] = useState("");
+  const [venueEvents, setVenueEvents] = useState(null);
+  const [venueLoading, setVenueLoading] = useState(false);
+  const [venueError, setVenueError] = useState("");
+
+  const scrapeVenue = async () => {
+    if (!venueUrl.trim()) return;
+    setVenueLoading(true); setVenueError(""); setVenueEvents(null);
+    try {
+      const res = await fetch("/api/scrape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: venueUrl.trim() }),
+      });
+      const data = await res.json();
+      if (data.error) { setVenueError(`Error: ${data.error.message}`); return; }
+      setVenueEvents(data.events);
+    } catch(e) { setVenueError(`Error: ${e.message}`); }
+    finally { setVenueLoading(false); }
+  };
 
   const styles = {
     wrap: { fontFamily:"system-ui,sans-serif", maxWidth:700, margin:"0 auto", borderRadius:20, overflow:"hidden", boxShadow:"0 4px 24px rgba(0,0,0,0.12)" },
@@ -281,6 +301,60 @@ export default function App() {
           </>
         )}
       </div>
-    </div>
-  );
-}
+      {/* Venue Website Scraper */}
+      <div style={{background:"#f8fafc",borderTop:"1px solid #e2e8f0",padding:"1.25rem 1.5rem"}}>
+        <p style={{fontSize:12,fontWeight:600,color:"#e85d04",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 6px"}}>🔗 Check a Venue's Event Page</p>
+        <p style={{fontSize:12,color:"#64748b",margin:"0 0 10px"}}>Paste any restaurant or venue's entertainment URL to extract their live music schedule directly.</p>
+        <div style={{display:"flex",gap:8,marginBottom:8}}>
+          <input type="text" value={venueUrl} onChange={e=>setVenueUrl(e.target.value)}
+            onKeyDown={e=>e.key==="Enter"&&scrapeVenue()}
+            placeholder="e.g. https://www.pietrosprime.com/entertainment"
+            style={{flex:1,fontSize:13,borderRadius:10,padding:"8px 12px",border:"1px solid #e2e8f0"}}
+          />
+          <button onClick={scrapeVenue} disabled={venueLoading||!venueUrl.trim()}
+            style={{padding:"0 16px",fontSize:13,fontWeight:500,borderRadius:10,border:"none",
+              background:venueLoading||!venueUrl.trim()?"#e2e8f0":"#e85d04",
+              color:venueLoading||!venueUrl.trim()?"#94a3b8":"#fff",cursor:venueLoading||!venueUrl.trim()?"default":"pointer"}}>
+            {venueLoading?"…":"Scan"}
+          </button>
+        </div>
+
+        {/* Quick venue buttons */}
+        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
+          {[
+            {label:"Pietro's Prime",url:"https://www.pietrosprime.com/entertainment"},
+            {label:"Station 142",url:"https://station142.com/live-music/"},
+          ].map(v=>(
+            <button key={v.label} onClick={()=>{setVenueUrl(v.url);}}
+              style={{fontSize:11,padding:"4px 12px",borderRadius:99,border:"0.5px solid #e85d04",color:"#e85d04",background:"transparent",cursor:"pointer"}}>
+              {v.label}
+            </button>
+          ))}
+        </div>
+
+        {venueError && <div style={{fontSize:12,color:"#dc2626",marginTop:8}}>{venueError}</div>}
+
+        {venueLoading && <div style={{fontSize:13,color:"#64748b",padding:"12px 0"}}>🔍 Scanning venue page...</div>}
+
+        {venueEvents !== null && !venueLoading && (
+          venueEvents.length === 0
+            ? <p style={{fontSize:13,color:"#64748b",margin:"8px 0"}}>No upcoming events found on that page.</p>
+            : <div style={{marginTop:10}}>
+                <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 8px"}}>Found {venueEvents.length} event{venueEvents.length!==1?"s":""} — pulled directly from the venue website ✓</p>
+                {venueEvents.map((e,i)=>(
+                  <div key={i} style={{background:"#fff",borderRadius:12,padding:"12px 14px",marginBottom:8,border:"1px solid #e2e8f0",borderLeft:"4px solid #e85d04"}}>
+                    <p style={{fontWeight:600,fontSize:14,margin:"0 0 2px",color:"#0f172a"}}>{e.band}</p>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:"4px 14px",fontSize:12,color:"#64748b"}}>
+                      {e.date && <span>📅 {e.date}</span>}
+                      {e.time && <span>🕐 {e.time}</span>}
+                      {e.genre && <span>🎵 {e.genre}</span>}
+                      {e.notes && <span>ℹ️ {e.notes}</span>}
+                      {e.tickets && e.tickets.startsWith("http")
+                        ? <a href={e.tickets} target="_blank" rel="noreferrer" style={{color:"#e85d04"}}>🎟 Tickets</a>
+                        : e.tickets ? <span>🎟 {e.tickets}</span> : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+        )}
+      </div>
