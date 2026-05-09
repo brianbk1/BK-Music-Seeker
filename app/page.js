@@ -36,18 +36,23 @@ const GENRE_COLORS = {
 };
 const gc = (g) => GENRE_COLORS[g] || "#e85d04";
 
-// Photo configs per venue: [outside, bar, bar]
-// Using Unsplash with stable search terms for consistent results
+// Real venue photos pulled directly from their websites
 const VENUE_PHOTOS = {
   "Pietro's Prime": [
-    { url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&h=300&fit=crop", label: "📸 Outside" },
-    { url: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&h=300&fit=crop", label: "🍸 Bar Area" },
-    { url: "https://images.unsplash.com/photo-1546171753-97d7676e4602?w=600&h=300&fit=crop", label: "🍸 Bar Area" },
+    // Outside / entrance — from Pietro's gallery (wixstatic CDN)
+    { url: "https://static.wixstatic.com/media/c229b4_6991ae3c501a428b957d18cba284bc21~mv2_d_5472_3648_s_4_2.jpg/v1/fill/w_600,h_300,al_c,q_85,usm_0.66_1.00_0.01/c229b4_6991ae3c501a428b957d18cba284bc21~mv2_d_5472_3648_s_4_2.jpg", label: "📸 Outside" },
+    // Bar / dining interior
+    { url: "https://static.wixstatic.com/media/4a2f4a_44c12976dbec43eabe684cbba8d5cd17~mv2_d_5758_3844_s_4_2.jpg/v1/fill/w_600,h_300,al_c,q_85,usm_0.66_1.00_0.01/4a2f4a_44c12976dbec43eabe684cbba8d5cd17~mv2_d_5758_3844_s_4_2.jpg", label: "🍸 Bar Area" },
+    // Bar / lounge interior
+    { url: "https://static.wixstatic.com/media/4a2f4a_9358f8d9bf2c4473bd6c5264f89c26c0~mv2_d_5541_3718_s_4_2.jpg/v1/fill/w_600,h_300,al_c,q_85,usm_0.66_1.00_0.01/4a2f4a_9358f8d9bf2c4473bd6c5264f89c26c0~mv2_d_5541_3718_s_4_2.jpg", label: "🍸 Bar Area" },
   ],
   "Station 142": [
-    { url: "https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=600&h=300&fit=crop", label: "📸 Outside" },
-    { url: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&h=300&fit=crop", label: "🍸 Bar Area" },
-    { url: "https://images.unsplash.com/photo-1567696911980-2eed69a46042?w=600&h=300&fit=crop", label: "🍸 Bar Area" },
+    // Band on stage — official OG image from station142.com
+    { url: "https://station142.com/wp-content/uploads/2025/11/station-142-band-on-stage.jpg", label: "📸 Live Stage" },
+    // Lecompt event photo — bar/venue interior
+    { url: "https://station142.com/wp-content/uploads/2025/10/lecompt-copy.jpg", label: "🍸 Bar Area" },
+    // Karaoke / venue interior night shot
+    { url: "https://station142.com/wp-content/uploads/2026/01/image2.png", label: "🍸 Bar Area" },
   ],
 };
 
