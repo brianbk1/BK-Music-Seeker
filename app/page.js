@@ -233,7 +233,7 @@ export default function App() {
       </div>
 
       {/* Results */}
-      <div style={s.results}>
+      <div style={{...s.results, minHeight:100}}>
         {error && <div style={{background:"#fee2e2",border:"0.5px solid #fca5a5",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#dc2626",marginBottom:12}}>{error}</div>}
 
         {loading && (
@@ -396,7 +396,36 @@ export default function App() {
                               🌍 Visit Site
                             </a>
                           )}
+                          {v.instagram && (
+                            <a href={v.instagram} target="_blank" rel="noreferrer"
+                              style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#c026d3",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>
+                              📸 Instagram
+                            </a>
+                          )}
+                          {v.facebook && (
+                            <a href={v.facebook} target="_blank" rel="noreferrer"
+                              style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#1d4ed8",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>
+                              👍 Facebook
+                            </a>
+                          )}
                         </div>
+
+                        {/* Auto-scraped events for high confidence venues */}
+                        {v.events && v.events.length > 0 && (
+                          <div style={{marginTop:10}}>
+                            <p style={{fontSize:11,fontWeight:600,color:"#16a34a",margin:"0 0 6px"}}>✓ Live events found on their website:</p>
+                            {v.events.map((e,ei)=>(
+                              <div key={ei} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #e85d04"}}>
+                                <p style={{fontWeight:600,fontSize:14,margin:"0 0 4px",color:"#0f172a"}}>{e.band}</p>
+                                <div style={{display:"flex",flexWrap:"wrap",gap:"4px 14px",fontSize:12,color:"#64748b"}}>
+                                  {e.date && <span>📅 {e.date}</span>}
+                                  {e.time && <span>🕐 {e.time}</span>}
+                                  {e.notes && <span>ℹ️ {e.notes}</span>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         {/* Show scanned events inline */}
                         {venueLoading && venueUrl===v.website && (
                           <div style={{fontSize:12,color:"#64748b",marginTop:8}}>🔍 Scanning website…</div>
