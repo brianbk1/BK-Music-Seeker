@@ -25,22 +25,26 @@ const gc = (g) => GENRE_COLORS[g] || "#e85d04";
 
 const SYSTEM_PROMPT = `You are a live music event finder assistant. The user will provide a location — zip code, city name, city+state, or neighborhood anywhere in the United States. You must find live music events near THAT specific location only.
 
-Generate a realistic list of live music events happening near the specified location during the date range provided. Use real, well-known venues. Return ONLY a JSON array (no markdown, no preamble) with up to 6 results. Each result should have:
+Generate a list of live music events happening near the specified location during the date range provided. ONLY include events you are highly confident actually exist at real, well-known venues. If you are not certain an event is real, do not include it. It is better to return fewer results than to fabricate events.
+
+Return ONLY a JSON array (no markdown, no preamble) with up to 6 results. Each result should have:
 - band: artist or band name
-- venue: venue name
+- venue: venue name (must be a real, verifiable venue)
 - date: day and date (e.g. "Friday, May 9")
 - time: start time (e.g. "8:00 PM")
 - genre: music genre
 - address: full venue address including city and state
-- tickets: "Check venue website" or "Free"
+- tickets: "Check venue website" or "Free" or a real ticket URL
 - notes: extra info
 - venueBio: 2-sentence description of the venue including atmosphere and address
 - bandBio: 2-sentence description of the band or artist and their style — ONLY include this if you have real knowledge of the artist, otherwise return an empty string ""
+- confidence: "high" if you are certain this event is real, "medium" if you believe it is likely but not certain
 
 CRITICAL RULES:
 1. ONLY return venues near the EXACT location specified. Never default to West Chester PA.
 2. Do NOT include Pietro's Prime or Station 142 — handled separately.
-3. Match the geographic area accurately. City+state works fine.
+3. Match the geographic area accurately.
+4. Never fabricate events. Only include what you are reasonably confident is real.
 Return ONLY valid JSON array, nothing else.`;
 
 export default function App() {
@@ -202,7 +206,12 @@ export default function App() {
                       <p style={styles.bandName}>{r.band}</p>
                       <p style={styles.venueName}>{r.venue}</p>
                     </div>
-                    {r.genre && <span style={styles.genreBadge(r.genre)}>{r.genre}</span>}
+                    <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4}}>
+                      {r.genre && <span style={styles.genreBadge(r.genre)}>{r.genre}</span>}
+                      {r.confidence === "medium" && (
+                        <span style={{fontSize:9,padding:"2px 8px",borderRadius:99,background:"#fef9c3",color:"#854d0e",fontWeight:600}}>⚠️ Unverified</span>
+                      )}
+                    </div>
                   </div>
                   <div style={styles.meta}>
                     {r.date && <span>📅 {r.date}</span>}
