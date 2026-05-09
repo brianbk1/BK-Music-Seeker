@@ -563,13 +563,14 @@ export default function App() {
     return JSON.parse(match[0]);
   };
 
-  const scrapeVenue = async (url, setScanning, setScanned) => {
+  const scrapeVenue = async (url, setScanning, setScanned, venueName, venueAddress) => {
     setScanning(url);
     try {
-      const res = await fetch("/api/scrape", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});
+      const res = await fetch("/api/scrape", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url, venueName, venueAddress})});
       const data = await res.json();
-      setScanned(prev => ({...prev,[url]: data.error?[]:(data.events||[])}));
-    } catch { setScanned(prev=>({...prev,[url]:[]})); }
+      // Store full result including fallback links and JS detection
+      setScanned(prev => ({...prev,[url]: data.error ? { events:[], error: data.error.message } : { events: data.events||[], fallbackLinks: data.fallbackLinks, isJsRendered: data.isJsRendered }}));
+    } catch(e) { setScanned(prev=>({...prev,[url]:{ events:[], error: e.message }})); }
     finally { setScanning(null); }
   };
 
@@ -918,7 +919,7 @@ export default function App() {
                     )}
                     <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>
                       {v.website&&(
-                        <button onClick={()=>scrapeVenue(v.website,setScanningVenue,setScannedVenues)} disabled={isScanning}
+                        <button onClick={()=>scrapeVenue(v.website,setScanningVenue,setScannedVenues,v.name,v.address)} disabled={isScanning}
                           style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:isScanning?"#e2e8f0":"#e85d04",color:isScanning?"#94a3b8":"#fff",border:"none",cursor:isScanning?"default":"pointer",fontWeight:500}}>
                           {isScanning?"🔍 Scanning…":"🔍 Scan Site for Events"}
                         </button>
@@ -943,13 +944,21 @@ export default function App() {
                         ))}
                       </div>
                     )}
+                    {/* If no pre-loaded events and not yet scanned, show a hint */}
+                    {(!v.events || v.events.length===0) && !scanned && (
+                      <div style={{marginTop:6,display:"flex",gap:6,flexWrap:"wrap"}}>
+                        <a href={"https://www.google.com/search?q="+encodeURIComponent(v.name+" "+v.address+" live music events schedule")} target="_blank" rel="noreferrer"
+                          style={{fontSize:11,padding:"4px 10px",borderRadius:99,background:"#f1f5f9",color:"#374151",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>🔍 Search their events</a>
+                        <a href={"https://www.facebook.com/search/pages/?q="+encodeURIComponent(v.name)} target="_blank" rel="noreferrer"
+                          style={{fontSize:11,padding:"4px 10px",borderRadius:99,background:"#f1f5f9",color:"#1877f2",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>👍 Find on Facebook</a>
+                      </div>
+                    )}
                     {scanned!==undefined&&(
                       <div style={{marginTop:10}}>
-                        {scanned.length===0
-                          ?<p style={{fontSize:12,color:"#94a3b8",margin:0}}>No event pages found on this site.</p>
-                          :<>
+                        {scanned.events && scanned.events.length > 0 ? (
+                          <>
                             <p style={{fontSize:11,fontWeight:600,color:"#16a34a",margin:"0 0 6px"}}>✓ Live events found on their website:</p>
-                            {scanned.map((e,ei)=>(
+                            {scanned.events.map((e,ei)=>(
                               <div key={ei} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #e85d04"}}>
                                 <p style={{fontWeight:600,fontSize:14,margin:"0 0 4px",color:"#0f172a"}}>{e.band}</p>
                                 <div style={{display:"flex",flexWrap:"wrap",gap:"4px 14px",fontSize:12,color:"#64748b"}}>
@@ -960,7 +969,24 @@ export default function App() {
                               </div>
                             ))}
                           </>
-                        }
+                        ) : (
+                          <div style={{background:"#f8fafc",borderRadius:10,padding:"10px 12px",border:"1px solid #e2e8f0"}}>
+                            {scanned.isJsRendered
+                              ? <p style={{fontSize:12,color:"#92400e",margin:"0 0 8px"}}>⚡ This site uses JavaScript to load events — our scanner can't read them. Check directly:</p>
+                              : <p style={{fontSize:12,color:"#94a3b8",margin:"0 0 8px"}}>No events found on their site. They may post on Facebook or social media instead:</p>
+                            }
+                            {scanned.fallbackLinks && (
+                              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                                <a href={scanned.fallbackLinks.google} target="_blank" rel="noreferrer"
+                                  style={{fontSize:11,padding:"4px 10px",borderRadius:99,background:"#374151",color:"#fff",textDecoration:"none",fontWeight:500}}>🔍 Google Events</a>
+                                <a href={scanned.fallbackLinks.facebook} target="_blank" rel="noreferrer"
+                                  style={{fontSize:11,padding:"4px 10px",borderRadius:99,background:"#1877f2",color:"#fff",textDecoration:"none",fontWeight:500}}>👍 Find on Facebook</a>
+                                <a href={scanned.fallbackLinks.bandsintown} target="_blank" rel="noreferrer"
+                                  style={{fontSize:11,padding:"4px 10px",borderRadius:99,background:"#16a34a",color:"#fff",textDecoration:"none",fontWeight:500}}>🎸 Bandsintown</a>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
