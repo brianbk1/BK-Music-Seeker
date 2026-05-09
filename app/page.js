@@ -198,22 +198,25 @@ export default function App() {
   return (
     <div style={s.wrap}>
       {/* Hero */}
-      <div style={s.hero}>
-        <svg width="300" height="60" viewBox="0 0 300 60" fill="none" style={{marginBottom:6}}>
-          <text x="0" y="48" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="48" fill="#fff" letterSpacing="-1">BBK</text>
-          <g transform="translate(158,6)">
-            <ellipse cx="8" cy="34" rx="7" ry="5.5" fill="#fff" transform="rotate(-15 8 34)"/>
-            <rect x="14.5" y="8" width="3" height="26" rx="1.5" fill="#fff"/>
-            <ellipse cx="28" cy="40" rx="7" ry="5.5" fill="#fff" transform="rotate(-15 28 40)"/>
-            <rect x="34.5" y="14" width="3" height="26" rx="1.5" fill="#fff"/>
-            <rect x="14.5" y="8" width="23" height="4" rx="2" fill="#fff"/>
-          </g>
-          <text x="208" y="28" fontFamily="Arial,sans-serif" fontWeight="700" fontSize="15" fill="#fff" letterSpacing="3">MUSIC</text>
-          <text x="208" y="48" fontFamily="Arial,sans-serif" fontWeight="700" fontSize="15" fill="#fff" letterSpacing="3">SEEKER</text>
-        </svg>
-        <p style={{margin:0, fontSize:11, color:"rgba(255,255,255,0.65)", letterSpacing:"2px", textTransform:"uppercase"}}>Find live music anywhere</p>
-      </div>
-
+<div style={{position:"relative", overflow:"hidden", textAlign:"center", padding:"1.5rem"}}>
+  <img src="/hero.jpg" alt="" style={{position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center"}} />
+  <div style={{position:"absolute", inset:0, background:"linear-gradient(135deg,rgba(232,93,4,0.75) 0%,rgba(26,10,0,0.85) 100%)"}} />
+  <div style={{position:"relative", zIndex:1}}>
+    <svg width="300" height="60" viewBox="0 0 300 60" fill="none" style={{marginBottom:6}}>
+      <text x="0" y="48" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="48" fill="#fff" letterSpacing="-1">BBK</text>
+      <g transform="translate(158,6)">
+        <ellipse cx="8" cy="34" rx="7" ry="5.5" fill="#fff" transform="rotate(-15 8 34)"/>
+        <rect x="14.5" y="8" width="3" height="26" rx="1.5" fill="#fff"/>
+        <ellipse cx="28" cy="40" rx="7" ry="5.5" fill="#fff" transform="rotate(-15 28 40)"/>
+        <rect x="34.5" y="14" width="3" height="26" rx="1.5" fill="#fff"/>
+        <rect x="14.5" y="8" width="23" height="4" rx="2" fill="#fff"/>
+      </g>
+      <text x="208" y="28" fontFamily="Arial,sans-serif" fontWeight="700" fontSize="15" fill="#fff" letterSpacing="3">MUSIC</text>
+      <text x="208" y="48" fontFamily="Arial,sans-serif" fontWeight="700" fontSize="15" fill="#fff" letterSpacing="3">SEEKER</text>
+    </svg>
+    <p style={{margin:0, fontSize:11, color:"rgba(255,255,255,0.65)", letterSpacing:"2px", textTransform:"uppercase"}}>Find live music anywhere</p>
+  </div>
+</div>
       {/* Search */}
       <div style={s.body}>
         <div style={s.row}>
@@ -421,58 +424,6 @@ export default function App() {
       </div>
       )}
 
-      {/* Venue Scraper */}
-      <div style={{background:"#f8fafc",borderTop:"1px solid #e2e8f0",padding:"1.25rem 1.5rem"}}>
-        <p style={{fontSize:12,fontWeight:600,color:"#e85d04",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 6px"}}>🔗 Check a Venue's Event Page</p>
-        <p style={{fontSize:12,color:"#64748b",margin:"0 0 10px"}}>Paste any restaurant or venue's entertainment URL to extract their live music schedule directly.</p>
-        <div style={{display:"flex",gap:8,marginBottom:8}}>
-          <input type="text" value={venueUrl} onChange={e=>setVenueUrl(e.target.value)} onKeyDown={e=>e.key==="Enter"&&scrapeVenue()}
-            placeholder="e.g. https://www.pietrosprime.com/entertainment"
-            style={{flex:1,fontSize:13,borderRadius:10,padding:"8px 12px",border:"1px solid #e2e8f0",outline:"none"}}
-          />
-          <button onClick={scrapeVenue} disabled={venueLoading||!venueUrl.trim()}
-            style={{padding:"0 16px",fontSize:13,fontWeight:500,borderRadius:10,border:"none",
-              background:venueLoading||!venueUrl.trim()?"#e2e8f0":"#e85d04",
-              color:venueLoading||!venueUrl.trim()?"#94a3b8":"#fff",
-              cursor:venueLoading||!venueUrl.trim()?"default":"pointer"}}>
-            {venueLoading?"…":"Scan"}
-          </button>
-        </div>
-        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
-          {[
-            {label:"Pietro's Prime",url:"https://www.pietrosprime.com/entertainment"},
-            {label:"Station 142",url:"https://station142.com/live-music/"},
-          ].map(v=>(
-            <button key={v.label} onClick={()=>setVenueUrl(v.url)}
-              style={{fontSize:11,padding:"4px 12px",borderRadius:99,border:"0.5px solid #e85d04",color:"#e85d04",background:"transparent",cursor:"pointer"}}>
-              {v.label}
-            </button>
-          ))}
-        </div>
-        {venueError && <div style={{fontSize:12,color:"#dc2626",marginTop:8}}>{venueError}</div>}
-        {venueLoading && <div style={{fontSize:13,color:"#64748b",padding:"12px 0"}}>🔍 Scanning venue page...</div>}
-        {venueEvents !== null && !venueLoading && (
-          venueEvents.length === 0
-            ? <p style={{fontSize:13,color:"#64748b",margin:"8px 0"}}>No upcoming events found on that page.</p>
-            : <div style={{marginTop:10}}>
-                <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 8px"}}>✓ Found {venueEvents.length} event{venueEvents.length!==1?"s":""} — pulled directly from the venue website</p>
-                {venueEvents.map((e,i)=>(
-                  <div key={i} style={{background:"#fff",borderRadius:12,padding:"12px 14px",marginBottom:8,border:"1px solid #e2e8f0",borderLeft:"4px solid #e85d04"}}>
-                    <p style={{fontWeight:600,fontSize:14,margin:"0 0 4px",color:"#0f172a"}}>{e.band}</p>
-                    <div style={{display:"flex",flexWrap:"wrap",gap:"4px 14px",fontSize:12,color:"#64748b"}}>
-                      {e.date && <span>📅 {e.date}</span>}
-                      {e.time && <span>🕐 {e.time}</span>}
-                      {e.genre && <span>🎵 {e.genre}</span>}
-                      {e.notes && <span>ℹ️ {e.notes}</span>}
-                      {e.tickets && e.tickets.startsWith("http")
-                        ? <a href={e.tickets} target="_blank" rel="noreferrer" style={{color:"#e85d04"}}>🎟 Tickets</a>
-                        : e.tickets ? <span>🎟 {e.tickets}</span> : null}
-                    </div>
-                  </div>
-                ))}
-              </div>
-        )}
-      </div>
     </div>
   );
 }
