@@ -147,7 +147,7 @@ export default function App() {
   const [scannedVenues, setScannedVenues] = useState({});
 
   const QUICK      = ["19382 (West Chester)", "Sea Isle, NJ", "Kennett Square, PA", "Malvern, PA", "Phoenixville, PA", "Pocono Lake, PA"];
-  const BAND_QUICK = ["Bruce Springsteen", "Dave Matthews Band", "Zac Brown Band", "The Lumineers", "Hozier", "Caamp"];
+
 
   const isLocationMode = searchMode === "By Location";
   const isBandMode     = searchMode === "By Band";
@@ -182,7 +182,10 @@ export default function App() {
     if (data.error) throw new Error(data.error.message);
     const block = data.content?.find(b => b.type === "text");
     if (!block) throw new Error("No response received.");
-    return JSON.parse(block.text.trim().replace(/```json|```/g, "").trim());
+    const cleaned = block.text.trim().replace(/```json|```/g, "").trim();
+    const match = cleaned.match(/\[[\s\S]*\]/);
+    if (!match) throw new Error("No event data returned.");
+    return JSON.parse(match[0]);
   };
 
   const findLocalVenues = async (loc) => {
@@ -407,13 +410,7 @@ export default function App() {
             ))}
           </div>
         )}
-        {isBandMode && (
-          <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:"1.25rem" }}>
-            {BAND_QUICK.map(b => (
-              <button key={b} style={s.quickBtn} onClick={()=>setBandName(b)}>{b}</button>
-            ))}
-          </div>
-        )}
+        {isBandMode && <div style={{ marginBottom:"1rem" }} />}
         {isGenreMode && <div style={{ marginBottom:"1rem" }} />}
       </div>
 
