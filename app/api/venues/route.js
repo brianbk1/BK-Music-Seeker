@@ -1,20 +1,32 @@
 export async function POST(req) {
   try {
-    const { location } = await req.json();
+    const { location, radius = 10 } = await req.json();
     const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    const radiusMeters = radius * 1609; // miles to meters
 
-    // Search for bars/restaurants with live music keywords
+    // First geocode the location to get lat/lng
+    const geoRes = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${apiKey}`
+    );
+    const geoData = await geoRes.json();
+    const coords = geoData.results?.[0]?.geometry?.location;
+
     const searches = [
       `live music bar ${location}`,
       `entertainment restaurant ${location}`,
       `bar with bands ${location}`,
+      `DJ night bar ${location}`,
+      `acoustic music restaurant ${location}`,
+      `live band restaurant ${location}`,
     ];
 
     const allResults = [];
     for (const q of searches) {
-      const res = await fetch(
-        `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&key=${apiKey}`
-      );
+      // Use nearby search with radius if we have coords, otherwise text search
+      const url = coords
+        ? `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${coords.lat},${coords.lng}&radius=${radiusMeters}&keyword=${encodeURIComponent(q.split(" ").slice(0,3).join(" "))}&type=bar|restaurant&key=${apiKey}`
+        : `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&key=${apiKey}`;
+      const res = await fetch(url);
       const data = await res.json();
       if (data.results) allResults.push(...data.results);
     }
@@ -25,7 +37,7 @@ export async function POST(req) {
       if (seen.has(p.place_id)) return false;
       seen.add(p.place_id);
       return true;
-    }).slice(0, 15);
+    }).slice(0, 20);
 
     // Get details for each venue
     const venues = await Promise.all(unique.map(async (place) => {
@@ -43,7 +55,7 @@ export async function POST(req) {
         const reviews = (place.reviews || []).map(rv => rv.text || "").join(" ").toLowerCase();
         const combined = `${name} ${summary} ${types} ${reviews}`;
 
-        const musicKeywords = ["music","band","live","entertainment","karaoke","dj","stage","concert","perform","show","jazz","blues","rock","acoustic"];
+        const musicKeywords = ["music","band","live","entertainment","karaoke","dj","stage","concert","perform","show","jazz","blues","rock","acoustic","trivia","open mic","cover","tribute","dance","nightlife","happy hour","comedy"];
         const matches = musicKeywords.filter(kw => combined.includes(kw));
         
         let musicScore = "unknown";

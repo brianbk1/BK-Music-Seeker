@@ -74,7 +74,8 @@ export default function App() {
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState("");
 
-  const QUICK = ["19382 (West Chester)", "Sea Isle, NJ", "Kennett Square, PA", "Malvern, PA", "Phoenixville, PA", "Pocono Lake, PA"];
+  const [radius, setRadius] = useState(10);
+  const RADIUS_OPTIONS = [5, 10, 20];
 
   const getDateRange = (filter) => {
     const today = new Date();
@@ -129,7 +130,7 @@ export default function App() {
       const res = await fetch("/api/venues", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ location }),
+        body: JSON.stringify({ location, radius }),
       });
       const data = await res.json();
       if (data.error) { setLocalError(`Error: ${data.error.message}`); return; }
@@ -224,6 +225,12 @@ export default function App() {
         <div style={{display:"flex", gap:6, marginBottom:10}}>
           {DATE_FILTERS.map(f=>(
             <button key={f} style={s.filterBtn(dateFilter===f)} onClick={()=>setDateFilter(f)}>{f}</button>
+          ))}
+        </div>
+        <div style={{display:"flex", gap:6, marginBottom:10, alignItems:"center"}}>
+          <span style={{fontSize:11, color:"#94a3b8", whiteSpace:"nowrap"}}>📍 Within:</span>
+          {RADIUS_OPTIONS.map(r=>(
+            <button key={r} style={s.filterBtn(radius===r)} onClick={()=>setRadius(r)}>{r} mi</button>
           ))}
         </div>
         <div style={{display:"flex", gap:6, flexWrap:"wrap", marginBottom:"1.25rem"}}>
