@@ -72,9 +72,10 @@ export default function App() {
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState("");
   const [activeQuick, setActiveQuick] = useState("");
-  const [venueEvents, setVenueEvents] = useState(null);
-  const [venueLoading, setVenueLoading] = useState(false);
-  const [venueError, setVenueError] = useState("");
+
+  // ✅ FIX: these were missing, causing "Scan Site for Events" to silently fail
+  const [scanningVenue, setScanningVenue] = useState(null);
+  const [scannedVenues, setScannedVenues] = useState({});
 
   const QUICK = ["19382 (West Chester)", "Sea Isle, NJ", "Kennett Square, PA", "Malvern, PA", "Phoenixville, PA", "Pocono Lake, PA"];
 
@@ -130,6 +131,7 @@ export default function App() {
     if (!sq) return;
     setLoading(true); setError(""); setResults(null); setSearched(sq); setExpanded(null);
     setLocalVenues(null); setLocalError("");
+    setScannedVenues({});
     const wc = isWestChester(sq);
     setShowFeatured(wc);
 
@@ -214,7 +216,14 @@ export default function App() {
       {/* Search */}
       <div style={s.body}>
         <div style={s.row}>
-          <input style={s.input} type="text" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&search()} placeholder="Zip code, city, venue, or restaurant…" />
+          <input
+            style={s.input}
+            type="text"
+            value={query}
+            onChange={e=>setQuery(e.target.value)}
+            onKeyDown={e=>e.key==="Enter"&&search()}
+            placeholder="Zip code, city, venue, or restaurant…"
+          />
           <button style={s.btnLoc} onClick={useLocation} title="Use my location">{locating?"⏳":"📍"}</button>
           <button style={s.btnSearch(loading||!query.trim())} onClick={()=>search()} disabled={loading||!query.trim()}>{loading?"…":"Search"}</button>
         </div>
@@ -231,7 +240,7 @@ export default function App() {
         </div>
         <div style={{display:"flex", gap:6, flexWrap:"wrap", marginBottom:"1.25rem"}}>
           {QUICK.map(sq=>(
-            <button key={sq} style={s.quickBtn} onClick={()=>{setQuery(sq);search(sq);}}>{sq}</button>
+            <button key={sq} style={s.quickBtn} onClick={()=>{setQuery(sq);search(sq);setActiveQuick(sq);}}>{sq}</button>
           ))}
         </div>
       </div>
@@ -367,6 +376,8 @@ export default function App() {
                   {localVenues.map((v,vi)=>{
                     const scoreColor = v.musicScore==="high"?"#16a34a":v.musicScore==="medium"?"#d97706":"#94a3b8";
                     const scoreLabel = v.musicScore==="high"?"🎵 Likely has music":v.musicScore==="medium"?"🎲 Possible music":"🍽 Unknown";
+                    const isScanning = scanningVenue === v.website;
+                    const scanned = scannedVenues[v.website];
                     return (
                       <div key={vi} style={{background:"#f8fafc",borderRadius:14,padding:"14px 16px",marginBottom:10,border:"1px solid #e2e8f0",borderLeft:`4px solid ${scoreColor}`}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
@@ -384,15 +395,19 @@ export default function App() {
                         </div>
                         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:8}}>
                           {v.website && (
-                            <button onClick={()=>scrapeVenue(v.website)}
-                              disabled={scanningVenue===v.website}
-                              style={{fontSize:11,padding:"5px 12px",borderRadius:99,background: scanningVenue===v.website?"#e2e8f0":"#e85d04",color:scanningVenue===v.website?"#94a3b8":"#fff",border:"none",cursor:scanningVenue===v.website?"default":"pointer",fontWeight:500}}>
-                              {scanningVenue===v.website?"🔍 Scanning…":"🔍 Scan Site for Events"}
+                            <button
+                              onClick={()=>scrapeVenue(v.website)}
+                              disabled={isScanning}
+                              style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:isScanning?"#e2e8f0":"#e85d04",color:isScanning?"#94a3b8":"#fff",border:"none",cursor:isScanning?"default":"pointer",fontWeight:500}}
+                            >
+                              {isScanning ? "🔍 Scanning…" : "🔍 Scan Site for Events"}
                             </button>
                           )}
-                          <a href={`https://www.google.com/search?q=${encodeURIComponent(v.name+" "+v.address+" live music events")}`}
+                          <a
+                            href={`https://www.google.com/search?q=${encodeURIComponent(v.name+" "+v.address+" live music events")}`}
                             target="_blank" rel="noreferrer"
-                            style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>
+                            style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}
+                          >
                             🌐 Search Events
                           </a>
                           {v.website && (
@@ -415,8 +430,8 @@ export default function App() {
                           )}
                         </div>
 
-                        {/* Auto-scraped events for high confidence venues */}
-                        {v.events && v.events.length > 0 && (
+                        {/* Auto-scraped events pre-loaded by venue API */}
+                        {v.events && v.events.length > 0 && !scanned && (
                           <div style={{marginTop:10}}>
                             <p style={{fontSize:11,fontWeight:600,color:"#16a34a",margin:"0 0 6px"}}>✓ Live events found on their website:</p>
                             {v.events.map((e,ei)=>(
@@ -431,14 +446,15 @@ export default function App() {
                             ))}
                           </div>
                         )}
-                        {/* Scanned events */}
-                        {scannedVenues[v.website] !== undefined && (
+
+                        {/* On-demand scanned events */}
+                        {scanned !== undefined && (
                           <div style={{marginTop:10}}>
-                            {scannedVenues[v.website].length === 0
+                            {scanned.length === 0
                               ? <p style={{fontSize:12,color:"#94a3b8",margin:0}}>No event pages found on this site.</p>
                               : <>
                                   <p style={{fontSize:11,fontWeight:600,color:"#16a34a",margin:"0 0 6px"}}>✓ Live events found on their website:</p>
-                                  {scannedVenues[v.website].map((e,ei)=>(
+                                  {scanned.map((e,ei)=>(
                                     <div key={ei} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #e85d04"}}>
                                       <p style={{fontWeight:600,fontSize:14,margin:"0 0 4px",color:"#0f172a"}}>{e.band}</p>
                                       <div style={{display:"flex",flexWrap:"wrap",gap:"4px 14px",fontSize:12,color:"#64748b"}}>
