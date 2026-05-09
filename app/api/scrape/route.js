@@ -2,87 +2,134 @@ export async function POST(req) {
   try {
     const { url } = await req.json();
 
-    // Common event page path patterns to try
+    // Common event page paths — tried in priority order, with AND without trailing slash
     const EVENT_PATHS = [
-      "/music-events", "/music_events",
-      "/entertainment", "/events", "/live-music",
-      "/music", "/calendar", "/shows", "/whats-on",
-      "/schedule", "/band-schedule", "/performances",
-      "/live", "/gigs", "/concerts",
+      "/live-music/", "/live-music",
+      "/music-events/", "/music-events",
+      "/entertainment/", "/entertainment",
+      "/events/", "/events",
+      "/music/", "/music",
+      "/calendar/", "/calendar",
+      "/shows/", "/shows",
+      "/whats-on/", "/whats-on",
+      "/schedule/", "/schedule",
+      "/band-schedule/", "/band-schedule",
+      "/performances/", "/performances",
+      "/live/", "/live",
+      "/gigs/", "/gigs",
+      "/concerts/", "/concerts",
     ];
 
     const fetchAndClean = async (fetchUrl) => {
-      const res = await fetch(fetchUrl, {
-        headers: { "User-Agent": "Mozilla/5.0 (compatible; BBKMusicSeeker/1.0)" },
-        signal: AbortSignal.timeout(6000),
-      });
-      if (!res.ok) return null;
-      const html = await res.text();
-      const text = html
-        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-        .replace(/<[^>]+>/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-      return { html, text };
+      try {
+        const res = await fetch(fetchUrl, {
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; BBKMusicSeeker/1.0)" },
+          signal: AbortSignal.timeout(7000),
+        });
+        if (!res.ok) return null;
+        const html = await res.text();
+        const text = html
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+          .replace(/<[^>]+>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+        return { html, text };
+      } catch {
+        return null;
+      }
     };
 
-    // Step 1: Fetch the URL the user provided (homepage or specific page)
-    const initial = await fetchAndClean(url);
-    if (!initial) {
-      return Response.json({ error: { message: `Could not fetch page` } });
-    }
+    const scoreEventContent = (text) => {
+      const lower = text.toLowerCase();
+      return [
+        "band", "live music", "entertainment", "show", "perform",
+        "schedule", "event", "tonight", "this weekend", "pm",
+        "doors open", "tickets", "admission", "cover charge",
+        "dj", "acoustic", "karaoke", "open mic",
+      ].filter(kw => lower.includes(kw)).length;
+    };
 
-    // Step 2: Look for event/music page links in the HTML
-    // Search for hrefs containing event-related keywords
-    const linkPattern = /href=["']([^"']*(?:music|event|entertainment|calendar|shows?|schedule|live|band|gig|concert|perform)[^"']*)["']/gi;
     const baseUrl = new URL(url).origin;
-    const foundLinks = new Set();
-    let match;
-
-    while ((match = linkPattern.exec(initial.html)) !== null) {
-      let href = match[1];
-      // Make absolute URL
-      if (href.startsWith("/")) href = baseUrl + href;
-      else if (!href.startsWith("http")) continue;
-      // Only follow same-domain links
-      if (href.startsWith(baseUrl) || href.startsWith(url)) {
-        foundLinks.add(href);
-      }
-    }
-
-    // Step 3: Also try common event paths on the base domain
-    for (const path of EVENT_PATHS) {
-      foundLinks.add(baseUrl + path);
-    }
-
-    // Step 4: Try each candidate page and collect text
-    // Start with any discovered links, then fall back to the homepage text
-    let bestText = initial.text.slice(0, 8000);
+    let bestText = null;
+    let bestScore = 0;
     let foundEventPage = false;
 
-    for (const candidateUrl of foundLinks) {
-      if (candidateUrl === url) continue; // already have homepage
+    // Step 1: Try all common event paths FIRST (highest priority, most reliable)
+    for (const path of EVENT_PATHS) {
+      const candidateUrl = baseUrl + path;
+      if (candidateUrl === url) continue;
       try {
         const result = await fetchAndClean(candidateUrl);
         if (!result) continue;
-
-        // Check if this page looks like it has event content
-        const lower = result.text.toLowerCase();
-        const eventScore = [
-          "band", "live music", "entertainment", "show", "perform",
-          "schedule", "event", "tonight", "this weekend", "pm",
-        ].filter(kw => lower.includes(kw)).length;
-
-        if (eventScore >= 2) {
-          bestText = result.text.slice(0, 8000);
+        const score = scoreEventContent(result.text);
+        if (score >= 3 && score > bestScore) {
+          bestText = result.text.slice(0, 12000);
+          bestScore = score;
           foundEventPage = true;
-          break; // use first good match
+          if (score >= 6) break; // Good enough, stop searching
         }
       } catch { continue; }
     }
 
-    // Step 5: Send best text to Claude to extract events
+    // Step 2: Fetch the provided URL (homepage) and scan for event links
+    const initial = await fetchAndClean(url);
+    if (!initial && !bestText) {
+      return Response.json({ error: { message: "Could not fetch page" } });
+    }
+
+    // If we already found a great event page, skip link scanning
+    if (!foundEventPage && initial) {
+      // If the URL itself looks like an event page, score it
+      const urlScore = scoreEventContent(initial.text);
+      if (urlScore >= 3) {
+        bestText = initial.text.slice(0, 12000);
+        bestScore = urlScore;
+        foundEventPage = true;
+      }
+
+      if (!foundEventPage) {
+        // Scan homepage HTML for event/music page links
+        const linkPattern = /href=["']([^"']*(?:music|event|entertainment|calendar|shows?|schedule|live|band|gig|concert|perform)[^"']*)["']/gi;
+        const discoveredLinks = new Set();
+        let match;
+
+        while ((match = linkPattern.exec(initial.html)) !== null) {
+          let href = match[1];
+          if (href.startsWith("/")) href = baseUrl + href;
+          else if (!href.startsWith("http")) continue;
+          if (new URL(href).origin === baseUrl) {
+            discoveredLinks.add(href);
+          }
+        }
+
+        for (const candidateUrl of discoveredLinks) {
+          if (candidateUrl === url) continue;
+          try {
+            const result = await fetchAndClean(candidateUrl);
+            if (!result) continue;
+            const score = scoreEventContent(result.text);
+            if (score >= 3 && score > bestScore) {
+              bestText = result.text.slice(0, 12000);
+              bestScore = score;
+              foundEventPage = true;
+              if (score >= 6) break;
+            }
+          } catch { continue; }
+        }
+      }
+    }
+
+    // Step 3: Fall back to homepage text if nothing better found
+    if (!bestText && initial) {
+      bestText = initial.text.slice(0, 12000);
+    }
+
+    if (!bestText) {
+      return Response.json({ events: [], foundEventPage: false });
+    }
+
+    // Step 4: Send to Claude to extract events
     const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -98,7 +145,7 @@ export async function POST(req) {
 - date: day and date as written on the page (required)
 - time: start time if available, otherwise ""
 - genre: music genre if mentioned, otherwise ""
-- notes: any extra details (cover charge, age restriction, etc.)
+- notes: any extra details (cover charge, age restriction, special event, etc.)
 - tickets: ticket URL or "Check venue website" or "Free"
 
 If no events are found, return an empty array []. Return ONLY valid JSON, nothing else.`,
@@ -111,8 +158,6 @@ If no events are found, return an empty array []. Return ONLY valid JSON, nothin
 
     const textBlock = data.content?.find(b => b.type === "text");
     const raw = textBlock?.text?.trim().replace(/```json|```/g, "").trim() || "[]";
-
-    // Robust JSON extraction
     const jsonMatch = raw.match(/\[[\s\S]*\]/);
     const events = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
 
