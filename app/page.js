@@ -11,13 +11,7 @@ const STATION142_EVENTS = [
   { band:"1 Year Anniversary — Lost In Paris", venue:"Station 142", date:"Saturday, May 17", time:"4:00 PM", genre:"Cover Band", address:"142 E Market St, West Chester, PA 19382", tickets:"https://station142.com/live-music/", notes:"4–7pm • Big celebration!", venueBio:"Station 142 celebrates its 1-year anniversary! The venue has quickly become the heartbeat of West Chester's live music scene.", bandBio:"Lost in Paris returns to headline Station 142's 1-year anniversary party — the band that's become synonymous with unforgettable nights at the venue." },
 ];
 
-const PIETROS_EVENTS = [
-  { band:"Colin McGetrick", venue:"Pietro's Prime", date:"Friday, May 8", time:"7:00 PM", genre:"Acoustic", address:"125 West Market St, West Chester, PA 19382", tickets:"https://www.pietrosprime.com/entertainment", notes:"Live music at the bar", venueBio:"Pietro's Prime is West Chester's premier upscale steakhouse, known for exceptional cuisine, the best martinis in West Chester, and live entertainment Wednesday through Saturday.", bandBio:"Colin McGetrick is a talented local acoustic performer known for his smooth vocals and eclectic mix of covers spanning rock, pop and folk." },
-  { band:"Swamp Ash", venue:"Pietro's Prime", date:"Saturday, May 9", time:"7:00 PM", genre:"Rock", address:"125 West Market St, West Chester, PA 19382", tickets:"https://www.pietrosprime.com/entertainment", notes:"Live music at the bar", venueBio:"Pietro's Prime is West Chester's premier upscale steakhouse, offering an elegant atmosphere with exceptional food, martinis, and live music.", bandBio:"Swamp Ash is a beloved local rock act known for high-energy performances and a deep repertoire of classic rock and blues-influenced originals." },
-  { band:"John Grecia", venue:"Pietro's Prime", date:"Wednesday, May 13", time:"7:00 PM", genre:"Acoustic", address:"125 West Market St, West Chester, PA 19382", tickets:"https://www.pietrosprime.com/entertainment", notes:"Live music at the bar", venueBio:"Pietro's Prime features live entertainment Wednesday through Saturday, pairing exceptional dining with great music in an upscale West Chester setting.", bandBio:"John Grecia is a West Chester-area acoustic mainstay, known for his soulful delivery and crowd-pleasing setlists." },
-  { band:"Brian McConnell", venue:"Pietro's Prime", date:"Thursday, May 14", time:"7:00 PM", genre:"Acoustic", address:"125 West Market St, West Chester, PA 19382", tickets:"https://www.pietrosprime.com/entertainment", notes:"Live music at the bar", venueBio:"Pietro's Prime is West Chester's premier upscale steakhouse with live entertainment, exceptional cuisine, and the best martinis in town.", bandBio:"Brian McConnell is a versatile acoustic performer who brings warmth and energy to every performance." },
-  { band:"John Grecia & Drew Neilands", venue:"Pietro's Prime", date:"Friday, May 15", time:"7:00 PM", genre:"Acoustic", address:"125 West Market St, West Chester, PA 19382", tickets:"https://www.pietrosprime.com/entertainment", notes:"Live music at the bar", venueBio:"Pietro's Prime is West Chester's finest steakhouse experience, combining upscale dining with live music in an elegant atmosphere.", bandBio:"John Grecia and Drew Neilands team up for a special acoustic duo performance, blending their individual talents into a rich, layered sound." },
-];
+const today = new Date(); today.setHours(0,0,0,0);
 
 const WC_ZIPS = ["19380","19381","19382","19383","west chester","westchester"];
 const isWestChester = (q) => WC_ZIPS.some(z => q.toLowerCase().includes(z));
@@ -86,7 +80,7 @@ export default function App() {
       if (!textBlock) { setError("No response received."); return; }
       const raw = textBlock.text.trim().replace(/```json|```/g, "").trim();
       const aiResults = JSON.parse(raw);
-      const finalResults = isWestChester(sq) ? [...PIETROS_EVENTS, ...STATION142_EVENTS, ...aiResults] : aiResults;
+      const finalResults = isWestChester(sq) ? aiResults : aiResults;
       setResults(finalResults);
     } catch (e) { setError(`Error: ${e.message}`); }
     finally { setLoading(false); }
