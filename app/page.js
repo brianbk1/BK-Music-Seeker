@@ -356,49 +356,67 @@ export default function App() {
         )}
       </div>
 
-      {/* Local Venue Finder - auto triggered by search */}
+      {/* Local Venue Finder */}
       {(localLoading || localVenues !== null || localError) && (
       <div style={{background:"#fff",borderTop:"1px solid #e2e8f0",padding:"1.25rem 1.5rem"}}>
-        <p style={{fontSize:12,fontWeight:600,color:"#e85d04",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 6px"}}>🍺 Local Restaurant & Bar Events</p>
-        <p style={{fontSize:12,color:"#64748b",margin:"0 0 10px"}}>Scanning nearby venue websites for live music pages…</p>
+        <p style={{fontSize:12,fontWeight:600,color:"#e85d04",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 6px"}}>🍺 Nearby Bars & Restaurants</p>
 
         {localLoading && (
           <div style={{fontSize:13,color:"#64748b",padding:"8px 0"}}>
-            <div style={{marginBottom:4}}>🔍 Checking venue websites nearby…</div>
-            <div style={{fontSize:11,color:"#94a3b8"}}>This may take 20–30 seconds.</div>
+            <div style={{marginBottom:4}}>🔍 Finding bars & restaurants near {searched}…</div>
+            <div style={{fontSize:11,color:"#94a3b8"}}>Scoring each venue for live music likelihood.</div>
           </div>
         )}
         {localError && <div style={{fontSize:12,color:"#dc2626",marginTop:8}}>{localError}</div>}
+
         {localVenues !== null && !localLoading && (
           localVenues.length === 0
-            ? <p style={{fontSize:13,color:"#64748b",margin:"8px 0"}}>No venue event pages found nearby. Try the URL scanner below.</p>
-            : <div style={{marginTop:10}}>
-                <p style={{fontSize:11,color:"#16a34a",fontWeight:600,margin:"0 0 10px"}}>✓ Found live music at {localVenues.length} venue{localVenues.length!==1?"s":""} — pulled directly from their websites!</p>
-                {localVenues.map((v,vi)=>(
-                  <div key={vi} style={{background:"#f8fafc",borderRadius:14,padding:"14px 16px",marginBottom:12,border:"1px solid #e2e8f0"}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                      <div>
-                        <p style={{fontWeight:700,fontSize:15,margin:"0 0 2px",color:"#0f172a"}}>{v.venue}</p>
-                        <p style={{fontSize:11,color:"#94a3b8",margin:0}}>📍 {v.address}</p>
-                      </div>
-                      <a href={v.website} target="_blank" rel="noreferrer"
-                        style={{fontSize:11,padding:"4px 10px",borderRadius:99,background:"#e85d0422",color:"#e85d04",textDecoration:"none",fontWeight:500,whiteSpace:"nowrap"}}>
-                        View Page ↗
-                      </a>
-                    </div>
-                    {v.events.map((e,ei)=>(
-                      <div key={ei} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #e85d04"}}>
-                        <p style={{fontWeight:600,fontSize:14,margin:"0 0 4px",color:"#0f172a"}}>{e.band}</p>
-                        <div style={{display:"flex",flexWrap:"wrap",gap:"4px 14px",fontSize:12,color:"#64748b"}}>
-                          {e.date && <span>📅 {e.date}</span>}
-                          {e.time && <span>🕐 {e.time}</span>}
-                          {e.notes && <span>ℹ️ {e.notes}</span>}
+            ? <p style={{fontSize:13,color:"#64748b",margin:"8px 0"}}>No venues found nearby.</p>
+            : <>
+                <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 10px"}}>
+                  Found {localVenues.length} venues • Sorted by music likelihood • Tap "Scan Site" to check for events
+                </p>
+                {localVenues.map((v,vi)=>{
+                  const scoreColor = v.musicScore==="high"?"#16a34a":v.musicScore==="medium"?"#d97706":"#94a3b8";
+                  const scoreLabel = v.musicScore==="high"?"🎵 Likely has music":v.musicScore==="medium"?"🎲 Possible music":"🍽 Unknown";
+                  return (
+                    <div key={vi} style={{background:"#f8fafc",borderRadius:14,padding:"14px 16px",marginBottom:10,border:"1px solid #e2e8f0",borderLeft:`4px solid ${scoreColor}`}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                        <div style={{flex:1}}>
+                          <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:2}}>
+                            <p style={{fontWeight:700,fontSize:15,margin:0,color:"#0f172a"}}>{v.name}</p>
+                            <span style={{fontSize:10,padding:"2px 8px",borderRadius:99,background:scoreColor+"22",color:scoreColor,fontWeight:600}}>{scoreLabel}</span>
+                            {v.isOpen===true && <span style={{fontSize:10,padding:"2px 8px",borderRadius:99,background:"#dcfce7",color:"#16a34a",fontWeight:600}}>Open Now</span>}
+                            {v.isOpen===false && <span style={{fontSize:10,padding:"2px 8px",borderRadius:99,background:"#fee2e2",color:"#dc2626",fontWeight:600}}>Closed</span>}
+                          </div>
+                          <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 2px"}}>📍 {v.address}</p>
+                          {v.rating && <p style={{fontSize:11,color:"#94a3b8",margin:0}}>⭐ {v.rating} ({v.totalRatings.toLocaleString()} reviews)</p>}
+                          {v.summary && <p style={{fontSize:12,color:"#64748b",margin:"4px 0 0",fontStyle:"italic"}}>{v.summary}</p>}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
+                      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:8}}>
+                        {v.website && (
+                          <button onClick={()=>{setVenueUrl(v.website); setTimeout(()=>scrapeVenue(),100);}}
+                            style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#e85d04",color:"#fff",border:"none",cursor:"pointer",fontWeight:500}}>
+                            🔍 Scan Site for Events
+                          </button>
+                        )}
+                        <a href={`https://www.google.com/search?q=${encodeURIComponent(v.name+" "+v.address+" live music events")}`}
+                          target="_blank" rel="noreferrer"
+                          style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>
+                          🌐 Search Events
+                        </a>
+                        {v.website && (
+                          <a href={v.website} target="_blank" rel="noreferrer"
+                            style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>
+                            🌍 Visit Site
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
         )}
       </div>
       )}

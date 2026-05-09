@@ -3,125 +3,78 @@ export async function POST(req) {
     const { location } = await req.json();
     const apiKey = process.env.GOOGLE_PLACES_API_KEY;
 
-    // Step 1: Search for bars/restaurants with live music in the area
-    const searchRes = await fetch(
-      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=bar+restaurant+live+music+${encodeURIComponent(location)}&key=${apiKey}`
-    );
-    const searchData = await searchRes.json();
+    // Search for bars/restaurants with live music keywords
+    const searches = [
+      `live music bar ${location}`,
+      `entertainment restaurant ${location}`,
+      `bar with bands ${location}`,
+    ];
 
-    if (!searchData.results || searchData.results.length === 0) {
-      return Response.json({ venues: [] });
+    const allResults = [];
+    for (const q of searches) {
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&key=${apiKey}`
+      );
+      const data = await res.json();
+      if (data.results) allResults.push(...data.results);
     }
 
-    // Step 2: Get website for each venue (top 8)
-    const topVenues = searchData.results.slice(0, 8);
-    const venueDetails = await Promise.all(
-      topVenues.map(async (place) => {
-        try {
-          const detailRes = await fetch(
-            `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,website,formatted_address,formatted_phone_number&key=${apiKey}`
-          );
-          const detailData = await detailRes.json();
-          const result = detailData.result || {};
-          return {
-            name: result.name || place.name,
-            address: result.formatted_address || "",
-            website: result.website || null,
-          };
-        } catch {
-          return { name: place.name, address: "", website: null };
-        }
-      })
-    );
+    // Deduplicate by place_id
+    const seen = new Set();
+    const unique = allResults.filter(p => {
+      if (seen.has(p.place_id)) return false;
+      seen.add(p.place_id);
+      return true;
+    }).slice(0, 15);
 
-    // Step 3: For venues with websites, try to find their events page
-    const venuesWithSites = venueDetails.filter(v => v.website);
+    // Get details for each venue
+    const venues = await Promise.all(unique.map(async (place) => {
+      try {
+        const detailRes = await fetch(
+          `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,website,formatted_address,formatted_phone_number,opening_hours,rating,user_ratings_total,types,editorial_summary&key=${apiKey}`
+        );
+        const detail = await detailRes.json();
+        const r = detail.result || {};
 
-    const results = await Promise.all(
-      venuesWithSites.map(async (venue) => {
-        try {
-          // Try common event page paths
-          const baseUrl = venue.website.replace(/\/$/, "");
-          const eventPaths = [
-            "/entertainment", "/events", "/live-music", "/music",
-            "/calendar", "/shows", "/whats-on", "/live-entertainment"
-          ];
+        // Score music likelihood based on available signals
+        const name = (r.name || "").toLowerCase();
+        const summary = (r.editorial_summary?.overview || "").toLowerCase();
+        const types = (r.types || []).join(" ").toLowerCase();
+        const reviews = (place.reviews || []).map(rv => rv.text || "").join(" ").toLowerCase();
+        const combined = `${name} ${summary} ${types} ${reviews}`;
 
-          // First fetch the homepage to look for links to event pages
-          const homeRes = await fetch(baseUrl, {
-            headers: { "User-Agent": "Mozilla/5.0 (compatible; BBKMusicSeeker/1.0)" },
-            signal: AbortSignal.timeout(5000),
-          });
-          const homeHtml = await homeRes.text();
+        const musicKeywords = ["music","band","live","entertainment","karaoke","dj","stage","concert","perform","show","jazz","blues","rock","acoustic"];
+        const matches = musicKeywords.filter(kw => combined.includes(kw));
+        
+        let musicScore = "unknown";
+        if (matches.length >= 3) musicScore = "high";
+        else if (matches.length >= 1) musicScore = "medium";
 
-          // Find event page links in the homepage
-          const linkMatches = homeHtml.match(/href=["']([^"']*(?:event|entertainment|music|calendar|show|live)[^"']*)["']/gi) || [];
-          const foundLinks = linkMatches
-            .map(m => m.match(/href=["']([^"']+)["']/i)?.[1])
-            .filter(Boolean)
-            .map(link => link.startsWith("http") ? link : `${baseUrl}${link.startsWith("/") ? "" : "/"}${link}`)
-            .slice(0, 3);
+        return {
+          name: r.name || place.name,
+          address: r.formatted_address || place.formatted_address || "",
+          website: r.website || null,
+          phone: r.formatted_phone_number || null,
+          rating: r.rating || place.rating || null,
+          totalRatings: r.user_ratings_total || place.user_ratings_total || 0,
+          isOpen: place.opening_hours?.open_now,
+          summary: r.editorial_summary?.overview || null,
+          musicScore,
+          matchedKeywords: matches,
+        };
+      } catch {
+        return null;
+      }
+    }));
 
-          // Try found links + common paths
-          const urlsToTry = [...new Set([...foundLinks, ...eventPaths.map(p => `${baseUrl}${p}`)])].slice(0, 5);
+    const found = venues
+      .filter(Boolean)
+      .sort((a, b) => {
+        const order = { high: 0, medium: 1, unknown: 2 };
+        return order[a.musicScore] - order[b.musicScore];
+      });
 
-          for (const url of urlsToTry) {
-            try {
-              const pageRes = await fetch(url, {
-                headers: { "User-Agent": "Mozilla/5.0 (compatible; BBKMusicSeeker/1.0)" },
-                signal: AbortSignal.timeout(5000),
-              });
-              if (!pageRes.ok) continue;
-
-              const html = await pageRes.text();
-              const text = html
-                .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-                .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-                .replace(/<[^>]+>/g, " ")
-                .replace(/\s+/g, " ")
-                .slice(0, 6000);
-
-              // Ask Claude if this page has events
-              const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "x-api-key": process.env.ANTHROPIC_API_KEY,
-                  "anthropic-version": "2023-06-01",
-                },
-                body: JSON.stringify({
-                  model: "claude-sonnet-4-6",
-                  max_tokens: 500,
-                  system: `You extract live music or entertainment events from venue website text. Return ONLY a JSON array of events. Each event: { band, date, time, notes }. If no events found return []. Return ONLY valid JSON, nothing else.`,
-                  messages: [{ role: "user", content: `Extract live music/entertainment events from this page:\n\n${text}` }],
-                }),
-              });
-
-              const claudeData = await claudeRes.json();
-              const textBlock = claudeData.content?.find(b => b.type === "text");
-              if (!textBlock) continue;
-
-              const raw = textBlock.text.trim().replace(/```json|```/g, "").trim();
-              const events = JSON.parse(raw);
-
-              if (events.length > 0) {
-                return {
-                  venue: venue.name,
-                  address: venue.address,
-                  website: url,
-                  events,
-                };
-              }
-            } catch { continue; }
-          }
-          return null;
-        } catch { return null; }
-      })
-    );
-
-    const found = results.filter(Boolean);
     return Response.json({ venues: found });
-
   } catch (err) {
     return Response.json({ error: { message: err.message } }, { status: 500 });
   }
