@@ -202,12 +202,9 @@ export default function App() {
     <div style={s.wrap}>
 
       {/* Hero */}
-      <div style={{position:"relative", overflow:"hidden", textAlign:"center", padding:"1.5rem"}}>
-        <img src="/hero.png" alt="" style={{position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top"}} />
-        <div style={{position:"absolute", inset:0, background:"linear-gradient(135deg,rgba(232,93,4,0.75) 0%,rgba(26,10,0,0.85) 100%)"}} />
-        <div style={{position:"relative", zIndex:1, padding:"1rem 0"}}>
-          <p style={{margin:0, fontSize:11, color:"rgba(255,255,255,0.65)", letterSpacing:"2px", textTransform:"uppercase"}}>Find live music anywhere</p>
-        </div>
+      <div style={{background:"linear-gradient(135deg,#e85d04 0%,#c44a00 100%)", textAlign:"center", padding:"12px 0 0"}}>
+        <p style={{margin:"0 0 8px", fontSize:11, color:"rgba(255,255,255,0.85)", letterSpacing:"2px", textTransform:"uppercase"}}>Find live music anywhere</p>
+        <img src="/hero.png" alt="" style={{width:"100%", display:"block", objectFit:"cover", maxHeight:220}} />
       </div>
 
       {/* Search */}
