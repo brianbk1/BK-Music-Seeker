@@ -291,14 +291,14 @@ function BandPicker({ bands, loading, onSelect }) {
 function BandResultsPanel({ band, location, radius, bandVenues, bandVenuesLoading, bandVenuesError, bandScanningVenue, bandScannedVenues, onFindVenues, onScrape, onChangeBand }) {
   const enc = encodeURIComponent(band.name);
   const links = [
-    { label: "🌐 Their Website", desc: band.websiteHint ? `Visit ${band.websiteHint}` : "Find their official site", href: band.websiteHint || `https://www.google.com/search?q=${enc}+band+official+website`, color: "#0f172a", bg: "#f1f5f9" },
-    { label: "🎵 Songkick",      desc: "Tour dates & ticket links",          href: `https://www.songkick.com/search?query=${enc}`,                                   color: "#fff", bg: "#f97316" },
-    { label: "🎸 Bandsintown",   desc: "Show alerts & listings",             href: `https://www.bandsintown.com/search?query=${enc}`,                                color: "#fff", bg: "#16a34a" },
-    { label: "🎟 Ticketmaster",  desc: "Tickets for larger venues",          href: `https://www.ticketmaster.com/search?q=${enc}`,                                   color: "#fff", bg: "#2563eb" },
-    { label: "👍 Facebook",      desc: "Events & band page",                 href: `https://www.facebook.com/search/events/?q=${enc}`,                              color: "#fff", bg: "#1877f2" },
-    { label: "📸 Instagram",     desc: "Show announcements & stories",       href: `https://www.instagram.com/explore/search/keyword/?q=${enc}`,                     color: "#fff", bg: "#c026d3" },
-    { label: "▶️ YouTube",       desc: "Live performances & videos",         href: `https://www.youtube.com/results?search_query=${enc}+live`,                       color: "#fff", bg: "#dc2626" },
     { label: "🔍 Google Shows",  desc: `"${band.name} upcoming shows"`,      href: `https://www.google.com/search?q=${enc}+upcoming+shows+2026`,                    color: "#fff", bg: "#374151" },
+    { label: "▶️ YouTube",       desc: "Live performances & videos",         href: `https://www.youtube.com/results?search_query=${enc}+live`,                       color: "#fff", bg: "#dc2626" },
+    { label: "📸 Instagram",     desc: "Show announcements & stories",       href: `https://www.instagram.com/explore/search/keyword/?q=${enc}`,                     color: "#fff", bg: "#c026d3" },
+    { label: "👍 Facebook",      desc: "Events & band page",                 href: `https://www.facebook.com/search/events/?q=${enc}`,                              color: "#fff", bg: "#1877f2" },
+    { label: "🎟 Ticketmaster",  desc: "Tickets for larger venues",          href: `https://www.ticketmaster.com/search?q=${enc}`,                                   color: "#fff", bg: "#2563eb" },
+    { label: "🎸 Bandsintown",   desc: "Show alerts & listings",             href: `https://www.bandsintown.com/search?query=${enc}`,                                color: "#fff", bg: "#16a34a" },
+    { label: "🎵 Songkick",      desc: "Tour dates & ticket links",          href: `https://www.songkick.com/search?query=${enc}`,                                   color: "#fff", bg: "#f97316" },
+    { label: "🌐 Their Website", desc: band.websiteHint ? `Visit ${band.websiteHint}` : "Find their official site", href: band.websiteHint || `https://www.google.com/search?q=${enc}+band+official+website`, color: "#0f172a", bg: "#f1f5f9" },
   ];
   return (
     <div style={{ padding: "0 0 1.5rem" }}>
@@ -750,6 +750,12 @@ export default function App() {
       </div>
 
       {/* Band: picker or results */}
+      {isBandMode && !bandLookupLoading && bandMatches === null && (
+        <div style={{background:"#fff",borderTop:"1px solid #e2e8f0",padding:"1.25rem 1.5rem"}}>
+          <FeaturedBands />
+        </div>
+      )}
+
       {isBandMode && (bandLookupLoading || bandMatches !== null) && (
         <div style={{background:"#fff",borderTop:"1px solid #e2e8f0",padding:"1.25rem 1.5rem 0"}}>
           {!selectedBand
@@ -813,8 +819,7 @@ export default function App() {
                       ))}
                     </div>
                   </div>
-                  {/* Featured Bands */}
-                  <FeaturedBands />
+
                 </>
               )}
               {results.length>0 && (
@@ -899,8 +904,15 @@ export default function App() {
                       {v.isOpen===false&&<span style={{fontSize:10,padding:"2px 8px",borderRadius:99,background:"#fee2e2",color:"#dc2626",fontWeight:600}}>Closed</span>}
                     </div>
                     <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 2px"}}>📍 {v.address}</p>
-                    {v.rating&&<p style={{fontSize:11,color:"#94a3b8",margin:"0 0 6px"}}>⭐ {v.rating} ({v.totalRatings?.toLocaleString()} reviews)</p>}
-                    {v.summary&&<p style={{fontSize:12,color:"#64748b",margin:"0 0 8px",fontStyle:"italic"}}>{v.summary}</p>}
+                    {v.rating&&<p style={{fontSize:11,color:"#94a3b8",margin:"0 0 4px"}}>⭐ {v.rating} ({v.totalRatings?.toLocaleString()} reviews)</p>}
+                    {v.summary&&<p style={{fontSize:12,color:"#64748b",margin:"0 0 6px",fontStyle:"italic"}}>{v.summary}</p>}
+                    {v.photos&&v.photos.length>0&&(
+                      <div style={{display:"flex",gap:4,marginBottom:8,overflowX:"auto"}}>
+                        {v.photos.slice(0,3).map((photo,pi)=>(
+                          <img key={pi} src={photo} alt="" style={{width:80,height:56,objectFit:"cover",borderRadius:6,flexShrink:0,border:"1px solid #e2e8f0"}} onError={e=>e.target.style.display="none"} />
+                        ))}
+                      </div>
+                    )}
                     <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>
                       {v.website&&(
                         <button onClick={()=>scrapeVenue(v.website,setScanningVenue,setScannedVenues)} disabled={isScanning}
