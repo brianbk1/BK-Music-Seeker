@@ -70,6 +70,9 @@ export default function App() {
   const [venueEvents, setVenueEvents] = useState(null);
   const [venueLoading, setVenueLoading] = useState(false);
   const [venueError, setVenueError] = useState("");
+  const [localVenues, setLocalVenues] = useState(null);
+  const [localLoading, setLocalLoading] = useState(false);
+  const [localError, setLocalError] = useState("");
 
   const QUICK = ["19382 (West Chester)", "Sea Isle, NJ", "Kennett Square, PA", "Malvern, PA", "Phoenixville, PA", "Pocono Lake, PA"];
 
@@ -112,6 +115,23 @@ export default function App() {
       setResults(JSON.parse(raw));
     } catch (e) { setError(`Error: ${e.message}`); }
     finally { setLoading(false); }
+  };
+
+  const findLocalVenues = async (loc) => {
+    const location = loc || searched || query;
+    if (!location) return;
+    setLocalLoading(true); setLocalError(""); setLocalVenues(null);
+    try {
+      const res = await fetch("/api/venues", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ location }),
+      });
+      const data = await res.json();
+      if (data.error) { setLocalError(`Error: ${data.error.message}`); return; }
+      setLocalVenues(data.venues);
+    } catch(e) { setLocalError(`Error: ${e.message}`); }
+    finally { setLocalLoading(false); }
   };
 
   const scrapeVenue = async () => {
@@ -329,6 +349,63 @@ export default function App() {
             </>
             )}
           </>
+        )}
+      </div>
+
+      {/* Local Venue Finder */}
+      <div style={{background:"#fff",borderTop:"1px solid #e2e8f0",padding:"1.25rem 1.5rem"}}>
+        <p style={{fontSize:12,fontWeight:600,color:"#e85d04",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 6px"}}>🍺 Find Local Restaurant & Bar Events</p>
+        <p style={{fontSize:12,color:"#64748b",margin:"0 0 10px"}}>We'll search bars and restaurants near your location, check their websites for live music pages, and return real events.</p>
+        <div style={{display:"flex",gap:8,marginBottom:8}}>
+          <input type="text" value={query} readOnly
+            style={{flex:1,fontSize:13,borderRadius:10,padding:"8px 12px",border:"1px solid #e2e8f0",background:"#f8fafc",color:"#64748b"}}
+            placeholder="Search a location above first…"
+          />
+          <button onClick={()=>findLocalVenues()} disabled={localLoading||(!searched&&!query.trim())}
+            style={{padding:"0 16px",fontSize:13,fontWeight:500,borderRadius:10,border:"none",
+              background:localLoading||(!searched&&!query.trim())?"#e2e8f0":"#e85d04",
+              color:localLoading||(!searched&&!query.trim())?"#94a3b8":"#fff",
+              cursor:localLoading||(!searched&&!query.trim())?"default":"pointer",whiteSpace:"nowrap"}}>
+            {localLoading?"Searching…":"Find Venue Events"}
+          </button>
+        </div>
+        {localLoading && (
+          <div style={{fontSize:13,color:"#64748b",padding:"12px 0"}}>
+            <div style={{marginBottom:4}}>🔍 Finding bars & restaurants nearby…</div>
+            <div style={{fontSize:11,color:"#94a3b8"}}>Checking each venue's website for live music pages. This may take 20–30 seconds.</div>
+          </div>
+        )}
+        {localError && <div style={{fontSize:12,color:"#dc2626",marginTop:8}}>{localError}</div>}
+        {localVenues !== null && !localLoading && (
+          localVenues.length === 0
+            ? <p style={{fontSize:13,color:"#64748b",margin:"8px 0"}}>No venue event pages found nearby. Try the manual URL scanner below.</p>
+            : <div style={{marginTop:10}}>
+                <p style={{fontSize:11,color:"#16a34a",fontWeight:600,margin:"0 0 10px"}}>✓ Found live music at {localVenues.length} venue{localVenues.length!==1?"s":""} — pulled directly from their websites!</p>
+                {localVenues.map((v,vi)=>(
+                  <div key={vi} style={{background:"#f8fafc",borderRadius:14,padding:"14px 16px",marginBottom:12,border:"1px solid #e2e8f0"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                      <div>
+                        <p style={{fontWeight:700,fontSize:15,margin:"0 0 2px",color:"#0f172a"}}>{v.venue}</p>
+                        <p style={{fontSize:11,color:"#94a3b8",margin:0}}>📍 {v.address}</p>
+                      </div>
+                      <a href={v.website} target="_blank" rel="noreferrer"
+                        style={{fontSize:11,padding:"4px 10px",borderRadius:99,background:"#e85d0422",color:"#e85d04",textDecoration:"none",fontWeight:500,whiteSpace:"nowrap"}}>
+                        View Page ↗
+                      </a>
+                    </div>
+                    {v.events.map((e,ei)=>(
+                      <div key={ei} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #e85d04"}}>
+                        <p style={{fontWeight:600,fontSize:14,margin:"0 0 4px",color:"#0f172a"}}>{e.band}</p>
+                        <div style={{display:"flex",flexWrap:"wrap",gap:"4px 14px",fontSize:12,color:"#64748b"}}>
+                          {e.date && <span>📅 {e.date}</span>}
+                          {e.time && <span>🕐 {e.time}</span>}
+                          {e.notes && <span>ℹ️ {e.notes}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
         )}
       </div>
 
