@@ -1034,6 +1034,7 @@ export default function App() {
     setSuggestingVenue(key);
     setAiSuggestions(prev => ({ ...prev, [key]: { loading: true, schedule: [] } }));
     try {
+      // Step 1: Get the base schedule
       const res = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1044,14 +1045,55 @@ export default function App() {
       });
       const data = await res.json();
       const block = data.content?.find(b => b.type === "text");
-      if (block) {
-        const match = block.text.trim().replace(/```json|```/g, "").trim().match(/\[[\s\S]*\]/);
-        const schedule = match ? JSON.parse(match[0]) : [];
-        setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule } }));
+      if (!block) { setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule: [] } })); return; }
+
+      const match = block.text.trim().replace(/```json|```/g, "").trim().match(/\[[\s\S]*\]/);
+      let schedule = match ? JSON.parse(match[0]) : [];
+
+      // Step 2: Check if any entries are still generic (live music/band without named act)
+      const GENERIC_TERMS = ["live music", "live band", "live entertainment", "local band", "local act", "tbd", "various artists"];
+      const hasGeneric = schedule.some(s =>
+        GENERIC_TERMS.some(t => (s.event || "").toLowerCase().includes(t)) && !(s.notes || "").match(/[A-Z][a-z]+ [A-Z]/)
+      );
+
+      // Step 3: If generic entries found, do a second pass to enrich with known acts
+      if (hasGeneric) {
+        const enrichRes = await fetch("/api/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            system: "You are a local music expert. Given a venue name and location, return a JSON array of real local/regional bands and artists known to perform at this type of venue in this area. Return [{ name, genre }] with 4-6 acts. Only include acts you know with reasonable confidence. ONLY valid JSON array.",
+            messages: [{ role: "user", content: "What local/regional bands and artists typically perform at " + venue.name + " in " + (venue.address || "") + "? Give me specific act names known to play at this type of venue in this area." }],
+          }),
+        });
+        const enrichData = await enrichRes.json();
+        const enrichBlock = enrichData.content?.find(b => b.type === "text");
+        if (enrichBlock) {
+          const enrichMatch = enrichBlock.text.trim().replace(/```json|```/g, "").trim().match(/\[[\s\S]*\]/);
+          if (enrichMatch) {
+            const acts = JSON.parse(enrichMatch[0]);
+            if (acts.length > 0) {
+              const actNames = acts.map(a => a.name).join(", ");
+              // Add the known acts as an additional note to generic live music entries
+              schedule = schedule.map(s => {
+                const isGenericEntry = GENERIC_TERMS.some(t => (s.event || "").toLowerCase().includes(t));
+                if (isGenericEntry) {
+                  return { ...s, notes: (s.notes ? s.notes + " · " : "") + "Known acts in area: " + actNames };
+                }
+                return s;
+              });
+              // Also append a separate "Known local acts" entry if not already in schedule
+              schedule.push({ day: "🎸 Known local acts", event: actNames, time: "", notes: "Acts known to perform at venues like this in the area" });
+            }
+          }
+        }
       }
+
+      setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule } }));
     } catch { setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule: [] } })); }
     finally { setSuggestingVenue(null); }
   };
+
 
 
 
@@ -1525,12 +1567,16 @@ export default function App() {
                               </div>
                               <div style={{display:"flex",flexDirection:"column",gap:6}}>
                                 {suggestion.schedule.map((s,si)=>(
-                                  <div key={si} style={{display:"flex",gap:8,alignItems:"flex-start",padding:"6px 8px",background:"#fff",borderRadius:8,border:"1px solid #e9d5ff"}}>
-                                    <span style={{fontSize:11,fontWeight:700,color:"#7c3aed",minWidth:90,flexShrink:0}}>{s.day}</span>
+                                  <div key={si} style={{display:"flex",gap:8,alignItems:"flex-start",padding:"6px 8px",
+                                    background: s.day.startsWith("🎸") ? "#f0fdf4" : "#fff",
+                                    borderRadius:8,
+                                    border: s.day.startsWith("🎸") ? "1px solid #bbf7d0" : "1px solid #e9d5ff"
+                                  }}>
+                                    <span style={{fontSize:11,fontWeight:700,color: s.day.startsWith("🎸") ? "#16a34a" : "#7c3aed",minWidth:90,flexShrink:0}}>{s.day}</span>
                                     <div style={{flex:1}}>
                                       <span style={{fontSize:12,fontWeight:600,color:"#0f172a"}}>{s.event}</span>
                                       {s.time && <span style={{fontSize:11,color:"#64748b",marginLeft:6}}>🕐 {s.time}</span>}
-                                      {s.notes && <p style={{fontSize:11,color:"#94a3b8",margin:"2px 0 0",lineHeight:1.4}}>{s.notes}</p>}
+                                      {s.notes && <p style={{fontSize:11,color:"#64748b",margin:"2px 0 0",lineHeight:1.4}}>{s.notes}</p>}
                                     </div>
                                   </div>
                                 ))}
