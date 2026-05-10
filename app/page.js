@@ -21,6 +21,23 @@ const FEATURED_VENUES = [
     scheduleUrl: "https://station142.com/live-music/",
     reserveUrl: "https://station142.com/",
     color: "#1a0a00",
+    upcomingShows: [
+      { date: "May 10", event: "Mother's Day Brunch — Lauren Benedetti on the Roof", location: "Rooftop", url: "https://station142.com/live-music/" },
+      { date: "May 12", event: "Karaoke Night", location: "Station 142", url: "https://station142.com/live-music/" },
+      { date: "May 13", event: "Open Mic Night", location: "Station 142", url: "https://station142.com/live-music/" },
+      { date: "May 14", event: "Never the Less + DJ JJ Golick", location: "Station 142", url: "https://station142.com/live-music/" },
+      { date: "May 15", event: "Shot of Southern + DJ ZYN", location: "Station 142", url: "https://station142.com/live-music/" },
+      { date: "May 16", event: "CandiFlyp + DJ Jacky T", location: "Station 142", url: "https://station142.com/live-music/" },
+      { date: "May 17", event: "🎉 1 Year Anniversary! Lost In Paris 4–7pm", location: "Station 142", url: "https://station142.com/live-music/" },
+      { date: "May 21", event: "Noah Richardson", location: "Station 142", url: "https://station142.com/live-music/" },
+      { date: "May 22", event: "Biscotti Boys", location: "Station 142", url: "https://station142.com/live-music/" },
+      { date: "May 23", event: "Former Strangers + DJ Teal Tuesday", location: "Station 142", url: "https://station142.com/live-music/" },
+      { date: "May 29", event: "Dale Rhose + DJ Corey Curtain", location: "Station 142", url: "https://station142.com/live-music/" },
+      { date: "May 30", event: "Lecompt + DJ Salvo", location: "Station 142", url: "https://station142.com/live-music/" },
+      { date: "May 31", event: "JEXXA Duo — Acoustic on Rooftop 12–3pm", location: "Rooftop", url: "https://station142.com/live-music/" },
+      { date: "Jun 5", event: "Bad Hombres", location: "Station 142", url: "https://station142.com/live-music/" },
+      { date: "Jun 6", event: "Perfect Strangers (Rooftop) + Basic Cable", location: "Station 142", url: "https://station142.com/live-music/" },
+    ],
   },
 ];
 
@@ -51,8 +68,8 @@ const FEATURED_BANDS = [
     instagram: "https://www.instagram.com/lipband/",
     color: "#1a0a00",
     photos: [
+      { url: "https://station142.com/wp-content/uploads/2026/04/4B87FABE-4526-4C17-A550-8E29D56EE42A.jpeg", label: "🎤 Lost In Paris Live" },
       { url: "https://lipband.com/wp-content/uploads/2024/04/LIP-logo2-BLKTRN.png", label: "🎸 Band Logo", isBg: true },
-      { url: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=600&h=300&fit=crop", label: "🎤 On Stage" },
       { url: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=600&h=300&fit=crop", label: "🎶 Live Show" },
     ],
     upcomingShows: [
@@ -134,6 +151,42 @@ Return a JSON array where each item is a distinct band/artist. Each item must ha
 - name, homebase (city/state), genre, description (2 sentences), isLocal (true if near search location), websiteHint (URL or ""), confidence ("high" or "medium")
 RULES: 1. Put the most locally-relevant match first. 2. Include both local AND national acts with the same name. 3. If only one act exists, return a single-item array. 4. Never hallucinate show dates — describe the band only.
 Return ONLY valid JSON array, nothing else.`;
+
+
+// ─── Venue Show List (for featured venues with real upcoming shows) ────────────
+
+function VenueShowList({ venue }) {
+  const [expanded, setExpanded] = useState(false);
+  const shows = venue.upcomingShows || [];
+  const preview = shows.slice(0, 3);
+  const rest = shows.slice(3);
+
+  return (
+    <div style={{ borderTop: "1px solid " + venue.color + "33", paddingTop: 10 }}>
+      <p style={{ fontSize: 11, fontWeight: 600, color: venue.color, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+        📅 Upcoming Shows
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {(expanded ? shows : preview).map((show, si) => (
+          <a key={si} href={show.url} target="_blank" rel="noreferrer"
+            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 8px", background: "#fff", borderRadius: 7, border: "1px solid #e2e8f0", textDecoration: "none", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: venue.color, whiteSpace: "nowrap" }}>{show.date}</span>
+              <span style={{ fontSize: 12, color: "#0f172a", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{show.event}</span>
+            </div>
+            <span style={{ fontSize: 10, color: "#94a3b8", whiteSpace: "nowrap" }}>→</span>
+          </a>
+        ))}
+      </div>
+      {rest.length > 0 && (
+        <button onClick={() => setExpanded(!expanded)}
+          style={{ marginTop: 6, fontSize: 11, color: venue.color, background: "transparent", border: "none", cursor: "pointer", fontWeight: 500, padding: 0 }}>
+          {expanded ? "▲ Show less" : `▼ +${rest.length} more shows`}
+        </button>
+      )}
+    </div>
+  );
+}
 
 // ─── Photo Gallery Component ──────────────────────────────────────────────────
 
@@ -350,14 +403,14 @@ function BandResultsPanel({ band, location, radius, bandVenues, bandVenuesLoadin
                         {v.website && (
                           <button onClick={() => onScrape(v.website)} disabled={isScanning}
                             style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: isScanning ? "#e2e8f0" : "#e85d04", color: isScanning ? "#94a3b8" : "#fff", border: "none", cursor: isScanning ? "default" : "pointer", fontWeight: 500 }}>
-                            {isScanning ? "🔍 Scanning…" : "🔍 Scan Site"}
+                            {isScanning ? "🎵 Finding…" : "🎵 Find Events"}
                           </button>
                         )}
                         <a href={`https://www.google.com/search?q=${encodeURIComponent(band.name + " " + v.name)}`} target="_blank" rel="noreferrer"
                           style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#64748b", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>
                           🔍 Search {band.name} here
                         </a>
-                        {v.website  && <a href={v.website}  target="_blank" rel="noreferrer" style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#64748b", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>🌍 Visit Site</a>}
+                        {v.website  && <a href={v.website}  target="_blank" rel="noreferrer" style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#64748b", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>🌐 Website</a>}
                         {v.facebook && <a href={v.facebook} target="_blank" rel="noreferrer" style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#1d4ed8", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>👍 Facebook</a>}
                       </div>
                       {scanned !== undefined && (
@@ -457,12 +510,11 @@ function GenreVenueFinder({ genre, location, radius, onFindVenues, localVenues, 
                       {v.website && (
                         <button onClick={() => onScrape(v.website)} disabled={isScanning}
                           style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: isScanning ? "#e2e8f0" : "#e85d04", color: isScanning ? "#94a3b8" : "#fff", border: "none", cursor: isScanning ? "default" : "pointer", fontWeight: 500 }}>
-                          {isScanning ? "🔍 Scanning…" : "🔍 Scan Site for Events"}
+                          {isScanning ? "🎵 Finding…" : "🎵 Find Events"}
                         </button>
                       )}
-                      <a href={`https://www.google.com/search?q=${encodeURIComponent(v.name + " " + v.address + " " + genre + " live music")}`} target="_blank" rel="noreferrer"
-                        style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#64748b", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>🌐 Search Events</a>
-                      {v.website   && <a href={v.website}   target="_blank" rel="noreferrer" style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#64748b", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>🌍 Visit Site</a>}
+
+                      {v.website   && <a href={v.website}   target="_blank" rel="noreferrer" style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#64748b", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>🌐 Website</a>}
                       {v.instagram && <a href={v.instagram} target="_blank" rel="noreferrer" style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#c026d3", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>📸 Instagram</a>}
                       {v.facebook  && <a href={v.facebook}  target="_blank" rel="noreferrer" style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#1d4ed8", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>👍 Facebook</a>}
                     </div>
@@ -497,6 +549,174 @@ function GenreVenueFinder({ genre, location, radius, onFindVenues, localVenues, 
 
 // ─── Main App ─────────────────────────────────────────────────────────────────
 
+
+
+// ─── Community Panel (Ratings + URL Contributions) ───────────────────────────
+
+function CommunityPanel({ venue, onClose }) {
+  const key = (venue.website || venue.name).replace(/[^a-zA-Z0-9]/g, "_").slice(0, 50);
+  const [data, setData]         = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [rating, setRating]     = useState(0);
+  const [hover, setHover]       = useState(0);
+  const [note, setNote]         = useState("");
+  const [urlInput, setUrlInput] = useState("");
+  const [saving, setSaving]     = useState(false);
+  const [saved, setSaved]       = useState("");
+
+  // Load existing community data on open
+  useState(() => {
+    const load = async () => {
+      try {
+        const res = await fetch("/api/community?key=" + encodeURIComponent(key));
+        const d = await res.json();
+        setData(d || { ratings: [], eventUrl: null });
+      } catch { setData({ ratings: [], eventUrl: null }); }
+      finally { setLoading(false); }
+    };
+    load();
+  }, []);
+
+  const submitRating = async () => {
+    if (!rating) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/community", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, action: "rate", rating, note: note.trim() }),
+      });
+      const d = await res.json();
+      setData(d);
+      setRating(0); setNote(""); setSaved("Rating saved! Thanks!");
+      setTimeout(() => setSaved(""), 3000);
+    } catch { setSaved("Error saving — try again."); }
+    finally { setSaving(false); }
+  };
+
+  const submitUrl = async () => {
+    const u = urlInput.trim();
+    if (!u || !u.startsWith("http")) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/community", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, action: "addUrl", url: u, venueName: venue.name }),
+      });
+      const d = await res.json();
+      setData(d);
+      setUrlInput(""); setSaved("URL saved! Thanks for contributing!");
+      setTimeout(() => setSaved(""), 3000);
+    } catch { setSaved("Error saving — try again."); }
+    finally { setSaving(false); }
+  };
+
+  const avgRating = data?.ratings?.length
+    ? (data.ratings.reduce((s, r) => s + r.rating, 0) / data.ratings.length).toFixed(1)
+    : null;
+
+  return (
+    <div style={{ marginTop: 10, background: "#f8fafc", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: "#0f172a", color: "#fff" }}>
+        <span style={{ fontWeight: 600, fontSize: 13 }}>⭐ Community — {venue.name}</span>
+        <button onClick={onClose} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer", fontSize: 16 }}>✕</button>
+      </div>
+
+      <div style={{ padding: "14px 16px" }}>
+        {loading ? (
+          <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>Loading community data…</p>
+        ) : (
+          <>
+            {/* Community stats */}
+            {data?.ratings?.length > 0 && (
+              <div style={{ background: "#fff", borderRadius: 10, padding: "10px 14px", marginBottom: 14, border: "1px solid #e2e8f0" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                  <span style={{ fontSize: 24, fontWeight: 700, color: "#0f172a" }}>{avgRating}</span>
+                  <div>
+                    <div style={{ display: "flex", gap: 2 }}>
+                      {[1,2,3,4,5].map(s => (
+                        <span key={s} style={{ fontSize: 16, color: s <= Math.round(avgRating) ? "#f59e0b" : "#e2e8f0" }}>★</span>
+                      ))}
+                    </div>
+                    <p style={{ fontSize: 11, color: "#64748b", margin: 0 }}>{data.ratings.length} community rating{data.ratings.length !== 1 ? "s" : ""}</p>
+                  </div>
+                </div>
+                {data.ratings.slice(-3).reverse().map((r, i) => (
+                  <div key={i} style={{ borderTop: "1px solid #f1f5f9", paddingTop: 6, marginTop: 6 }}>
+                    <div style={{ display: "flex", gap: 4, marginBottom: 2 }}>
+                      {[1,2,3,4,5].map(s => <span key={s} style={{ fontSize: 12, color: s <= r.rating ? "#f59e0b" : "#e2e8f0" }}>★</span>)}
+                    </div>
+                    {r.note && <p style={{ fontSize: 12, color: "#64748b", margin: 0, lineHeight: 1.4 }}>{r.note}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Community event URL */}
+            {data?.eventUrl && (
+              <div style={{ background: "#f0fdf4", borderRadius: 10, padding: "10px 14px", marginBottom: 14, border: "1px solid #bbf7d0" }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: "#16a34a", margin: "0 0 4px" }}>🔗 Community-contributed events page:</p>
+                <a href={data.eventUrl} target="_blank" rel="noreferrer"
+                  style={{ fontSize: 12, color: "#0369a1", wordBreak: "break-all" }}>{data.eventUrl}</a>
+              </div>
+            )}
+
+            {/* Rate this venue */}
+            <div style={{ marginBottom: 16 }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: "#0f172a", margin: "0 0 8px" }}>⭐ Rate your experience here:</p>
+              <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+                {[1,2,3,4,5].map(s => (
+                  <button key={s}
+                    onMouseEnter={() => setHover(s)}
+                    onMouseLeave={() => setHover(0)}
+                    onClick={() => setRating(s)}
+                    style={{ fontSize: 28, background: "transparent", border: "none", cursor: "pointer", color: s <= (hover || rating) ? "#f59e0b" : "#e2e8f0", padding: "0 2px", lineHeight: 1 }}>
+                    ★
+                  </button>
+                ))}
+                {rating > 0 && <span style={{ fontSize: 12, color: "#64748b", alignSelf: "center", marginLeft: 4 }}>{"★".repeat(rating)} ({rating}/5)</span>}
+              </div>
+              <textarea
+                value={note}
+                onChange={e => setNote(e.target.value)}
+                placeholder="Optional: describe the music, vibe, crowd… (max 200 chars)"
+                maxLength={200}
+                rows={2}
+                style={{ width: "100%", fontSize: 12, borderRadius: 8, padding: "8px 10px", border: "1px solid #e2e8f0", outline: "none", resize: "none", boxSizing: "border-box", fontFamily: "system-ui" }}
+              />
+              <button onClick={submitRating} disabled={!rating || saving}
+                style={{ marginTop: 6, fontSize: 12, padding: "7px 16px", borderRadius: 99, background: rating && !saving ? "#0f172a" : "#e2e8f0", color: rating && !saving ? "#fff" : "#94a3b8", border: "none", cursor: rating && !saving ? "pointer" : "default", fontWeight: 600 }}>
+                {saving ? "Saving…" : "Submit Rating"}
+              </button>
+            </div>
+
+            {/* Add entertainment URL */}
+            <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 14 }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: "#0f172a", margin: "0 0 4px" }}>🔗 Know their events page URL?</p>
+              <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 8px" }}>Help others find their schedule — paste the direct link to their entertainment/events page.</p>
+              <div style={{ display: "flex", gap: 6 }}>
+                <input
+                  value={urlInput}
+                  onChange={e => setUrlInput(e.target.value)}
+                  placeholder="https://venue.com/events"
+                  style={{ flex: 1, fontSize: 12, borderRadius: 8, padding: "7px 10px", border: "1px solid #e2e8f0", outline: "none" }}
+                />
+                <button onClick={submitUrl} disabled={!urlInput.trim().startsWith("http") || saving}
+                  style={{ fontSize: 12, padding: "0 14px", borderRadius: 8, background: urlInput.trim().startsWith("http") && !saving ? "#e85d04" : "#e2e8f0", color: urlInput.trim().startsWith("http") && !saving ? "#fff" : "#94a3b8", border: "none", cursor: "pointer", fontWeight: 600, whiteSpace: "nowrap" }}>
+                  {saving ? "…" : "Add URL"}
+                </button>
+              </div>
+            </div>
+
+            {saved && <p style={{ fontSize: 12, color: "#16a34a", fontWeight: 600, margin: "10px 0 0" }}>{saved}</p>}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ─── Venue Chatbot Component ──────────────────────────────────────────────────
 
@@ -546,7 +766,7 @@ Answer questions about this venue helpfully and conversationally. If you don't k
     <div style={{ marginTop: 10, background: "#f8fafc", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: "#e85d04", color: "#fff" }}>
-        <span style={{ fontWeight: 600, fontSize: 13 }}>💬 Ask about {venue.name}</span>
+        <span style={{ fontWeight: 600, fontSize: 13 }}>💬 Ask AI — {venue.name}</span>
         <button onClick={onClose} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer", fontSize: 16, lineHeight: 1 }}>✕</button>
       </div>
 
@@ -623,6 +843,7 @@ export default function App() {
   const [aiSuggestions, setAiSuggestions]   = useState({});   // url → {loading, performers}
   const [suggestingVenue, setSuggestingVenue] = useState(null);
   const [openChatVenue, setOpenChatVenue]     = useState(null); // venue key with chat open
+  const [openCommunityVenue, setOpenCommunityVenue] = useState(null); // venue key with community panel open
 
   // Band
   const [bandName, setBandName]               = useState("");
@@ -691,7 +912,7 @@ export default function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-system: "You are a local entertainment expert with deep knowledge of bars and venues. Return the KNOWN weekly entertainment schedule for the given venue. Use your specific knowledge — examples: Kildares Irish Pub West Chester PA: Monday Quizzo 9pm-11pm, Wednesday Pub Pong 10pm-2am, Thursday Name That Tune 8-10pm + Karaoke 10pm-2am, Friday DJs 10pm-2am (first Friday Dueling Pianos 7-10pm), Saturday DJs 10pm-2am, Sunday Karaoke with Brian Aglira 10pm-2am. Saloon 151 West Chester PA: weekly live acoustic music, poker nights, quizzo, music bingo, karaoke, and DJs throughout the week. Station 142 West Chester PA: Thursday-Saturday live music and events, check their live-music page. For any venue you know, return the real schedule. Return ONLY a JSON array: [{ day, event, time, notes }]. Return [] only if you truly have no knowledge of this specific venue. ONLY valid JSON.",
+system: "You are a local entertainment expert with deep knowledge of bars and venues. Return the KNOWN upcoming shows and weekly entertainment schedule for the given venue. Use your specific knowledge — examples: Station 142 West Chester PA (142 E Market St): Tuesday Karaoke 8pm-12am ($50 gift card to best performer), Wednesday open, Thursday Open Mic Night 7-11pm, Friday-Saturday live bands 9pm (acts include Shot of Southern, CandiFlyp, Lecompt, Biscotti Boys, Never the Less, Bad Hombres, Basic Cable, Former Strangers), Sunday open. Kildares Irish Pub West Chester PA: Monday Quizzo 9-11pm, Wednesday Pub Pong 10pm-2am, Thursday Name That Tune 8-10pm + Karaoke 10pm-2am, Friday DJs 10pm-2am (first Friday Dueling Pianos 7-10pm), Saturday DJs 10pm-2am, Sunday Karaoke with Brian Aglira 10pm-2am. Saloon 151 West Chester PA: live acoustic music, poker nights, quizzo, music bingo, karaoke, DJs throughout the week. Pietro's Prime West Chester PA: live entertainment Wednesday-Saturday nights. Slow Hand WC: regular live music and events, check slowhand-wc.com/events. For any venue you know, return both recurring weekly events AND any known upcoming specific acts/dates. Return ONLY a JSON array: [{ day, event, time, notes }]. Return [] only if you truly have no knowledge of this specific venue. ONLY valid JSON.",
           messages: [{ role: "user", content: "Weekly entertainment schedule for: " + venue.name + " at " + venue.address }],
         }),
       });
@@ -948,10 +1169,11 @@ system: "You are a local entertainment expert with deep knowledge of bars and ve
                           <PhotoGallery photos={VENUE_PHOTOS[v.name]} color={v.color} />
                           <p style={{fontSize:12,color:"#64748b",margin:"10px 0 8px",lineHeight:1.5}}>{v.description}</p>
                           <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 10px"}}>📍 {v.address}</p>
-                          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                          <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:v.upcomingShows?8:0}}>
                             <a href={v.scheduleUrl} target="_blank" rel="noreferrer" style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:v.color,color:"#fff",textDecoration:"none",fontWeight:500}}>🎵 View Schedule</a>
                             <a href={v.reserveUrl}  target="_blank" rel="noreferrer" style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>Reserve</a>
                           </div>
+                          {v.upcomingShows && <VenueShowList venue={v} />}
                         </div>
                       ))}
                     </div>
@@ -1054,15 +1276,19 @@ system: "You are a local entertainment expert with deep knowledge of bars and ve
                       {v.website&&(
                         <button onClick={()=>scrapeVenue(v.website,setScanningVenue,setScannedVenues,v.name,v.address)} disabled={isScanning}
                           style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:isScanning?"#e2e8f0":"#e85d04",color:isScanning?"#94a3b8":"#fff",border:"none",cursor:isScanning?"default":"pointer",fontWeight:500}}>
-                          {isScanning?"🔍 Scanning…":"🔍 Scan Site for Events"}
+                          {isScanning?"🎵 Finding…":"🎵 Find Events"}
                         </button>
                       )}
                       <button onClick={()=>setOpenChatVenue(openChatVenue===(v.website||v.name)?null:(v.website||v.name))}
                         style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#fff7ed",color:"#e85d04",border:"1px solid #fed7aa",cursor:"pointer",fontWeight:500}}>
-                        💬 Ask about this venue
+                        💬 Ask AI
                       </button>
-                      <a href={`https://www.google.com/search?q=${encodeURIComponent(v.name+" "+v.address+" live music events")}`} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>🌐 Search Events</a>
-                      {v.website&&<a href={v.website} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>🌍 Visit Site</a>}
+                      <button onClick={()=>setOpenCommunityVenue(openCommunityVenue===(v.website||v.name)?null:(v.website||v.name))}
+                        style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f8fafc",color:"#0f172a",border:"1px solid #e2e8f0",cursor:"pointer",fontWeight:500}}>
+                        ⭐ Rate
+                      </button>
+
+                      {v.website&&<a href={v.website} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>🌐 Website</a>}
                       {v.instagram&&<a href={v.instagram} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#c026d3",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>📸 Instagram</a>}
                       {v.facebook&&<a href={v.facebook} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#1d4ed8",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>👍 Facebook</a>}
                     </div>
@@ -1084,6 +1310,9 @@ system: "You are a local entertainment expert with deep knowledge of bars and ve
                     {/* Venue Chatbot */}
                     {openChatVenue===(v.website||v.name) && (
                       <VenueChatbot venue={v} onClose={()=>setOpenChatVenue(null)} />
+                    )}
+                    {openCommunityVenue===(v.website||v.name) && (
+                      <CommunityPanel venue={v} onClose={()=>setOpenCommunityVenue(null)} />
                     )}
 
                     {/* AI weekly schedule suggestions for unscanned high-likelihood venues */}
@@ -1123,7 +1352,7 @@ system: "You are a local entertainment expert with deep knowledge of bars and ve
                             </div>
                           )}
                           {suggestion && !suggestion.loading && suggestion.schedule && suggestion.schedule.length === 0 && (
-                            <p style={{fontSize:11,color:"#94a3b8",margin:"4px 0 0"}}>No schedule found — tap "Scan Site for Events" or check their website directly.</p>
+                            <p style={{fontSize:11,color:"#94a3b8",margin:"4px 0 0"}}>No schedule found — tap "🎵 Find Events" above or visit their website.</p>
                           )}
                         </div>
                       );
