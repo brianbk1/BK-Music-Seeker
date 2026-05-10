@@ -1361,7 +1361,7 @@ system: "You are a local entertainment expert with deep knowledge of bars and ve
                     )}
 
                     {/* AI weekly schedule suggestions for unscanned high-likelihood venues */}
-                    {(!v.events || v.events.length===0) && !scanned && v.musicScore==="high" && (() => {
+                    {(!v.events || v.events.length===0) && !scanned && (v.musicScore==="high" || v.musicScore==="medium") && (() => {
                       const key = v.website || v.name;
                       const suggestion = aiSuggestions[key];
                       return (
