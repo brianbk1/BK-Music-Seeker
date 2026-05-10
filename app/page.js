@@ -497,6 +497,110 @@ function GenreVenueFinder({ genre, location, radius, onFindVenues, localVenues, 
 
 // ─── Main App ─────────────────────────────────────────────────────────────────
 
+
+// ─── Venue Chatbot Component ──────────────────────────────────────────────────
+
+function VenueChatbot({ venue, onClose }) {
+  const [messages, setMessages] = useState([
+    { role: "assistant", content: `Hi! I can answer questions about **${venue.name}**. Ask me about the food, vibe, music, hours, parking — anything!` }
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useState(null);
+
+  const systemPrompt = `You are a helpful assistant that knows about the venue "${venue.name}" located at ${venue.address}.
+${venue.summary ? `Google describes it as: "${venue.summary}"` : ""}
+${venue.rating ? `It has a ${venue.rating} star rating with ${venue.totalRatings} reviews.` : ""}
+${venue.musicScore === "high" ? "This venue is known to host live music." : venue.musicScore === "medium" ? "This venue may host live music occasionally." : ""}
+Answer questions about this venue helpfully and conversationally. If you don't know something specific, say so and suggest they check the venue's website or call ahead. Keep answers concise — 2-4 sentences max.`;
+
+  const send = async () => {
+    const text = input.trim();
+    if (!text || loading) return;
+    const newMessages = [...messages, { role: "user", content: text }];
+    setMessages(newMessages);
+    setInput("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system: systemPrompt,
+          messages: newMessages.map(m => ({ role: m.role, content: m.content })),
+        }),
+      });
+      const data = await res.json();
+      const block = data.content?.find(b => b.type === "text");
+      const reply = block?.text || "Sorry, I couldn't get an answer. Try checking their website!";
+      setMessages(prev => [...prev, { role: "assistant", content: reply }]);
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, something went wrong. Try again!" }]);
+    }
+    finally { setLoading(false); }
+  };
+
+  const QUICK_QUESTIONS = ["What's the vibe like?", "Do they have food?", "Is there a cover charge?", "What kind of music do they play?", "Is parking nearby?"];
+
+  return (
+    <div style={{ marginTop: 10, background: "#f8fafc", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: "#e85d04", color: "#fff" }}>
+        <span style={{ fontWeight: 600, fontSize: 13 }}>💬 Ask about {venue.name}</span>
+        <button onClick={onClose} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer", fontSize: 16, lineHeight: 1 }}>✕</button>
+      </div>
+
+      {/* Messages */}
+      <div style={{ padding: "12px 14px", maxHeight: 220, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+        {messages.map((m, i) => (
+          <div key={i} style={{
+            alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+            background: m.role === "user" ? "#e85d04" : "#fff",
+            color: m.role === "user" ? "#fff" : "#0f172a",
+            border: m.role === "assistant" ? "1px solid #e2e8f0" : "none",
+            borderRadius: m.role === "user" ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
+            padding: "8px 12px", fontSize: 13, lineHeight: 1.5, maxWidth: "85%",
+          }}>
+            {m.content}
+          </div>
+        ))}
+        {loading && (
+          <div style={{ alignSelf: "flex-start", background: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px 12px 12px 2px", padding: "8px 12px", fontSize: 13, color: "#94a3b8" }}>
+            ✦ Thinking…
+          </div>
+        )}
+      </div>
+
+      {/* Quick questions */}
+      {messages.length <= 2 && (
+        <div style={{ padding: "0 14px 8px", display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {QUICK_QUESTIONS.map((q, i) => (
+            <button key={i} onClick={() => { setInput(q); }}
+              style={{ fontSize: 11, padding: "4px 10px", borderRadius: 99, background: "#f1f5f9", border: "1px solid #e2e8f0", color: "#64748b", cursor: "pointer" }}>
+              {q}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Input */}
+      <div style={{ display: "flex", gap: 6, padding: "8px 10px", borderTop: "1px solid #e2e8f0", background: "#fff" }}>
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && send()}
+          placeholder="Ask anything about this venue…"
+          style={{ flex: 1, fontSize: 13, borderRadius: 8, padding: "7px 10px", border: "1px solid #e2e8f0", outline: "none" }}
+        />
+        <button onClick={send} disabled={!input.trim() || loading}
+          style={{ padding: "0 14px", borderRadius: 8, border: "none", background: input.trim() && !loading ? "#e85d04" : "#e2e8f0", color: input.trim() && !loading ? "#fff" : "#94a3b8", cursor: input.trim() && !loading ? "pointer" : "default", fontWeight: 600, fontSize: 13 }}>
+          {loading ? "…" : "Send"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [searchMode, setSearchMode]     = useState("By Location");
 
@@ -516,6 +620,9 @@ export default function App() {
   const [localError, setLocalError]     = useState("");
   const [scanningVenue, setScanningVenue]   = useState(null);
   const [scannedVenues, setScannedVenues]   = useState({});
+  const [aiSuggestions, setAiSuggestions]   = useState({});   // url → {loading, performers}
+  const [suggestingVenue, setSuggestingVenue] = useState(null);
+  const [openChatVenue, setOpenChatVenue]     = useState(null); // venue key with chat open
 
   // Band
   const [bandName, setBandName]               = useState("");
@@ -572,6 +679,31 @@ export default function App() {
       setScanned(prev => ({...prev,[url]: data.error ? { events:[], error: data.error.message } : { events: data.events||[], fallbackLinks: data.fallbackLinks, isJsRendered: data.isJsRendered }}));
     } catch(e) { setScanned(prev=>({...prev,[url]:{ events:[], error: e.message }})); }
     finally { setScanning(null); }
+  };
+
+  const suggestPerformers = async (venue) => {
+    const key = venue.website || venue.name;
+    if (aiSuggestions[key] || suggestingVenue === key) return;
+    setSuggestingVenue(key);
+    setAiSuggestions(prev => ({ ...prev, [key]: { loading: true, performers: [] } }));
+    try {
+      const res = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system: `You are a local music expert. Given a venue name and location, suggest 4-6 performers or acts that likely play there regularly based on the venue type and location. Be specific with real local/regional acts if you know them. Return ONLY a JSON array of objects: { name, genre, description (one short sentence) }. Return ONLY valid JSON.`,
+          messages: [{ role: "user", content: `Venue: "${venue.name}" at ${venue.address}. What performers likely play here? Focus on local/regional acts typical for this type of venue.` }],
+        }),
+      });
+      const data = await res.json();
+      const block = data.content?.find(b => b.type === "text");
+      if (block) {
+        const match = block.text.trim().replace(/\`\`\`json|\`\`\`/g, "").trim().match(/\[[\s\S]*\]/);
+        const performers = match ? JSON.parse(match[0]) : [];
+        setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, performers } }));
+      }
+    } catch { setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, performers: [] } })); }
+    finally { setSuggestingVenue(null); }
   };
 
   const findLocalVenues = async (loc) => {
@@ -924,6 +1056,10 @@ export default function App() {
                           {isScanning?"🔍 Scanning…":"🔍 Scan Site for Events"}
                         </button>
                       )}
+                      <button onClick={()=>setOpenChatVenue(openChatVenue===(v.website||v.name)?null:(v.website||v.name))}
+                        style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#fff7ed",color:"#e85d04",border:"1px solid #fed7aa",cursor:"pointer",fontWeight:500}}>
+                        💬 Ask about this venue
+                      </button>
                       <a href={`https://www.google.com/search?q=${encodeURIComponent(v.name+" "+v.address+" live music events")}`} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>🌐 Search Events</a>
                       {v.website&&<a href={v.website} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>🌍 Visit Site</a>}
                       {v.instagram&&<a href={v.instagram} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#c026d3",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>📸 Instagram</a>}
@@ -944,15 +1080,47 @@ export default function App() {
                         ))}
                       </div>
                     )}
-                    {/* If no pre-loaded events and not yet scanned, show a hint */}
-                    {(!v.events || v.events.length===0) && !scanned && (
-                      <div style={{marginTop:6,display:"flex",gap:6,flexWrap:"wrap"}}>
-                        <a href={"https://www.google.com/search?q="+encodeURIComponent(v.name+" "+v.address+" live music events schedule")} target="_blank" rel="noreferrer"
-                          style={{fontSize:11,padding:"4px 10px",borderRadius:99,background:"#f1f5f9",color:"#374151",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>🔍 Search their events</a>
-                        <a href={"https://www.facebook.com/search/pages/?q="+encodeURIComponent(v.name)} target="_blank" rel="noreferrer"
-                          style={{fontSize:11,padding:"4px 10px",borderRadius:99,background:"#f1f5f9",color:"#1877f2",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>👍 Find on Facebook</a>
-                      </div>
+                    {/* Venue Chatbot */}
+                    {openChatVenue===(v.website||v.name) && (
+                      <VenueChatbot venue={v} onClose={()=>setOpenChatVenue(null)} />
                     )}
+
+                    {/* AI performer suggestions for unscanned high-likelihood venues */}
+                    {(!v.events || v.events.length===0) && !scanned && v.musicScore==="high" && (() => {
+                      const key = v.website || v.name;
+                      const suggestion = aiSuggestions[key];
+                      return (
+                        <div style={{marginTop:10}}>
+                          {!suggestion && (
+                            <button onClick={()=>suggestPerformers(v)}
+                              style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#7c3aed22",color:"#7c3aed",border:"1px solid #7c3aed44",cursor:"pointer",fontWeight:500}}>
+                              🤖 AI: Who likely plays here?
+                            </button>
+                          )}
+                          {suggestion?.loading && (
+                            <p style={{fontSize:11,color:"#94a3b8",margin:0}}>🤖 Thinking of likely performers…</p>
+                          )}
+                          {suggestion && !suggestion.loading && suggestion.performers.length > 0 && (
+                            <div style={{background:"#faf5ff",border:"1px solid #e9d5ff",borderRadius:10,padding:"10px 12px"}}>
+                              <p style={{fontSize:11,fontWeight:600,color:"#7c3aed",margin:"0 0 6px",display:"flex",alignItems:"center",gap:6}}>
+                                🤖 AI suggests these acts may perform here:
+                                <span style={{fontSize:10,background:"#fef9c3",color:"#854d0e",padding:"1px 6px",borderRadius:99,fontWeight:400}}>Unverified — scan to confirm</span>
+                              </p>
+                              <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                                {suggestion.performers.map((p,pi)=>(
+                                  <div key={pi} style={{display:"flex",alignItems:"flex-start",gap:8}}>
+                                    <span style={{fontSize:11,fontWeight:600,color:"#0f172a",whiteSpace:"nowrap"}}>{p.name}</span>
+                                    <span style={{fontSize:10,color:"#7c3aed",background:"#ede9fe",padding:"1px 6px",borderRadius:99,whiteSpace:"nowrap"}}>{p.genre}</span>
+                                    <span style={{fontSize:11,color:"#64748b",lineHeight:1.4}}>{p.description}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <p style={{fontSize:10,color:"#94a3b8",margin:"8px 0 0"}}>👆 Tap "Scan Site for Events" above to get the real schedule</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                     {scanned!==undefined&&(
                       <div style={{marginTop:10}}>
                         {scanned.events && scanned.events.length > 0 ? (
