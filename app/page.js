@@ -21,6 +21,21 @@ const FEATURED_VENUES = [
     ],
   },
   {
+    name: "Saloon 151",
+    tag: "Whiskey Bar — Open 7 Days 11am–2am",
+    description: "West Chester's premier whiskey bar with the best bourbon & tequila selection in PA. Old West-inspired décor, slow-cooked BBQ, craft beers on tap, and weekly entertainment including Quizzo, Music Bingo, Karaoke, live acoustic music and DJs.",
+    address: "151 W Gay St, West Chester, PA 19380",
+    scheduleUrl: "https://www.saloon151.com/entertainment",
+    reserveUrl: "https://www.saloon151.com/",
+    color: "#92400e",
+    upcomingShows: [
+      { date: "Every Tuesday", event: "Quizzo Night — half-price nachos & $5 cocktails", location: "Saloon 151", url: "https://www.saloon151.com/entertainment" },
+      { date: "Every Wednesday", event: "Music Bingo — 5 rounds, gift card prizes 8pm", location: "Saloon 151", url: "https://www.saloon151.com/entertainment" },
+      { date: "Every Friday", event: "Karaoke with Spyder Entertainment 10pm–2am", location: "Tequila Bar", url: "https://www.saloon151.com/entertainment" },
+      { date: "Weekends", event: "Live acoustic music & DJ nights", location: "Saloon 151", url: "https://www.saloon151.com/entertainment" },
+    ],
+  },
+  {
     name: "Station 142",
     tag: "Live music Thurs–Sat",
     description: "West Chester's premier live music venue featuring an intimate stage, state-of-the-art sound system, two full bars, rooftop dining, and top local and regional acts.",
@@ -58,6 +73,11 @@ const VENUE_PHOTOS = {
     { url: "https://station142.com/wp-content/uploads/2025/11/station-142-band-on-stage.jpg", label: "📸 Live Stage" },
     { url: "https://station142.com/wp-content/uploads/2025/10/lecompt-copy.jpg", label: "🍸 Bar Area" },
     { url: "https://station142.com/wp-content/uploads/2026/01/image2.png", label: "🍸 Bar Area" },
+  ],
+  "Saloon 151": [
+    { url: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=600&h=300&fit=crop", label: "📸 Outside" },
+    { url: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&h=300&fit=crop", label: "🥃 Whiskey Bar" },
+    { url: "https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=600&h=300&fit=crop", label: "🍻 Bar Area" },
   ],
 };
 
