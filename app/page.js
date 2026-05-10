@@ -1032,22 +1032,27 @@ export default function App() {
     const key = venue.website || venue.name;
     if (aiSuggestions[key] || suggestingVenue === key) return;
     setSuggestingVenue(key);
-    setAiSuggestions(prev => ({ ...prev, [key]: { loading: true, schedule: [], source: null } }));
+    setAiSuggestions(prev => ({ ...prev, [key]: { loading: true, schedule: [] } }));
     try {
-      const res = await fetch("/api/schedule", {
+      const res = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          venueName: venue.name,
-          venueAddress: venue.address,
-          venueWebsite: venue.website || null,
+          system: "You are a local entertainment expert with deep knowledge of bars and venues across the US. Return the KNOWN weekly entertainment schedule AND any upcoming specific shows for the given venue. CRITICAL: Always use specific band/act names when you know them — NEVER use generic terms like Live Band or Live Music. For Station 142 West Chester PA: Tuesday Karaoke 8pm-12am ($50 gift card), Thursday Open Mic Night 7-11pm, upcoming shows: May 14 Never the Less + DJ JJ Golick, May 15 Shot of Southern + DJ ZYN, May 16 CandiFlyp + DJ Jacky T, May 17 Lost In Paris 4-7pm (1yr Anniversary), May 21 Noah Richardson, May 22 Biscotti Boys, May 29 Dale Rhose + DJ Corey Curtain, May 30 Lecompt + DJ Salvo, Jun 5 Bad Hombres, Jun 6 Basic Cable + Perfect Strangers Rooftop. For Kildares West Chester: Monday Quizzo 9-11pm, Wednesday Pub Pong 10pm-2am, Thursday Name That Tune 8-10pm + Karaoke 10pm-2am, Friday DJs 10pm-2am (first Friday Dueling Pianos 7-10pm), Saturday DJs 10pm-2am, Sunday Karaoke with Brian Aglira 10pm-2am. Saloon 151 West Chester: Monday Free Poker 7:30pm, Tuesday Quizzo 7pm, Wednesday Music Bingo 8pm, Friday DJ 10pm-2am, Saturday DJ 10pm-2am, Sunday Crab Legs 3-9pm + Live Music. Pietro's Prime West Chester: Wed-Sat live entertainment — regular acts include John Grecia, Brian McConnell, Midnight Blue, Drew Neilands. VK Brewing Exton PA: Tuesday 6:30pm alternating Trivia (Seamus) and Music Bingo (DJ Bill), Friday-Saturday live music 6-9pm. For ALL other venues use your training knowledge — name specific acts, DJs, hosts when known. Return ONLY a JSON array: [{ day, event, time, notes }]. Return [] only if you truly have no knowledge. ONLY valid JSON.",
+          messages: [{ role: "user", content: "Entertainment schedule for: " + venue.name + " at " + venue.address }],
         }),
       });
       const data = await res.json();
-      setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule: data.schedule || [], source: data.source || "ai_knowledge" } }));
-    } catch { setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule: [], source: null } })); }
+      const block = data.content?.find(b => b.type === "text");
+      if (block) {
+        const match = block.text.trim().replace(/```json|```/g, "").trim().match(/\[[\s\S]*\]/);
+        const schedule = match ? JSON.parse(match[0]) : [];
+        setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule } }));
+      }
+    } catch { setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule: [] } })); }
     finally { setSuggestingVenue(null); }
   };
+
 
 
   const fetchHappyHour = async (venue) => {
@@ -1497,25 +1502,26 @@ export default function App() {
                       const suggestion = aiSuggestions[key];
                       return (
                         <div style={{marginTop:10}}>
-                          {!suggestion && (
-                            <button onClick={()=>suggestSchedule(v)}
-                              style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#7c3aed22",color:"#7c3aed",border:"1px solid #7c3aed44",cursor:"pointer",fontWeight:500}}>
-                              🤖 AI: Suggest their schedule
-                            </button>
-                          )}
+                          {!suggestion && (() => {
+                            // Auto-trigger for high confidence venues
+                            if (v.musicScore === "high") {
+                              setTimeout(() => suggestSchedule(v), 100);
+                            }
+                            return (
+                              <button onClick={()=>suggestSchedule(v)}
+                                style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#7c3aed22",color:"#7c3aed",border:"1px solid #7c3aed44",cursor:"pointer",fontWeight:500}}>
+                                🔍 Search Schedule
+                              </button>
+                            );
+                          })()}
                           {suggestion?.loading && (
-                            <p style={{fontSize:11,color:"#94a3b8",margin:"4px 0 0"}}>🤖 Looking up their entertainment schedule…</p>
+                            <p style={{fontSize:11,color:"#94a3b8",margin:"4px 0 0"}}>🔍 Searching their schedule…</p>
                           )}
                           {suggestion && !suggestion.loading && suggestion.schedule && suggestion.schedule.length > 0 && (
                             <div style={{background:"#faf5ff",border:"1px solid #e9d5ff",borderRadius:10,padding:"10px 12px"}}>
                               <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8,flexWrap:"wrap"}}>
-                                <p style={{fontSize:11,fontWeight:600,color:"#7c3aed",margin:0}}>
-                                  {suggestion.source==="website" ? "✅ Schedule from their website" : suggestion.source==="web_search" ? "🔍 Found via web search" : "🤖 AI: Likely schedule"}
-                                </p>
-                                {suggestion.source !== "website"
-                                  ? <span style={{fontSize:10,background:"#fef9c3",color:"#854d0e",padding:"1px 6px",borderRadius:99,fontWeight:400,whiteSpace:"nowrap"}}>⚠️ Unverified</span>
-                                  : <span style={{fontSize:10,background:"#dcfce7",color:"#16a34a",padding:"1px 6px",borderRadius:99,fontWeight:400,whiteSpace:"nowrap"}}>✓ From their site</span>
-                                }
+                                <p style={{fontSize:11,fontWeight:600,color:"#7c3aed",margin:0}}>🔍 Likely entertainment schedule</p>
+                                <span style={{fontSize:10,background:"#fef9c3",color:"#854d0e",padding:"1px 6px",borderRadius:99,fontWeight:400,whiteSpace:"nowrap"}}>⚠️ Unverified</span>
                               </div>
                               <div style={{display:"flex",flexDirection:"column",gap:6}}>
                                 {suggestion.schedule.map((s,si)=>(
