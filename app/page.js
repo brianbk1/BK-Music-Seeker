@@ -681,28 +681,29 @@ export default function App() {
     finally { setScanning(null); }
   };
 
-  const suggestPerformers = async (venue) => {
+  const suggestSchedule = async (venue) => {
     const key = venue.website || venue.name;
     if (aiSuggestions[key] || suggestingVenue === key) return;
     setSuggestingVenue(key);
-    setAiSuggestions(prev => ({ ...prev, [key]: { loading: true, performers: [] } }));
+    setAiSuggestions(prev => ({ ...prev, [key]: { loading: true, schedule: [] } }));
     try {
       const res = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          system: `You are a local music expert. Given a venue name and location, suggest 4-6 performers or acts that likely play there regularly based on the venue type and location. Be specific with real local/regional acts if you know them. Return ONLY a JSON array of objects: { name, genre, description (one short sentence) }. Return ONLY valid JSON.`,
-          messages: [{ role: "user", content: `Venue: "${venue.name}" at ${venue.address}. What performers likely play here? Focus on local/regional acts typical for this type of venue.` }],
+          system: "You are a local entertainment expert with knowledge of bars and venues across the US. Given a venue name and address, return their KNOWN weekly entertainment schedule. Include trivia, karaoke, live music, DJs, open mic, dueling pianos, themed nights etc. Be specific — if you know this venue (e.g. Kildares West Chester has Quizzo Monday, Karaoke Sunday), use that knowledge. Return ONLY a JSON array: [{ day, event, time, notes }]. Return [] if unknown. ONLY valid JSON.",
+          messages: [{ role: "user", content: "Weekly entertainment schedule for: " + venue.name + " at " + venue.address }],
         }),
       });
       const data = await res.json();
       const block = data.content?.find(b => b.type === "text");
       if (block) {
-        const match = block.text.trim().replace(/\`\`\`json|\`\`\`/g, "").trim().match(/\[[\s\S]*\]/);
-        const performers = match ? JSON.parse(match[0]) : [];
-        setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, performers } }));
+        const cleaned = block.text.trim().replace(/```json|```/g, "").trim();
+        const match = cleaned.match(/\[[\s\S]*\]/);
+        const schedule = match ? JSON.parse(match[0]) : [];
+        setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule } }));
       }
-    } catch { setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, performers: [] } })); }
+    } catch { setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule: [] } })); }
     finally { setSuggestingVenue(null); }
   };
 
@@ -1085,38 +1086,44 @@ export default function App() {
                       <VenueChatbot venue={v} onClose={()=>setOpenChatVenue(null)} />
                     )}
 
-                    {/* AI performer suggestions for unscanned high-likelihood venues */}
+                    {/* AI weekly schedule suggestions for unscanned high-likelihood venues */}
                     {(!v.events || v.events.length===0) && !scanned && v.musicScore==="high" && (() => {
                       const key = v.website || v.name;
                       const suggestion = aiSuggestions[key];
                       return (
                         <div style={{marginTop:10}}>
                           {!suggestion && (
-                            <button onClick={()=>suggestPerformers(v)}
+                            <button onClick={()=>suggestSchedule(v)}
                               style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#7c3aed22",color:"#7c3aed",border:"1px solid #7c3aed44",cursor:"pointer",fontWeight:500}}>
-                              🤖 AI: Who likely plays here?
+                              🤖 AI: What's their entertainment schedule?
                             </button>
                           )}
                           {suggestion?.loading && (
-                            <p style={{fontSize:11,color:"#94a3b8",margin:0}}>🤖 Thinking of likely performers…</p>
+                            <p style={{fontSize:11,color:"#94a3b8",margin:"4px 0 0"}}>🤖 Looking up their entertainment schedule…</p>
                           )}
-                          {suggestion && !suggestion.loading && suggestion.performers.length > 0 && (
+                          {suggestion && !suggestion.loading && suggestion.schedule && suggestion.schedule.length > 0 && (
                             <div style={{background:"#faf5ff",border:"1px solid #e9d5ff",borderRadius:10,padding:"10px 12px"}}>
-                              <p style={{fontSize:11,fontWeight:600,color:"#7c3aed",margin:"0 0 6px",display:"flex",alignItems:"center",gap:6}}>
-                                🤖 AI suggests these acts may perform here:
-                                <span style={{fontSize:10,background:"#fef9c3",color:"#854d0e",padding:"1px 6px",borderRadius:99,fontWeight:400}}>Unverified — scan to confirm</span>
-                              </p>
-                              <div style={{display:"flex",flexDirection:"column",gap:4}}>
-                                {suggestion.performers.map((p,pi)=>(
-                                  <div key={pi} style={{display:"flex",alignItems:"flex-start",gap:8}}>
-                                    <span style={{fontSize:11,fontWeight:600,color:"#0f172a",whiteSpace:"nowrap"}}>{p.name}</span>
-                                    <span style={{fontSize:10,color:"#7c3aed",background:"#ede9fe",padding:"1px 6px",borderRadius:99,whiteSpace:"nowrap"}}>{p.genre}</span>
-                                    <span style={{fontSize:11,color:"#64748b",lineHeight:1.4}}>{p.description}</span>
+                              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+                                <p style={{fontSize:11,fontWeight:600,color:"#7c3aed",margin:0}}>🤖 AI: Likely weekly entertainment schedule</p>
+                                <span style={{fontSize:10,background:"#fef9c3",color:"#854d0e",padding:"1px 6px",borderRadius:99,fontWeight:400,whiteSpace:"nowrap"}}>⚠️ Unverified</span>
+                              </div>
+                              <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                                {suggestion.schedule.map((s,si)=>(
+                                  <div key={si} style={{display:"flex",gap:8,alignItems:"flex-start",padding:"6px 8px",background:"#fff",borderRadius:8,border:"1px solid #e9d5ff"}}>
+                                    <span style={{fontSize:11,fontWeight:700,color:"#7c3aed",minWidth:90,flexShrink:0}}>{s.day}</span>
+                                    <div style={{flex:1}}>
+                                      <span style={{fontSize:12,fontWeight:600,color:"#0f172a"}}>{s.event}</span>
+                                      {s.time && <span style={{fontSize:11,color:"#64748b",marginLeft:6}}>🕐 {s.time}</span>}
+                                      {s.notes && <p style={{fontSize:11,color:"#94a3b8",margin:"2px 0 0",lineHeight:1.4}}>{s.notes}</p>}
+                                    </div>
                                   </div>
                                 ))}
                               </div>
-                              <p style={{fontSize:10,color:"#94a3b8",margin:"8px 0 0"}}>👆 Tap "Scan Site for Events" above to get the real schedule</p>
+                              <p style={{fontSize:10,color:"#94a3b8",margin:"8px 0 0"}}>👆 Tap "Scan Site for Events" above to verify the real schedule</p>
                             </div>
+                          )}
+                          {suggestion && !suggestion.loading && suggestion.schedule && suggestion.schedule.length === 0 && (
+                            <p style={{fontSize:11,color:"#94a3b8",margin:"4px 0 0"}}>No schedule found — tap "Scan Site for Events" or check their website directly.</p>
                           )}
                         </div>
                       );
