@@ -126,8 +126,26 @@ const FEATURED_BANDS = [
       { url: "https://images.unsplash.com/photo-1501612780327-45045538702b?w=600&h=300&fit=crop", label: "🎤 Live Show" },
       { url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&h=300&fit=crop", label: "🎶 Crowd" },
     ],
-    upcomingShows: null, // No public schedule page — direct to Facebook
+    upcomingShows: null,
     facebookNote: "Check their Facebook page for upcoming show dates",
+  },
+  {
+    name: "Hake & Jarema",
+    tag: "Acoustic Duo — Classic Hits Since 2000",
+    genre: "Acoustic / Classic Rock / Blues",
+    homebase: "West Chester, PA",
+    description: "Bill Hake and Matt Jarema have been serving up the classic hits of yesteryear since 2000. Their acoustic sets weave through the Allman Brothers, Beatles, Jim Croce, Otis Redding, Van Morrison, Willie Nelson and more — roots music with a soulful original twist.",
+    website: "http://www.hakeandjarema.com",
+    facebook: "https://www.facebook.com/hakeandjarema/",
+    instagram: null,
+    color: "#065f46",
+    photos: [
+      { url: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600&h=300&fit=crop", label: "🎸 Bill & Matt" },
+      { url: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&h=300&fit=crop", label: "🎤 Acoustic Set" },
+      { url: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&h=300&fit=crop", label: "🎶 Live Show" },
+    ],
+    upcomingShows: null,
+    facebookNote: "Follow their Facebook page for upcoming show dates across Chester County",
   },
 ];
 
