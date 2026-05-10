@@ -8,7 +8,20 @@ export async function POST(req) {
       "brickettelounge.com": "https://www.brickettelounge.com/music-events",
       "pietrosprime.com":    "https://www.pietrosprime.com/entertainment",
       "slowhand-wc.com":     "https://www.slowhand-wc.com/events",
+      "saloon151.com":       "https://www.saloon151.com/entertainment",
+      "kildareswc.com":      "https://www.kildareswc.com/events",
+      "barnabysrestaurants.com": "https://www.barnabysrestaurants.com/events",
     };
+
+    // ── Venues that ALWAYS need screenshot (JS-rendered calendars) ────────────
+    // Any Wix/Squarespace site or site where text scraping returns empty events
+    const ALWAYS_SCREENSHOT = [
+      "station142.com",
+      "brickettelounge.com",
+      "saloon151.com",
+      "kildareswc.com",
+    ];
+    const alwaysScreenshot = ALWAYS_SCREENSHOT.some(d => hostname.includes(d));
 
     // ── Common event paths to probe ───────────────────────────────────────────
     const EVENT_PATHS = [
@@ -240,7 +253,7 @@ export async function POST(req) {
 
     // ── Step 5: Screenshot if JS-heavy or low text score ─────────────────────
     const siteIsJsHeavy = startPage ? isJsHeavy(startPage.html) : false;
-    const useScreenshot  = APIFLASH_KEY && (siteIsJsHeavy || bestScore < 3);
+    const useScreenshot  = APIFLASH_KEY && (alwaysScreenshot || siteIsJsHeavy || bestScore < 5);
 
     if (useScreenshot) {
       const base64 = await screenshotPage(targetUrl);

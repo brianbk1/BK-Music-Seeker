@@ -691,7 +691,7 @@ export default function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          system: "You are a local entertainment expert with knowledge of bars and venues across the US. Given a venue name and address, return their KNOWN weekly entertainment schedule. Include trivia, karaoke, live music, DJs, open mic, dueling pianos, themed nights etc. Be specific — if you know this venue (e.g. Kildares West Chester has Quizzo Monday, Karaoke Sunday), use that knowledge. Return ONLY a JSON array: [{ day, event, time, notes }]. Return [] if unknown. ONLY valid JSON.",
+system: "You are a local entertainment expert with deep knowledge of bars and venues. Return the KNOWN weekly entertainment schedule for the given venue. Use your specific knowledge — examples: Kildares Irish Pub West Chester PA: Monday Quizzo 9pm-11pm, Wednesday Pub Pong 10pm-2am, Thursday Name That Tune 8-10pm + Karaoke 10pm-2am, Friday DJs 10pm-2am (first Friday Dueling Pianos 7-10pm), Saturday DJs 10pm-2am, Sunday Karaoke with Brian Aglira 10pm-2am. Saloon 151 West Chester PA: weekly live acoustic music, poker nights, quizzo, music bingo, karaoke, and DJs throughout the week. Station 142 West Chester PA: Thursday-Saturday live music and events, check their live-music page. For any venue you know, return the real schedule. Return ONLY a JSON array: [{ day, event, time, notes }]. Return [] only if you truly have no knowledge of this specific venue. ONLY valid JSON.",
           messages: [{ role: "user", content: "Weekly entertainment schedule for: " + venue.name + " at " + venue.address }],
         }),
       });
