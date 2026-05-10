@@ -12,6 +12,13 @@ const FEATURED_VENUES = [
     scheduleUrl: "https://www.pietrosprime.com/entertainment",
     reserveUrl: "https://www.opentable.com/pietros-prime",
     color: "#e85d04",
+    upcomingShows: [
+      { date: "Wed May 13", event: "John Grecia", location: "Pietro's Prime", url: "https://www.pietrosprime.com/event-details/john-grecia-45" },
+      { date: "Thu May 14", event: "Brian McConnell", location: "Pietro's Prime", url: "https://www.pietrosprime.com/event-details/brian-mcconnell-39" },
+      { date: "Fri May 15", event: "John Grecia & Drew Neilands", location: "Pietro's Prime", url: "https://www.pietrosprime.com/event-details/john-grecia-drew-neilands" },
+      { date: "Sat May 16", event: "Midnight Blue", location: "Pietro's Prime", url: "https://www.pietrosprime.com/event-details/midnight-blue-3" },
+      { date: "Wed May 20", event: "John Grecia", location: "Pietro's Prime", url: "https://www.pietrosprime.com/event-details/john-grecia-46" },
+    ],
   },
   {
     name: "Station 142",
@@ -760,13 +767,13 @@ Answer questions about this venue helpfully and conversationally. If you don't k
     finally { setLoading(false); }
   };
 
-  const QUICK_QUESTIONS = ["What's the vibe like?", "Do they have food?", "Is there a cover charge?", "What kind of music do they play?", "Is parking nearby?"];
+  const QUICK_QUESTIONS = ["What's the vibe like?", "What's on the menu?", "Is there a cover charge?", "What music do they feature?", "Best night to visit?", "Is parking easy?"];
 
   return (
     <div style={{ marginTop: 10, background: "#f8fafc", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: "#e85d04", color: "#fff" }}>
-        <span style={{ fontWeight: 600, fontSize: 13 }}>💬 Ask AI — {venue.name}</span>
+        <span style={{ fontWeight: 600, fontSize: 13 }}>🏠 About {venue.name}</span>
         <button onClick={onClose} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer", fontSize: 16, lineHeight: 1 }}>✕</button>
       </div>
 
@@ -1273,16 +1280,16 @@ system: "You are a local entertainment expert with deep knowledge of bars and ve
                       </div>
                     )}
                     <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>
+                      <button onClick={()=>setOpenChatVenue(openChatVenue===(v.website||v.name)?null:(v.website||v.name))}
+                        style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f0f9ff",color:"#0369a1",border:"1px solid #bae6fd",cursor:"pointer",fontWeight:500}}>
+                        🏠 About This Venue
+                      </button>
                       {v.website&&(
                         <button onClick={()=>scrapeVenue(v.website,setScanningVenue,setScannedVenues,v.name,v.address)} disabled={isScanning}
                           style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:isScanning?"#e2e8f0":"#e85d04",color:isScanning?"#94a3b8":"#fff",border:"none",cursor:isScanning?"default":"pointer",fontWeight:500}}>
                           {isScanning?"🎵 Finding…":"🎵 Find Events"}
                         </button>
                       )}
-                      <button onClick={()=>setOpenChatVenue(openChatVenue===(v.website||v.name)?null:(v.website||v.name))}
-                        style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#fff7ed",color:"#e85d04",border:"1px solid #fed7aa",cursor:"pointer",fontWeight:500}}>
-                        💬 Ask AI
-                      </button>
                       <button onClick={()=>setOpenCommunityVenue(openCommunityVenue===(v.website||v.name)?null:(v.website||v.name))}
                         style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f8fafc",color:"#0f172a",border:"1px solid #e2e8f0",cursor:"pointer",fontWeight:500}}>
                         ⭐ Rate
@@ -1324,7 +1331,7 @@ system: "You are a local entertainment expert with deep knowledge of bars and ve
                           {!suggestion && (
                             <button onClick={()=>suggestSchedule(v)}
                               style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#7c3aed22",color:"#7c3aed",border:"1px solid #7c3aed44",cursor:"pointer",fontWeight:500}}>
-                              🤖 AI: What's their entertainment schedule?
+                              🤖 AI: Suggest their schedule
                             </button>
                           )}
                           {suggestion?.loading && (
