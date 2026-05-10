@@ -1032,27 +1032,23 @@ export default function App() {
     const key = venue.website || venue.name;
     if (aiSuggestions[key] || suggestingVenue === key) return;
     setSuggestingVenue(key);
-    setAiSuggestions(prev => ({ ...prev, [key]: { loading: true, schedule: [] } }));
+    setAiSuggestions(prev => ({ ...prev, [key]: { loading: true, schedule: [], source: null } }));
     try {
-      const res = await fetch("/api/search", {
+      const res = await fetch("/api/schedule", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-system: "You are a local entertainment expert with deep knowledge of bars and venues. Return the KNOWN upcoming shows and weekly entertainment schedule for the given venue. Use your specific knowledge — examples: Station 142 West Chester PA (142 E Market St): Tuesday Karaoke 8pm-12am ($50 gift card to best performer), Wednesday open, Thursday Open Mic Night 7-11pm, Friday-Saturday live bands 9pm (acts include Shot of Southern, CandiFlyp, Lecompt, Biscotti Boys, Never the Less, Bad Hombres, Basic Cable, Former Strangers), Sunday open. Kildares Irish Pub West Chester PA: Monday Quizzo 9-11pm, Wednesday Pub Pong 10pm-2am, Thursday Name That Tune 8-10pm + Karaoke 10pm-2am, Friday DJs 10pm-2am (first Friday Dueling Pianos 7-10pm), Saturday DJs 10pm-2am, Sunday Karaoke with Brian Aglira 10pm-2am. Saloon 151 West Chester PA: live acoustic music, poker nights, quizzo, music bingo, karaoke, DJs throughout the week. Pietro's Prime West Chester PA: live entertainment Wednesday-Saturday nights. Slow Hand WC: regular live music and events, check slowhand-wc.com/events. VK Brewing Co & Eatery Exton PA (693 Lincoln Hwy): Tuesday 6:30pm alternating Trivia (hosted by Seamus) and Music Bingo (hosted by DJ Bill) with prizes, Friday live music 6-9pm, Saturday live music 6-9pm. Closed Mondays. For any venue you know, return both recurring weekly events AND any known upcoming specific acts/dates. Include ALL types of entertainment: live music, open mic, karaoke, trivia, music bingo, quizzo, poker nights, line dancing, dueling pianos, piano bar, DJ nights, country nights, dance nights, comedy, themed events. Return ONLY a JSON array: [{ day, event, time, notes }]. Return [] only if you truly have no knowledge of this specific venue. ONLY valid JSON.",
-          messages: [{ role: "user", content: "Weekly entertainment schedule for: " + venue.name + " at " + venue.address }],
+          venueName: venue.name,
+          venueAddress: venue.address,
+          venueWebsite: venue.website || null,
         }),
       });
       const data = await res.json();
-      const block = data.content?.find(b => b.type === "text");
-      if (block) {
-        const cleaned = block.text.trim().replace(/```json|```/g, "").trim();
-        const match = cleaned.match(/\[[\s\S]*\]/);
-        const schedule = match ? JSON.parse(match[0]) : [];
-        setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule } }));
-      }
-    } catch { setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule: [] } })); }
+      setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule: data.schedule || [], source: data.source || "ai_knowledge" } }));
+    } catch { setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule: [], source: null } })); }
     finally { setSuggestingVenue(null); }
   };
+
 
   const fetchHappyHour = async (venue) => {
     const key = venue.website || venue.name;
@@ -1512,9 +1508,14 @@ system: "You are a local entertainment expert with deep knowledge of bars and ve
                           )}
                           {suggestion && !suggestion.loading && suggestion.schedule && suggestion.schedule.length > 0 && (
                             <div style={{background:"#faf5ff",border:"1px solid #e9d5ff",borderRadius:10,padding:"10px 12px"}}>
-                              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
-                                <p style={{fontSize:11,fontWeight:600,color:"#7c3aed",margin:0}}>🤖 AI: Likely weekly entertainment schedule</p>
-                                <span style={{fontSize:10,background:"#fef9c3",color:"#854d0e",padding:"1px 6px",borderRadius:99,fontWeight:400,whiteSpace:"nowrap"}}>⚠️ Unverified</span>
+                              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8,flexWrap:"wrap"}}>
+                                <p style={{fontSize:11,fontWeight:600,color:"#7c3aed",margin:0}}>
+                                  {suggestion.source==="website" ? "✅ Schedule from their website" : suggestion.source==="web_search" ? "🔍 Found via web search" : "🤖 AI: Likely schedule"}
+                                </p>
+                                {suggestion.source !== "website"
+                                  ? <span style={{fontSize:10,background:"#fef9c3",color:"#854d0e",padding:"1px 6px",borderRadius:99,fontWeight:400,whiteSpace:"nowrap"}}>⚠️ Unverified</span>
+                                  : <span style={{fontSize:10,background:"#dcfce7",color:"#16a34a",padding:"1px 6px",borderRadius:99,fontWeight:400,whiteSpace:"nowrap"}}>✓ From their site</span>
+                                }
                               </div>
                               <div style={{display:"flex",flexDirection:"column",gap:6}}>
                                 {suggestion.schedule.map((s,si)=>(
