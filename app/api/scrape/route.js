@@ -8,9 +8,10 @@ export async function POST(req) {
       "brickettelounge.com": "https://www.brickettelounge.com/music-events",
       "pietrosprime.com":    "https://www.pietrosprime.com/entertainment",
       "slowhand-wc.com":     "https://www.slowhand-wc.com/events",
-      "saloon151.com":       "https://www.saloon151.com/entertainment",
+      "saloon151.com":       "https://www.saloon151.com/weekly-specials",
       "kildareswc.com":      "https://www.kildareswc.com/events",
       "barnabysrestaurants.com": "https://www.barnabysrestaurants.com/events",
+      "vkbrewing.com":           "https://www.vkbrewing.com/specials.html",
     };
 
     // ── Venues that ALWAYS need screenshot (JS-rendered calendars) ────────────
@@ -31,6 +32,16 @@ export async function POST(req) {
       "/shows/", "/shows", "/schedule/", "/schedule",
       "/whats-on/", "/whats-on", "/live/", "/live",
       "/band-schedule/", "/upcoming/", "/upcoming",
+      "/specials/", "/specials", "/specials.html",
+      "/happenings/", "/happenings", "/weekly/", "/weekly",
+      "/whats-happening/", "/whats-happening",
+      "/fun/", "/activities/", "/activities",
+      "/tonight/", "/agenda/", "/agenda",
+      "/trivia/", "/karaoke/", "/bingo/",
+      "/open-mic/", "/open-mic", "/openmic/", "/openmic",
+      "/line-dancing/", "/line-dancing", "/dancing/", "/dancing",
+      "/poker/", "/poker", "/poker-night/",
+      "/piano/", "/piano-bar/", "/dueling-pianos/",
     ];
 
     const CONTENT_KEYWORDS = [
@@ -38,12 +49,24 @@ export async function POST(req) {
       "schedule", "event", "pm", "doors open", "tickets", "admission",
       "cover charge", "dj", "acoustic", "karaoke", "open mic",
       "tonight", "this weekend", "upcoming", "lineup",
+      "trivia", "music bingo", "bingo", "quizzo", "quiz",
+      "happy hour", "weekly", "every tuesday", "every wednesday",
+      "every thursday", "every friday", "every saturday", "every sunday",
+      "monday night", "tuesday night", "wednesday night", "thursday night",
+      "friday night", "saturday night", "sunday night",
+      "open mic", "open-mic", "line dancing", "line-dancing",
+      "poker", "poker night", "dueling piano", "dueling pianos",
+      "piano bar", "piano night", "country night", "dance night",
+      "two-step", "two step",
     ];
 
     const URL_KEYWORDS = [
       "music", "event", "entertainment", "calendar", "show", "schedule",
       "live", "band", "gig", "concert", "perform", "whats-on",
-      "lineup", "upcoming", "ticket",
+      "lineup", "upcoming", "ticket", "special", "happenings",
+      "weekly", "tonight", "agenda", "what-on", "activities",
+      "fun", "night", "trivia", "karaoke", "bingo", "open-mic",
+      "open-mic", "line-dancing", "poker", "piano", "dancing",
     ];
 
     const APIFLASH_KEY = process.env.APIFLASH_KEY;
@@ -89,7 +112,17 @@ export async function POST(req) {
 
     const scoreUrl = (href, anchor = "") => {
       const combined = (href + " " + anchor).toLowerCase();
-      return URL_KEYWORDS.filter(kw => combined.includes(kw)).length;
+      const baseScore = URL_KEYWORDS.filter(kw => combined.includes(kw)).length;
+      // Bonus score for anchor text that clearly signals events/entertainment
+      const anchorLower = anchor.toLowerCase();
+      const anchorBonus = [
+        "specials", "happenings", "what's on", "weekly events",
+        "trivia", "karaoke", "bingo", "live music", "entertainment",
+        "events", "schedule", "calendar", "shows", "tonight",
+        "open mic", "line dancing", "poker", "poker night",
+        "dueling piano", "piano bar", "country night", "dance night",
+      ].some(kw => anchorLower.includes(kw)) ? 2 : 0;
+      return baseScore + anchorBonus;
     };
 
     const isJsHeavy = (html) =>

@@ -25,14 +25,16 @@ const FEATURED_VENUES = [
     tag: "Whiskey Bar — Open 7 Days 11am–2am",
     description: "West Chester's premier whiskey bar with the best bourbon & tequila selection in PA. Old West-inspired décor, slow-cooked BBQ, craft beers on tap, and weekly entertainment including Quizzo, Music Bingo, Karaoke, live acoustic music and DJs.",
     address: "151 W Gay St, West Chester, PA 19380",
-    scheduleUrl: "https://www.saloon151.com/entertainment",
+    scheduleUrl: "https://www.saloon151.com/weekly-specials",
     reserveUrl: "https://www.saloon151.com/",
     color: "#92400e",
     upcomingShows: [
-      { date: "Every Tuesday", event: "Quizzo Night — half-price nachos & $5 cocktails", location: "Saloon 151", url: "https://www.saloon151.com/entertainment" },
-      { date: "Every Wednesday", event: "Music Bingo — 5 rounds, gift card prizes 8pm", location: "Saloon 151", url: "https://www.saloon151.com/entertainment" },
-      { date: "Every Friday", event: "Karaoke with Spyder Entertainment 10pm–2am", location: "Tequila Bar", url: "https://www.saloon151.com/entertainment" },
-      { date: "Weekends", event: "Live acoustic music & DJ nights", location: "Saloon 151", url: "https://www.saloon151.com/entertainment" },
+      { date: "Every Monday", event: "🃏 Free Poker Night — sign-ups 7:30pm + Burger Monday", location: "Saloon 151", url: "https://www.saloon151.com/weekly-specials" },
+      { date: "Every Tuesday", event: "🧠 Quizzo Game Night 7pm (hosted by DJ)", location: "Saloon 151", url: "https://www.saloon151.com/weekly-specials" },
+      { date: "Every Wednesday", event: "🎵 Music Bingo 8pm — 5 rounds, gift card prizes", location: "Saloon 151", url: "https://www.saloon151.com/weekly-specials" },
+      { date: "Every Friday", event: "🎧 DJ 10pm–2am + drink specials all night", location: "Tequila Bar", url: "https://www.saloon151.com/weekly-specials" },
+      { date: "Every Saturday", event: "🎧 DJ 10pm–2am + $4 Harp Pints all day", location: "Saloon 151", url: "https://www.saloon151.com/weekly-specials" },
+      { date: "Every Sunday", event: "🦀 Crab Legs 3–9pm + Live Music + $3 Miller Lites", location: "Saloon 151", url: "https://www.saloon151.com/weekly-specials" },
     ],
   },
   {
@@ -208,6 +210,7 @@ function VenueShowList({ venue }) {
 
   return (
     <div style={{ borderTop: "1px solid " + venue.color + "33", paddingTop: 10 }}>
+
       <p style={{ fontSize: 11, fontWeight: 600, color: venue.color, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
         📅 Upcoming Shows
       </p>
@@ -388,33 +391,110 @@ function BandPicker({ bands, loading, onSelect }) {
 
 function BandResultsPanel({ band, location, radius, bandVenues, bandVenuesLoading, bandVenuesError, bandScanningVenue, bandScannedVenues, onFindVenues, onScrape, onChangeBand }) {
   const enc = encodeURIComponent(band.name);
+  const [aiShows, setAiShows]       = useState(null);
+  const [aiLoading, setAiLoading]   = useState(false);
+
+  const fetchAiShows = async () => {
+    setAiLoading(true);
+    try {
+      const res = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system: "You are a live music expert. Given a band/artist name and location, return their upcoming shows or typical recurring venues near that location. Return ONLY a JSON array of up to 6 shows: [{ venue, address, date, time, notes, confidence: 'high'|'medium' }]. Only include shows you know with reasonable confidence. Return [] if unknown. ONLY valid JSON.",
+          messages: [{ role: "user", content: `Upcoming shows for "${band.name}" (${band.genre}, based in ${band.homebase}) near ${location} within ${radius} miles. What venues do they typically play and are there any known upcoming dates?` }],
+        }),
+      });
+      const data = await res.json();
+      const block = data.content?.find(b => b.type === "text");
+      if (block) {
+        const match = block.text.trim().replace(/```json|```/g,"").trim().match(/\[[\s\S]*\]/);
+        setAiShows(match ? JSON.parse(match[0]) : []);
+      }
+    } catch { setAiShows([]); }
+    finally { setAiLoading(false); }
+  };
+
+  // Build real source links — show band website prominently if known
+  const hasWebsite = band.websiteHint && band.websiteHint.startsWith("http");
   const links = [
-    { label: "🌐 Their Website", desc: band.websiteHint ? `Visit ${band.websiteHint}` : "Find their official site", href: band.websiteHint || `https://www.google.com/search?q=${enc}+band+official+website`, color: "#0f172a", bg: "#f1f5f9" },
-    { label: "🎵 Songkick",      desc: "Tour dates & ticket links",          href: `https://www.songkick.com/search?query=${enc}`,                                   color: "#fff", bg: "#f97316" },
-    { label: "🎸 Bandsintown",   desc: "Show alerts & listings",             href: `https://www.bandsintown.com/search?query=${enc}`,                                color: "#fff", bg: "#16a34a" },
-    { label: "🎟 Ticketmaster",  desc: "Tickets for larger venues",          href: `https://www.ticketmaster.com/search?q=${enc}`,                                   color: "#fff", bg: "#2563eb" },
-    { label: "👍 Facebook",      desc: "Events & band page",                 href: `https://www.facebook.com/search/events/?q=${enc}`,                              color: "#fff", bg: "#1877f2" },
-    { label: "📸 Instagram",     desc: "Show announcements & stories",       href: `https://www.instagram.com/explore/search/keyword/?q=${enc}`,                     color: "#fff", bg: "#c026d3" },
-    { label: "▶️ YouTube",       desc: "Live performances & videos",         href: `https://www.youtube.com/results?search_query=${enc}+live`,                       color: "#fff", bg: "#dc2626" },
-    { label: "🔍 Google Shows",  desc: `"${band.name} upcoming shows"`,      href: `https://www.google.com/search?q=${enc}+upcoming+shows+2026`,                    color: "#fff", bg: "#374151" },
+    { label: "🎵 Songkick",     href: `https://www.songkick.com/search?query=${enc}`,                          bg: "#f97316" },
+    { label: "🎸 Bandsintown",  href: `https://www.bandsintown.com/search?query=${enc}`,                       bg: "#16a34a" },
+    { label: "🎟 Ticketmaster", href: `https://www.ticketmaster.com/search?q=${enc}`,                          bg: "#2563eb" },
+    { label: "👍 Facebook",     href: `https://www.facebook.com/search/events/?q=${enc}`,                     bg: "#1877f2" },
+    { label: "📸 Instagram",    href: `https://www.instagram.com/explore/search/keyword/?q=${enc}`,            bg: "#c026d3" },
+    { label: "▶️ YouTube",      href: `https://www.youtube.com/results?search_query=${enc}+live`,              bg: "#dc2626" },
+    { label: "🔍 Google",       href: `https://www.google.com/search?q=${enc}+upcoming+shows+2026`,           bg: "#374151" },
   ];
+
   return (
     <div style={{ padding: "0 0 1.5rem" }}>
-      <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 12, padding: "14px 16px", marginBottom: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div>
-            <p style={{ fontWeight: 700, fontSize: 15, margin: "0 0 2px", color: "#0f172a" }}>🎸 {band.name}</p>
-            <p style={{ fontSize: 12, color: "#64748b", margin: "0 0 4px" }}>📍 {band.homebase} &nbsp;•&nbsp; 🎵 {band.genre}</p>
-            <p style={{ fontSize: 12, color: "#374151", margin: 0, lineHeight: 1.5 }}>{band.description}</p>
-          </div>
+
+      {/* Band card header */}
+      <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
+        <p style={{ fontWeight: 700, fontSize: 16, margin: "0 0 2px", color: "#0f172a" }}>🎸 {band.name}</p>
+        <p style={{ fontSize: 12, color: "#64748b", margin: "0 0 6px" }}>📍 {band.homebase} &nbsp;•&nbsp; 🎵 {band.genre}</p>
+        <p style={{ fontSize: 12, color: "#374151", margin: "0 0 10px", lineHeight: 1.5 }}>{band.description}</p>
+        {/* Action buttons */}
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {hasWebsite && (
+            <a href={band.websiteHint} target="_blank" rel="noreferrer"
+              style={{ fontSize: 12, padding: "6px 14px", borderRadius: 99, background: "#0f172a", color: "#fff", textDecoration: "none", fontWeight: 600 }}>
+              🌐 Their Website
+            </a>
+          )}
+          {!hasWebsite && (
+            <a href={`https://www.google.com/search?q=${enc}+band+official+website`} target="_blank" rel="noreferrer"
+              style={{ fontSize: 12, padding: "6px 14px", borderRadius: 99, background: "#f1f5f9", color: "#374151", textDecoration: "none", border: "1px solid #e2e8f0" }}>
+              🔍 Find Their Website
+            </a>
+          )}
+          <button onClick={onChangeBand}
+            style={{ fontSize: 12, padding: "6px 14px", borderRadius: 99, background: "transparent", border: "1px solid #bbf7d0", color: "#16a34a", cursor: "pointer" }}>
+            ← Wrong band?
+          </button>
         </div>
-        <button onClick={onChangeBand}
-          style={{ marginTop: 10, fontSize: 11, padding: "4px 12px", borderRadius: 99, background: "transparent", border: "1px solid #16a34a", color: "#16a34a", cursor: "pointer" }}>
-          ← Not the right band?
-        </button>
       </div>
+
+      {/* AI show suggestions */}
+      <div style={{ marginBottom: 16 }}>
+        {aiShows === null && !aiLoading && (
+          <button onClick={fetchAiShows}
+            style={{ fontSize: 12, padding: "7px 16px", borderRadius: 99, background: "#7c3aed22", color: "#7c3aed", border: "1px solid #7c3aed44", cursor: "pointer", fontWeight: 600 }}>
+            🤖 AI: Find likely upcoming shows
+          </button>
+        )}
+        {aiLoading && <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>🤖 Looking for upcoming shows…</p>}
+        {aiShows !== null && aiShows.length > 0 && (
+          <div style={{ background: "#faf5ff", border: "1px solid #e9d5ff", borderRadius: 12, padding: "12px 14px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: "#7c3aed", margin: 0 }}>🤖 AI: Likely upcoming shows for {band.name}</p>
+              <span style={{ fontSize: 10, background: "#fef9c3", color: "#854d0e", padding: "1px 6px", borderRadius: 99 }}>⚠️ Unverified</span>
+            </div>
+            {aiShows.map((show, si) => (
+              <div key={si} style={{ background: "#fff", borderRadius: 10, padding: "10px 12px", marginBottom: 6, border: "1px solid #e9d5ff", borderLeft: "3px solid #7c3aed" }}>
+                <p style={{ fontWeight: 600, fontSize: 13, margin: "0 0 4px", color: "#0f172a" }}>{show.venue}</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", fontSize: 11, color: "#64748b" }}>
+                  {show.date && <span>📅 {show.date}</span>}
+                  {show.time && <span>🕐 {show.time}</span>}
+                  {show.address && <span>📍 {show.address}</span>}
+                  {show.notes && <span>ℹ️ {show.notes}</span>}
+                </div>
+                {show.confidence === "medium" && (
+                  <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 99, background: "#fef9c3", color: "#854d0e", fontWeight: 600, marginTop: 4, display: "inline-block" }}>⚠️ Unverified</span>
+                )}
+              </div>
+            ))}
+            <p style={{ fontSize: 10, color: "#94a3b8", margin: "6px 0 0" }}>Verify before heading out — tap "Scan Site" on venues below or check their website</p>
+          </div>
+        )}
+        {aiShows !== null && aiShows.length === 0 && (
+          <p style={{ fontSize: 12, color: "#94a3b8", margin: "6px 0 0" }}>No upcoming shows found by AI — use the source links below to find their real schedule.</p>
+        )}
+      </div>
+
       <div style={{ background: "#fff8f0", border: "1px solid #fed7aa", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 12, color: "#92400e" }}>
-        ⚠️ AI can't reliably know band schedules — especially for local acts. Use these real sources.
+        ⚠️ Always verify AI results — check their website or social pages for the real schedule.
       </div>
       <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 16 }}>
         <p style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 6px" }}>🍺 Nearby Venues Near {location}</p>
@@ -489,9 +569,8 @@ function BandResultsPanel({ band, location, radius, bandVenues, bandVenuesLoadin
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           {links.map((l, i) => (
             <a key={i} href={l.href} target="_blank" rel="noreferrer"
-              style={{ display: "flex", flexDirection: "column", padding: "12px 14px", borderRadius: 12, background: l.bg, color: l.color, textDecoration: "none", border: l.bg === "#f1f5f9" ? "1px solid #e2e8f0" : "none" }}>
-              <span style={{ fontWeight: 600, fontSize: 13, marginBottom: 3 }}>{l.label}</span>
-              <span style={{ fontSize: 11, opacity: 0.8, lineHeight: 1.4 }}>{l.desc}</span>
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "12px 14px", borderRadius: 12, background: l.bg, color: "#fff", textDecoration: "none", fontWeight: 600, fontSize: 13 }}>
+              {l.label}
             </a>
           ))}
         </div>
@@ -887,6 +966,8 @@ export default function App() {
   const [scannedVenues, setScannedVenues]   = useState({});
   const [aiSuggestions, setAiSuggestions]   = useState({});   // url → {loading, performers}
   const [suggestingVenue, setSuggestingVenue] = useState(null);
+  const [happyHours, setHappyHours]           = useState({});  // url → {loading, data}
+  const [fetchingHH, setFetchingHH]           = useState(null);
   const [openChatVenue, setOpenChatVenue]     = useState(null); // venue key with chat open
   const [openCommunityVenue, setOpenCommunityVenue] = useState(null); // venue key with community panel open
 
@@ -957,7 +1038,7 @@ export default function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-system: "You are a local entertainment expert with deep knowledge of bars and venues. Return the KNOWN upcoming shows and weekly entertainment schedule for the given venue. Use your specific knowledge — examples: Station 142 West Chester PA (142 E Market St): Tuesday Karaoke 8pm-12am ($50 gift card to best performer), Wednesday open, Thursday Open Mic Night 7-11pm, Friday-Saturday live bands 9pm (acts include Shot of Southern, CandiFlyp, Lecompt, Biscotti Boys, Never the Less, Bad Hombres, Basic Cable, Former Strangers), Sunday open. Kildares Irish Pub West Chester PA: Monday Quizzo 9-11pm, Wednesday Pub Pong 10pm-2am, Thursday Name That Tune 8-10pm + Karaoke 10pm-2am, Friday DJs 10pm-2am (first Friday Dueling Pianos 7-10pm), Saturday DJs 10pm-2am, Sunday Karaoke with Brian Aglira 10pm-2am. Saloon 151 West Chester PA: live acoustic music, poker nights, quizzo, music bingo, karaoke, DJs throughout the week. Pietro's Prime West Chester PA: live entertainment Wednesday-Saturday nights. Slow Hand WC: regular live music and events, check slowhand-wc.com/events. For any venue you know, return both recurring weekly events AND any known upcoming specific acts/dates. Return ONLY a JSON array: [{ day, event, time, notes }]. Return [] only if you truly have no knowledge of this specific venue. ONLY valid JSON.",
+system: "You are a local entertainment expert with deep knowledge of bars and venues. Return the KNOWN upcoming shows and weekly entertainment schedule for the given venue. Use your specific knowledge — examples: Station 142 West Chester PA (142 E Market St): Tuesday Karaoke 8pm-12am ($50 gift card to best performer), Wednesday open, Thursday Open Mic Night 7-11pm, Friday-Saturday live bands 9pm (acts include Shot of Southern, CandiFlyp, Lecompt, Biscotti Boys, Never the Less, Bad Hombres, Basic Cable, Former Strangers), Sunday open. Kildares Irish Pub West Chester PA: Monday Quizzo 9-11pm, Wednesday Pub Pong 10pm-2am, Thursday Name That Tune 8-10pm + Karaoke 10pm-2am, Friday DJs 10pm-2am (first Friday Dueling Pianos 7-10pm), Saturday DJs 10pm-2am, Sunday Karaoke with Brian Aglira 10pm-2am. Saloon 151 West Chester PA: live acoustic music, poker nights, quizzo, music bingo, karaoke, DJs throughout the week. Pietro's Prime West Chester PA: live entertainment Wednesday-Saturday nights. Slow Hand WC: regular live music and events, check slowhand-wc.com/events. VK Brewing Co & Eatery Exton PA (693 Lincoln Hwy): Tuesday 6:30pm alternating Trivia (hosted by Seamus) and Music Bingo (hosted by DJ Bill) with prizes, Friday live music 6-9pm, Saturday live music 6-9pm. Closed Mondays. For any venue you know, return both recurring weekly events AND any known upcoming specific acts/dates. Include ALL types of entertainment: live music, open mic, karaoke, trivia, music bingo, quizzo, poker nights, line dancing, dueling pianos, piano bar, DJ nights, country nights, dance nights, comedy, themed events. Return ONLY a JSON array: [{ day, event, time, notes }]. Return [] only if you truly have no knowledge of this specific venue. ONLY valid JSON.",
           messages: [{ role: "user", content: "Weekly entertainment schedule for: " + venue.name + " at " + venue.address }],
         }),
       });
@@ -971,6 +1052,32 @@ system: "You are a local entertainment expert with deep knowledge of bars and ve
       }
     } catch { setAiSuggestions(prev => ({ ...prev, [key]: { loading: false, schedule: [] } })); }
     finally { setSuggestingVenue(null); }
+  };
+
+  const fetchHappyHour = async (venue) => {
+    const key = venue.website || venue.name;
+    if (happyHours[key] || fetchingHH === key) return;
+    setFetchingHH(key);
+    setHappyHours(prev => ({ ...prev, [key]: { loading: true, data: null } }));
+    try {
+      const res = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system: "You are a local bar and restaurant expert. Given a venue name and address, return their happy hour details ONLY if you know them with HIGH CONFIDENCE from your training data. Do not guess or make up specials. Return a JSON object: { hasHappyHour: true/false, days: string, hours: string, deals: string (pipe-separated list of deals), confidence: high/low }. If you are not highly confident, return { hasHappyHour: false, confidence: low }. Return ONLY valid JSON.",
+          messages: [{ role: "user", content: "What are the happy hour specials for " + venue.name + " at " + venue.address + "? Only return details you know with high confidence." }],
+        }),
+      });
+      const data = await res.json();
+      const block = data.content?.find(b => b.type === "text");
+      if (block) {
+        const cleaned = block.text.trim().replace(/```json|```/g, "").trim();
+        const match = cleaned.match(/\{[\s\S]*\}/);
+        const result = match ? JSON.parse(match[0]) : { hasHappyHour: false, confidence: "low" };
+        setHappyHours(prev => ({ ...prev, [key]: { loading: false, data: result } }));
+      }
+    } catch { setHappyHours(prev => ({ ...prev, [key]: { loading: false, data: { hasHappyHour: false } } })); }
+    finally { setFetchingHH(null); }
   };
 
   const findLocalVenues = async (loc) => {
@@ -1216,7 +1323,8 @@ system: "You are a local entertainment expert with deep knowledge of bars and ve
                           <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 10px"}}>📍 {v.address}</p>
                           <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:v.upcomingShows?8:0}}>
                             <a href={v.scheduleUrl} target="_blank" rel="noreferrer" style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:v.color,color:"#fff",textDecoration:"none",fontWeight:500}}>🎵 View Schedule</a>
-                            <a href={v.reserveUrl}  target="_blank" rel="noreferrer" style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>Reserve</a>
+                            <a href={v.reserveUrl} target="_blank" rel="noreferrer" style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>Reserve</a>
+                        <a href={`https://www.opentable.com/s?term=${encodeURIComponent(v.name)}&covers=2&metroId=0`} target="_blank" rel="noreferrer" style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:"#DA3743",color:"#fff",textDecoration:"none",fontWeight:500}}>🍽 OpenTable</a>
                           </div>
                           {v.upcomingShows && <VenueShowList venue={v} />}
                         </div>
@@ -1332,8 +1440,14 @@ system: "You are a local entertainment expert with deep knowledge of bars and ve
                         style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f8fafc",color:"#0f172a",border:"1px solid #e2e8f0",cursor:"pointer",fontWeight:500}}>
                         ⭐ Rate
                       </button>
+                      <button onClick={()=>fetchHappyHour(v)}
+                        disabled={fetchingHH===(v.website||v.name)}
+                        style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#fefce8",color:"#92400e",border:"1px solid #fde68a",cursor:"pointer",fontWeight:500}}>
+                        {fetchingHH===(v.website||v.name)?"🍺 Checking…":"🍺 Happy Hour?"}
+                      </button>
 
                       {v.website&&<a href={v.website} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>🌐 Website</a>}
+                      <a href={`https://www.opentable.com/s?term=${encodeURIComponent(v.name)}&covers=2&metroId=0`} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#DA3743",color:"#fff",textDecoration:"none",fontWeight:500}}>🍽 Reserve</a>
                       {v.instagram&&<a href={v.instagram} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#c026d3",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>📸 Instagram</a>}
                       {v.facebook&&<a href={v.facebook} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#1d4ed8",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>👍 Facebook</a>}
                     </div>
@@ -1359,6 +1473,27 @@ system: "You are a local entertainment expert with deep knowledge of bars and ve
                     {openCommunityVenue===(v.website||v.name) && (
                       <CommunityPanel venue={v} onClose={()=>setOpenCommunityVenue(null)} />
                     )}
+
+                    {/* Happy Hour result */}
+                    {(() => {
+                      const key = v.website || v.name;
+                      const hh = happyHours[key];
+                      if (!hh) return null;
+                      if (hh.loading) return <p style={{fontSize:11,color:"#94a3b8",margin:"6px 0 0"}}>🍺 Checking happy hour info…</p>;
+                      if (!hh.data?.hasHappyHour) return null;
+                      if (hh.data.confidence === "low") return null;
+                      return (
+                        <div style={{marginTop:10,background:"#fefce8",border:"1px solid #fde68a",borderRadius:10,padding:"10px 12px"}}>
+                          <p style={{fontSize:11,fontWeight:700,color:"#92400e",margin:"0 0 4px"}}>🍺 Happy Hour — {hh.data.days} {hh.data.hours}</p>
+                          <div style={{display:"flex",flexDirection:"column",gap:3}}>
+                            {(hh.data.deals||"").split("|").map((deal,di)=>(
+                              <p key={di} style={{fontSize:12,color:"#78350f",margin:0,lineHeight:1.4}}>• {deal.trim()}</p>
+                            ))}
+                          </div>
+                          <p style={{fontSize:10,color:"#a16207",margin:"6px 0 0"}}>⚠️ Verify with venue — specials may change</p>
+                        </div>
+                      );
+                    })()}
 
                     {/* AI weekly schedule suggestions for unscanned high-likelihood venues */}
                     {(!v.events || v.events.length===0) && !scanned && (v.musicScore==="high" || v.musicScore==="medium") && (() => {
