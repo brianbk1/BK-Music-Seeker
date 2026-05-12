@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const FEATURED_VENUES = [
   { name:"Pietro's Prime", tag:"Live music Wed–Sat", description:"West Chester's premier upscale steakhouse with exceptional cuisine, the best martinis in town, and live entertainment every Wednesday through Saturday night.", address:"125 West Market St, West Chester, PA 19382", scheduleUrl:"https://www.pietrosprime.com/entertainment", reserveUrl:"https://www.opentable.com/pietros-prime", website:"https://www.pietrosprime.com", color:"#e85d04" },
@@ -17,8 +17,6 @@ const DATE_FILTERS = ["Today","This Weekend","Next 7 Days"];
 const RADIUS_OPTIONS = [5,10,20];
 const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA"];
 const SYSTEM_PROMPT = `You are a live music event finder. Find live music events near the exact location given. Return ONLY a JSON array with up to 6 results. Each item: { band, venue, date, time, genre, address, tickets, notes, venueBio, bandBio, confidence }. confidence is "high" or "medium". Never return Unknown. Never default to West Chester PA unless asked. Do NOT include Pietro's Prime or Station 142. Return ONLY valid JSON.`;
-
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 export default function App() {
   const [query, setQuery] = useState("");
@@ -38,33 +36,6 @@ export default function App() {
   const [venueSchedules, setVenueSchedules] = useState({});
   const [loadingSchedule, setLoadingSchedule] = useState(null);
   const [venueBios, setVenueBios] = useState({});
-  const [featuredSchedules, setFeaturedSchedules] = useState({});
-  const [featuredLoading, setFeaturedLoading] = useState({});
-
-  // Load featured venue schedules one at a time with stagger to avoid rate limits
-  useEffect(() => {
-    const loadAll = async () => {
-      for (let i = 0; i < FEATURED_VENUES.length; i++) {
-        const v = FEATURED_VENUES[i];
-        setFeaturedLoading(prev => ({ ...prev, [v.name]: true }));
-        try {
-          const res = await fetch("/api/schedule", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ venueName: v.name, venueAddress: v.address, venueWebsite: v.website }),
-          });
-          const data = await res.json();
-          if (data.schedule && data.schedule.length > 0) {
-            setFeaturedSchedules(prev => ({ ...prev, [v.name]: { schedule: data.schedule, source: data.source } }));
-          }
-        } catch {}
-        setFeaturedLoading(prev => ({ ...prev, [v.name]: false }));
-        // Stagger requests — wait 1.5s between each to avoid rate limits
-        if (i < FEATURED_VENUES.length - 1) await sleep(1500);
-      }
-    };
-    loadAll();
-  }, []);
 
   const getDateRange = (f) => {
     const d = new Date();
@@ -86,17 +57,26 @@ export default function App() {
     finally { setLocalLoading(false); }
   };
 
+  // Shared schedule fetcher used by both featured and nearby venues
   const fetchSchedule = async (venue) => {
     const key = venue.website || venue.name;
+    if (loadingSchedule === key) return;
     setLoadingSchedule(key);
     try {
       const res = await fetch("/api/schedule", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ venueName: venue.name, venueAddress: venue.address, venueWebsite: venue.website }),
+        body: JSON.stringify({
+          venueName: venue.name,
+          venueAddress: venue.address,
+          venueWebsite: venue.website,
+        }),
       });
       const data = await res.json();
-      setVenueSchedules(prev => ({ ...prev, [key]: { schedule: data.schedule || [], source: data.source || "none" } }));
+      setVenueSchedules(prev => ({
+        ...prev,
+        [key]: { schedule: data.schedule || [], source: data.source || "none" },
+      }));
     } catch {
       setVenueSchedules(prev => ({ ...prev, [key]: { schedule: [], source: "error" } }));
     } finally {
@@ -158,41 +138,20 @@ export default function App() {
   const btn = (active) => ({ fontSize:12, padding:"5px 14px", borderRadius:99, border:`1.5px solid ${active?"#e85d04":"#e2e8f0"}`, background:active?"#e85d04":"transparent", color:active?"#fff":"#64748b", cursor:"pointer", fontWeight:active?600:400 });
   const gc = (g) => ({"Rock":"#e85d04","Jazz":"#1D9E75","Country":"#BA7517","Pop":"#D4537E","Blues":"#378ADD","Cover Band":"#888780","Folk":"#639922","R&B":"#D85a30","Acoustic":"#0F6E56","Indie":"#7F77DD"})[g]||"#e85d04";
 
-  const ScheduleBlock = ({ schedData, isLoading }) => {
-    if (isLoading) return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>🔍 Loading schedule…</p>;
-    // Don't show "No schedule found" for featured venues — just show nothing
-    if (!schedData || schedData.schedule.length === 0) return null;
+  // Reusable schedule display block
+  const ScheduleBlock = ({ schedData, isLoading, hideEmpty }) => {
+    if (isLoading) return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>🔍 Searching for schedule…</p>;
+    if (!schedData) return null;
+    if (schedData.schedule.length === 0) {
+      if (hideEmpty) return null;
+      return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>No schedule found for this venue.</p>;
+    }
+    const sourceLabel = schedData.source==="website" ? "From their website:" : schedData.source==="web_search" ? "Via web search:" : "AI-generated — verify before going:";
     return (
       <div style={{marginTop:10}}>
-        <p style={{fontSize:11,fontWeight:600,color:"#1D9E75",margin:"0 0 6px"}}>
-          📅 {schedData.source==="website" ? "From their website:" : schedData.source==="web_search" ? "Via web search:" : "AI-generated — verify before going:"}
-        </p>
+        <p style={{fontSize:11,fontWeight:600,color:"#1D9E75",margin:"0 0 6px"}}>📅 {sourceLabel}</p>
         {schedData.schedule.map((e,ei)=>(
-          <div key={ei} style={{background:"rgba(255,255,255,0.7)",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #1D9E75"}}>
-            <p style={{fontWeight:600,fontSize:13,margin:"0 0 3px",color:"#0f172a"}}>{e.event||e.band||"Event"}</p>
-            <div style={{display:"flex",flexWrap:"wrap",gap:"3px 12px",fontSize:11,color:"#64748b"}}>
-              {e.day && <span>📆 {e.day}</span>}
-              {e.date && <span>📅 {e.date}</span>}
-              {e.time && <span>🕐 {e.time}</span>}
-              {e.notes && <span>ℹ️ {e.notes}</span>}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const NearbyScheduleBlock = ({ schedData, isLoading }) => {
-    if (isLoading) return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>🔍 Loading schedule…</p>;
-    if (!schedData) return null;
-    if (schedData.schedule.length === 0) return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>No schedule found for this venue.</p>;
-    return (
-      <div style={{marginTop:8}}>
-        <p style={{fontSize:11,fontWeight:600,color:"#1D9E75",margin:"0 0 6px"}}>
-          📅 {schedData.source==="website" ? "From their website:" : schedData.source==="web_search" ? "Via web search:" : "AI-generated — verify before going:"}
-        </p>
-        {schedData.schedule.map((e,ei)=>(
-          <div key={ei} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #1D9E75"}}>
+          <div key={ei} style={{background:"rgba(255,255,255,0.75)",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #1D9E75"}}>
             <p style={{fontWeight:600,fontSize:13,margin:"0 0 3px",color:"#0f172a"}}>{e.event||e.band||"Event"}</p>
             <div style={{display:"flex",flexWrap:"wrap",gap:"3px 12px",fontSize:11,color:"#64748b"}}>
               {e.day && <span>📆 {e.day}</span>}
@@ -274,22 +233,32 @@ export default function App() {
                     if (sl.includes("19382")||sl.includes("west chester")||sl.includes("westchester")) return al.includes("19382")||al.includes("west chester");
                     if (sl.includes("18347")||sl.includes("pocono lake")) return al.includes("18347")||al.includes("pocono lake");
                     return false;
-                  }).map((v,i)=>(
-                    <div key={i} style={{flex:"1 1 260px",background:`linear-gradient(135deg,${v.color}22,${v.color}08)`,border:`1.5px solid ${v.color}44`,borderRadius:14,padding:"14px 16px"}}>
-                      <p style={{fontWeight:700,fontSize:15,margin:"0 0 4px",color:"#0f172a"}}>{v.name}</p>
-                      <span style={{fontSize:11,padding:"2px 8px",borderRadius:99,background:v.color+"22",color:v.color,fontWeight:600}}>{v.tag}</span>
-                      <p style={{fontSize:12,color:"#64748b",margin:"8px 0",lineHeight:1.5}}>{v.description}</p>
-                      <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 10px"}}>📍 {v.address}</p>
-                      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
-                        <a href={v.scheduleUrl} target="_blank" rel="noreferrer" style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:v.color,color:"#fff",textDecoration:"none",fontWeight:500}}>🎵 View Schedule</a>
-                        <a href={v.reserveUrl} target="_blank" rel="noreferrer" style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>
-                          {v.reserveUrl.includes("instagram") ? "📸 Instagram" : v.reserveUrl.includes("opentable") ? "🍽 Reserve" : "🌍 Website"}
-                        </a>
+                  }).map((v,i)=>{
+                    const key = v.website || v.name;
+                    const isLoadingSched = loadingSchedule === key;
+                    const schedData = venueSchedules[key];
+                    return (
+                      <div key={i} style={{flex:"1 1 260px",background:`linear-gradient(135deg,${v.color}22,${v.color}08)`,border:`1.5px solid ${v.color}44`,borderRadius:14,padding:"14px 16px"}}>
+                        <p style={{fontWeight:700,fontSize:15,margin:"0 0 4px",color:"#0f172a"}}>{v.name}</p>
+                        <span style={{fontSize:11,padding:"2px 8px",borderRadius:99,background:v.color+"22",color:v.color,fontWeight:600}}>{v.tag}</span>
+                        <p style={{fontSize:12,color:"#64748b",margin:"8px 0",lineHeight:1.5}}>{v.description}</p>
+                        <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 10px"}}>📍 {v.address}</p>
+                        <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
+                          {/* Get Schedule button for featured venues */}
+                          <button onClick={()=>fetchSchedule(v)} disabled={isLoadingSched}
+                            style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:isLoadingSched?"#e2e8f0":"#1D9E75",color:isLoadingSched?"#94a3b8":"#fff",border:"none",cursor:isLoadingSched?"default":"pointer",fontWeight:500}}>
+                            {isLoadingSched?"🔍 Loading…":"📅 Get Schedule"}
+                          </button>
+                          <a href={v.scheduleUrl} target="_blank" rel="noreferrer" style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:v.color,color:"#fff",textDecoration:"none",fontWeight:500}}>🎵 View Site</a>
+                          <a href={v.reserveUrl} target="_blank" rel="noreferrer" style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>
+                            {v.reserveUrl.includes("instagram") ? "📸 Instagram" : v.reserveUrl.includes("opentable") ? "🍽 Reserve" : "🌍 Website"}
+                          </a>
+                        </div>
+                        {/* Schedule results — hide "no schedule found" for featured */}
+                        <ScheduleBlock schedData={schedData} isLoading={isLoadingSched} hideEmpty={true} />
                       </div>
-                      {/* Schedule loads in background — shows when ready, nothing if not found */}
-                      <ScheduleBlock schedData={featuredSchedules[v.name]} isLoading={featuredLoading[v.name]} />
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -413,7 +382,7 @@ export default function App() {
                           {v.facebook && <a href={v.facebook} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#1d4ed8",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>👍 Facebook</a>}
                         </div>
 
-                        <NearbyScheduleBlock schedData={schedData} isLoading={isLoadingSched} />
+                        <ScheduleBlock schedData={schedData} isLoading={isLoadingSched} hideEmpty={false} />
 
                         {v.events && v.events.length > 0 && (
                           <div style={{marginTop:8}}>
