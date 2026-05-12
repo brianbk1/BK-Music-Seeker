@@ -1,14 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const FEATURED_VENUES = [
-  { name:"Pietro's Prime", tag:"Live music Wed–Sat", description:"West Chester's premier upscale steakhouse with exceptional cuisine, the best martinis in town, and live entertainment every Wednesday through Saturday night.", address:"125 West Market St, West Chester, PA 19382", scheduleUrl:"https://www.pietrosprime.com/entertainment", reserveUrl:"https://www.opentable.com/pietros-prime", color:"#e85d04" },
-  { name:"Station 142", tag:"Live music Thurs–Sat", description:"West Chester's premier live music venue featuring an intimate stage, state-of-the-art sound system, two full bars, rooftop dining, and top local and regional acts.", address:"142 E Market St, West Chester, PA 19382", scheduleUrl:"https://station142.com/live-music/", reserveUrl:"https://station142.com/", color:"#1a0a00" },
-  { name:"Brickette Lounge", tag:"Live music & events • 21+", description:"West Chester's lively neighborhood bar featuring live music, events, and a full BBQ menu on weekends. Bar open daily 12pm–2am. 21+ after 5pm.", address:"3 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.brickettelounge.com/music-events", reserveUrl:"https://www.instagram.com/brickettelounge/", color:"#7c3aed" },
-  { name:"Slow Hand Food & Drink", tag:"Live music & events", description:"West Chester's upscale American comfort restaurant in a historic firehouse, hosting live performances from local bands and solo artists alongside scratch-made food and award-winning cocktails.", address:"30 N Church St, West Chester, PA 19380", scheduleUrl:"https://www.slowhand-wc.com/events", reserveUrl:"https://www.slowhand-wc.com/", color:"#0f766e" },
-  { name:"Square Bar", tag:"Live music • Open since 1950s", description:"West Chester's beloved dive bar for 70+ years featuring live music, games, sports, and great company. A true neighborhood institution at 250 E Chestnut St.", address:"250 E Chestnut St, West Chester, PA 19380", scheduleUrl:"https://www.squarebarwc.com/events", reserveUrl:"https://www.instagram.com/squarebarwc/", color:"#b45309" },
-  { name:"Saloon 151", tag:"Karaoke • Music Bingo • Events", description:"West Chester's best whiskey and bourbon bar featuring karaoke every Friday, Music Bingo Wednesdays, Quizzo Tuesdays, and country party vibes nightly. Open 11am–2am daily.", address:"151 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.saloon151.com/events-catering-1", reserveUrl:"https://www.instagram.com/saloon151/", color:"#92400e" },
-  { name:"Murph's Hideaway", tag:"Local favorite • Live music & events", description:"A welcoming neighborhood spot offering great food, drinks, and live music entertainment. Popular with locals for its friendly atmosphere and quality performances.", address:"Pocono Lake, PA 18347", scheduleUrl:"https://www.murphshideaway.com", reserveUrl:"https://www.murphshideaway.com", color:"#059669" },
+  { name:"Pietro's Prime", tag:"Live music Wed–Sat", description:"West Chester's premier upscale steakhouse with exceptional cuisine, the best martinis in town, and live entertainment every Wednesday through Saturday night.", address:"125 West Market St, West Chester, PA 19382", scheduleUrl:"https://www.pietrosprime.com/entertainment", reserveUrl:"https://www.opentable.com/pietros-prime", website:"https://www.pietrosprime.com", color:"#e85d04" },
+  { name:"Station 142", tag:"Live music Thurs–Sat", description:"West Chester's premier live music venue featuring an intimate stage, state-of-the-art sound system, two full bars, rooftop dining, and top local and regional acts.", address:"142 E Market St, West Chester, PA 19382", scheduleUrl:"https://station142.com/live-music/", reserveUrl:"https://station142.com/", website:"https://station142.com", color:"#1a0a00" },
+  { name:"Brickette Lounge", tag:"Live music & events • 21+", description:"West Chester's lively neighborhood bar featuring live music, events, and a full BBQ menu on weekends. Bar open daily 12pm–2am. 21+ after 5pm.", address:"3 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.brickettelounge.com/music-events", reserveUrl:"https://www.instagram.com/brickettelounge/", website:"https://www.brickettelounge.com", color:"#7c3aed" },
+  { name:"Slow Hand Food & Drink", tag:"Live music & events", description:"West Chester's upscale American comfort restaurant in a historic firehouse, hosting live performances from local bands and solo artists alongside scratch-made food and award-winning cocktails.", address:"30 N Church St, West Chester, PA 19380", scheduleUrl:"https://www.slowhand-wc.com/events", reserveUrl:"https://www.slowhand-wc.com/", website:"https://www.slowhand-wc.com", color:"#0f766e" },
+  { name:"Square Bar", tag:"Live music • Open since 1950s", description:"West Chester's beloved dive bar for 70+ years featuring live music, games, sports, and great company. A true neighborhood institution at 250 E Chestnut St.", address:"250 E Chestnut St, West Chester, PA 19380", scheduleUrl:"https://www.squarebarwc.com/events", reserveUrl:"https://www.instagram.com/squarebarwc/", website:"https://www.squarebarwc.com", color:"#b45309" },
+  { name:"Saloon 151", tag:"Karaoke • Music Bingo • Events", description:"West Chester's best whiskey and bourbon bar featuring karaoke every Friday, Music Bingo Wednesdays, Quizzo Tuesdays, and country party vibes nightly. Open 11am–2am daily.", address:"151 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.saloon151.com/events-catering-1", reserveUrl:"https://www.instagram.com/saloon151/", website:"https://www.saloon151.com", color:"#92400e" },
+  { name:"Murph's Hideaway", tag:"Local favorite • Live music & events", description:"A welcoming neighborhood spot offering great food, drinks, and live music entertainment. Popular with locals for its friendly atmosphere and quality performances.", address:"Pocono Lake, PA 18347", scheduleUrl:"https://www.murphshideaway.com", reserveUrl:"https://www.murphshideaway.com", website:"https://www.murphshideaway.com", color:"#059669" },
 ];
 
 const WC_ZIPS = ["19380","19381","19382","19383","18347","pocono lake","west chester","westchester"];
@@ -16,7 +16,6 @@ const isWC = (q) => q && WC_ZIPS.some(z => q.toLowerCase().includes(z));
 const DATE_FILTERS = ["Today","This Weekend","Next 7 Days"];
 const RADIUS_OPTIONS = [5,10,20];
 const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA"];
-
 const SYSTEM_PROMPT = `You are a live music event finder. Find live music events near the exact location given. Return ONLY a JSON array with up to 6 results. Each item: { band, venue, date, time, genre, address, tickets, notes, venueBio, bandBio, confidence }. confidence is "high" or "medium". Never return Unknown. Never default to West Chester PA unless asked. Do NOT include Pietro's Prime or Station 142. Return ONLY valid JSON.`;
 
 export default function App() {
@@ -34,11 +33,29 @@ export default function App() {
   const [localVenues, setLocalVenues] = useState(null);
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState("");
-  const [scannedVenues, setScannedVenues] = useState({});
-  const [scanningVenue, setScanningVenue] = useState(null);
-  // Schedule state
   const [venueSchedules, setVenueSchedules] = useState({});
   const [loadingSchedule, setLoadingSchedule] = useState(null);
+  const [venueBios, setVenueBios] = useState({});
+  const [featuredSchedules, setFeaturedSchedules] = useState({});
+  const [featuredScheduleLoading, setFeaturedScheduleLoading] = useState({});
+
+  // Auto-load schedules for all featured venues on mount
+  useEffect(() => {
+    FEATURED_VENUES.forEach(v => {
+      setFeaturedScheduleLoading(prev => ({ ...prev, [v.name]: true }));
+      fetch("/api/schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ venueName: v.name, venueAddress: v.address, venueWebsite: v.website }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          setFeaturedSchedules(prev => ({ ...prev, [v.name]: { schedule: data.schedule || [], source: data.source || "none" } }));
+          setFeaturedScheduleLoading(prev => ({ ...prev, [v.name]: false }));
+        })
+        .catch(() => setFeaturedScheduleLoading(prev => ({ ...prev, [v.name]: false })));
+    });
+  }, []);
 
   const getDateRange = (f) => {
     const d = new Date();
@@ -60,17 +77,6 @@ export default function App() {
     finally { setLocalLoading(false); }
   };
 
-  const scrapeVenue = async (url) => {
-    if (!url) return;
-    setScanningVenue(url);
-    try {
-      const res = await fetch("/api/scrape", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({url}) });
-      const data = await res.json();
-      setScannedVenues(prev => ({...prev, [url]: data.error ? [] : (data.events||[])}));
-    } catch { setScannedVenues(prev => ({...prev, [url]:[]})); }
-    finally { setScanningVenue(null); }
-  };
-
   const fetchSchedule = async (venue) => {
     const key = venue.website || venue.name;
     setLoadingSchedule(key);
@@ -78,17 +84,10 @@ export default function App() {
       const res = await fetch("/api/schedule", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          venueName: venue.name,
-          venueAddress: venue.address,
-          venueWebsite: venue.website,
-        }),
+        body: JSON.stringify({ venueName: venue.name, venueAddress: venue.address, venueWebsite: venue.website }),
       });
       const data = await res.json();
-      setVenueSchedules(prev => ({
-        ...prev,
-        [key]: { schedule: data.schedule || [], source: data.source || "none" },
-      }));
+      setVenueSchedules(prev => ({ ...prev, [key]: { schedule: data.schedule || [], source: data.source || "none" } }));
     } catch {
       setVenueSchedules(prev => ({ ...prev, [key]: { schedule: [], source: "error" } }));
     } finally {
@@ -96,11 +95,29 @@ export default function App() {
     }
   };
 
+  const fetchBio = async (venue) => {
+    const key = venue.website || venue.name;
+    if (venueBios[key]) return;
+    try {
+      const res = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system: `You are a local venue expert. Write a single engaging 2-sentence bio for the given bar or restaurant. Focus on what makes it unique — atmosphere, food, drinks, history, or entertainment. Return ONLY the bio text, nothing else.`,
+          messages: [{ role: "user", content: `Write a short bio for "${venue.name}" at ${venue.address}.` }],
+        }),
+      });
+      const data = await res.json();
+      const tb = data.content?.find(b => b.type === "text");
+      if (tb) setVenueBios(prev => ({ ...prev, [key]: tb.text.trim() }));
+    } catch {}
+  };
+
   const search = async (q) => {
     const sq = (q||query).trim();
     if (!sq) return;
     setLoading(true); setError(""); setResults(null); setSearched(sq); setExpanded(null);
-    setLocalVenues(null); setLocalError(""); setScannedVenues({}); setVenueSchedules({});
+    setLocalVenues(null); setLocalError(""); setVenueSchedules({}); setVenueBios({});
     const wc = isWC(sq);
     setShowFeatured(wc);
     findLocalVenues(sq, radius);
@@ -132,6 +149,30 @@ export default function App() {
   const btn = (active) => ({ fontSize:12, padding:"5px 14px", borderRadius:99, border:`1.5px solid ${active?"#e85d04":"#e2e8f0"}`, background:active?"#e85d04":"transparent", color:active?"#fff":"#64748b", cursor:"pointer", fontWeight:active?600:400 });
   const gc = (g) => ({"Rock":"#e85d04","Jazz":"#1D9E75","Country":"#BA7517","Pop":"#D4537E","Blues":"#378ADD","Cover Band":"#888780","Folk":"#639922","R&B":"#D85a30","Acoustic":"#0F6E56","Indie":"#7F77DD"})[g]||"#e85d04";
 
+  const ScheduleBlock = ({ schedData, isLoading }) => {
+    if (isLoading) return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>🔍 Loading schedule…</p>;
+    if (!schedData) return null;
+    if (schedData.schedule.length === 0) return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>No schedule found.</p>;
+    return (
+      <div style={{marginTop:8}}>
+        <p style={{fontSize:11,fontWeight:600,color:"#1D9E75",margin:"0 0 6px"}}>
+          📅 {schedData.source==="website" ? "From their website:" : schedData.source==="web_search" ? "Via web search:" : "AI-generated — verify before going:"}
+        </p>
+        {schedData.schedule.map((e,ei)=>(
+          <div key={ei} style={{background:"rgba(255,255,255,0.7)",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #1D9E75"}}>
+            <p style={{fontWeight:600,fontSize:13,margin:"0 0 3px",color:"#0f172a"}}>{e.event||e.band||"Event"}</p>
+            <div style={{display:"flex",flexWrap:"wrap",gap:"3px 12px",fontSize:11,color:"#64748b"}}>
+              {e.day && <span>📆 {e.day}</span>}
+              {e.date && <span>📅 {e.date}</span>}
+              {e.time && <span>🕐 {e.time}</span>}
+              {e.notes && <span>ℹ️ {e.notes}</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div style={{fontFamily:"system-ui,sans-serif",maxWidth:700,margin:"0 auto",borderRadius:20,overflow:"hidden",boxShadow:"0 4px 24px rgba(0,0,0,0.12)"}}>
 
@@ -157,26 +198,18 @@ export default function App() {
           </button>
         </div>
 
-        {/* Date filters */}
         <div style={{display:"flex",gap:6,marginBottom:10}}>
-          {DATE_FILTERS.map(f=>(
-            <button key={f} style={btn(dateFilter===f)} onClick={()=>setDateFilter(f)}>{f}</button>
-          ))}
+          {DATE_FILTERS.map(f=>(<button key={f} style={btn(dateFilter===f)} onClick={()=>setDateFilter(f)}>{f}</button>))}
         </div>
 
-        {/* Radius filters */}
         <div style={{display:"flex",gap:6,marginBottom:10,alignItems:"center"}}>
           <span style={{fontSize:11,color:"#94a3b8",whiteSpace:"nowrap"}}>📍 Within:</span>
-          {RADIUS_OPTIONS.map(r=>(
-            <button key={r} style={btn(radius===r)} onClick={()=>setRadius(r)}>{r} mi</button>
-          ))}
+          {RADIUS_OPTIONS.map(r=>(<button key={r} style={btn(radius===r)} onClick={()=>setRadius(r)}>{r} mi</button>))}
         </div>
 
-        {/* Quick picks */}
         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:"1.25rem"}}>
           {QUICK.map(sq=>(
-            <button key={sq}
-              onClick={()=>{ setActiveQuick(sq); setQuery(sq); search(sq); }}
+            <button key={sq} onClick={()=>{ setActiveQuick(sq); setQuery(sq); search(sq); }}
               style={{fontSize:11,padding:"5px 14px",borderRadius:99,border:"1.5px solid #e85d04",background:activeQuick===sq?"#e85d04":"transparent",color:activeQuick===sq?"#fff":"#e85d04",cursor:"pointer",fontWeight:activeQuick===sq?600:400}}>
               {sq}
             </button>
@@ -197,20 +230,16 @@ export default function App() {
 
         {results !== null && !loading && (
           <>
-            {/* Featured Venues */}
+            {/* Featured Venues with auto-loaded schedules */}
             {showFeatured && (
               <div style={{marginBottom:16}}>
                 <p style={{fontSize:11,fontWeight:600,color:"#e85d04",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 8px"}}>⭐ Featured Venues</p>
                 <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
                   {FEATURED_VENUES.filter(v => {
-                    const searchLower = searched.toLowerCase();
-                    const venueLower = v.address.toLowerCase();
-                    if (searchLower.includes("19382") || searchLower.includes("west chester") || searchLower.includes("westchester")) {
-                      return venueLower.includes("19382") || venueLower.includes("west chester");
-                    }
-                    if (searchLower.includes("18347") || searchLower.includes("pocono lake")) {
-                      return venueLower.includes("18347") || venueLower.includes("pocono lake");
-                    }
+                    const sl = searched.toLowerCase();
+                    const al = v.address.toLowerCase();
+                    if (sl.includes("19382")||sl.includes("west chester")||sl.includes("westchester")) return al.includes("19382")||al.includes("west chester");
+                    if (sl.includes("18347")||sl.includes("pocono lake")) return al.includes("18347")||al.includes("pocono lake");
                     return false;
                   }).map((v,i)=>(
                     <div key={i} style={{flex:"1 1 260px",background:`linear-gradient(135deg,${v.color}22,${v.color}08)`,border:`1.5px solid ${v.color}44`,borderRadius:14,padding:"14px 16px"}}>
@@ -218,12 +247,14 @@ export default function App() {
                       <span style={{fontSize:11,padding:"2px 8px",borderRadius:99,background:v.color+"22",color:v.color,fontWeight:600}}>{v.tag}</span>
                       <p style={{fontSize:12,color:"#64748b",margin:"8px 0",lineHeight:1.5}}>{v.description}</p>
                       <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 10px"}}>📍 {v.address}</p>
-                      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
                         <a href={v.scheduleUrl} target="_blank" rel="noreferrer" style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:v.color,color:"#fff",textDecoration:"none",fontWeight:500}}>🎵 View Schedule</a>
                         <a href={v.reserveUrl} target="_blank" rel="noreferrer" style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>
                           {v.reserveUrl.includes("instagram") ? "📸 Instagram" : v.reserveUrl.includes("opentable") ? "🍽 Reserve" : "🌍 Website"}
                         </a>
                       </div>
+                      {/* Auto-loaded schedule — no button needed */}
+                      <ScheduleBlock schedData={featuredSchedules[v.name]} isLoading={featuredScheduleLoading[v.name]} />
                     </div>
                   ))}
                 </div>
@@ -307,6 +338,7 @@ export default function App() {
                     const schedKey = v.website || v.name;
                     const schedData = venueSchedules[schedKey];
                     const isLoadingSched = loadingSchedule === schedKey;
+                    const bio = venueBios[schedKey];
                     return (
                       <div key={vi} style={{background:"#f8fafc",borderRadius:14,padding:"14px 16px",marginBottom:10,border:"1px solid #e2e8f0",borderLeft:`4px solid ${sc}`}}>
                         <div style={{marginBottom:8}}>
@@ -318,7 +350,16 @@ export default function App() {
                           </div>
                           <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 2px"}}>📍 {v.address}</p>
                           {v.rating && <p style={{fontSize:11,color:"#94a3b8",margin:0}}>⭐ {v.rating} ({(v.totalRatings||0).toLocaleString()} reviews)</p>}
-                          {v.summary && <p style={{fontSize:12,color:"#64748b",margin:"4px 0 0",fontStyle:"italic"}}>{v.summary}</p>}
+                          {/* Google summary or AI bio */}
+                          {(v.summary || bio) && (
+                            <p style={{fontSize:12,color:"#64748b",margin:"6px 0 0",lineHeight:1.5,fontStyle:"italic"}}>{v.summary || bio}</p>
+                          )}
+                          {!v.summary && !bio && (
+                            <button onClick={()=>fetchBio(v)}
+                              style={{fontSize:11,color:"#94a3b8",background:"none",border:"none",cursor:"pointer",padding:"4px 0",textDecoration:"underline"}}>
+                              + Load AI bio
+                            </button>
+                          )}
                         </div>
 
                         {/* Photos */}
@@ -330,22 +371,12 @@ export default function App() {
                           </div>
                         )}
 
-                        {/* Action buttons */}
+                        {/* Simplified action buttons */}
                         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
-                          {/* Get Schedule button */}
-                          <button
-                            onClick={() => fetchSchedule(v)}
-                            disabled={isLoadingSched}
+                          <button onClick={() => fetchSchedule(v)} disabled={isLoadingSched}
                             style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:isLoadingSched?"#e2e8f0":"#1D9E75",color:isLoadingSched?"#94a3b8":"#fff",border:"none",cursor:isLoadingSched?"default":"pointer",fontWeight:500}}>
-                            {isLoadingSched ? "🔍 Loading schedule…" : "📅 Get Schedule"}
+                            {isLoadingSched ? "🔍 Loading…" : "📅 Get Schedule"}
                           </button>
-
-                          {v.website && (
-                            <button onClick={()=>scrapeVenue(v.website)} disabled={scanningVenue===v.website}
-                              style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:scanningVenue===v.website?"#e2e8f0":"#e85d04",color:scanningVenue===v.website?"#94a3b8":"#fff",border:"none",cursor:scanningVenue===v.website?"default":"pointer",fontWeight:500}}>
-                              {scanningVenue===v.website?"🔍 Scanning…":"🔍 Scan Site for Events"}
-                            </button>
-                          )}
                           <a href={`https://www.google.com/search?q=${encodeURIComponent(v.name+" "+v.address+" live music events")}`} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>🌐 Search Events</a>
                           {v.website && <a href={v.website} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>🌍 Visit Site</a>}
                           {v.instagram && <a href={v.instagram} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#c026d3",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>📸 Instagram</a>}
@@ -353,38 +384,11 @@ export default function App() {
                         </div>
 
                         {/* Schedule results */}
-                        {schedData && (
-                          <div style={{marginBottom:8}}>
-                            {schedData.schedule.length === 0 ? (
-                              <p style={{fontSize:12,color:"#94a3b8",margin:0}}>No schedule found for this venue.</p>
-                            ) : (
-                              <>
-                                <p style={{fontSize:11,fontWeight:600,color:"#1D9E75",margin:"0 0 6px"}}>
-                                  📅 {schedData.source === "website"
-                                    ? "Schedule from their website:"
-                                    : schedData.source === "web_search"
-                                    ? "Schedule found via web search:"
-                                    : "AI-generated schedule — verify before going:"}
-                                </p>
-                                {schedData.schedule.map((e,ei)=>(
-                                  <div key={ei} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #1D9E75"}}>
-                                    <p style={{fontWeight:600,fontSize:14,margin:"0 0 4px",color:"#0f172a"}}>{e.event || e.band || "Event"}</p>
-                                    <div style={{display:"flex",flexWrap:"wrap",gap:"4px 14px",fontSize:12,color:"#64748b"}}>
-                                      {e.day && <span>📆 {e.day}</span>}
-                                      {e.date && <span>📅 {e.date}</span>}
-                                      {e.time && <span>🕐 {e.time}</span>}
-                                      {e.notes && <span>ℹ️ {e.notes}</span>}
-                                    </div>
-                                  </div>
-                                ))}
-                              </>
-                            )}
-                          </div>
-                        )}
+                        <ScheduleBlock schedData={schedData} isLoading={isLoadingSched} />
 
-                        {/* Auto-found events */}
+                        {/* Auto-found events from initial venue load */}
                         {v.events && v.events.length > 0 && (
-                          <div style={{marginBottom:8}}>
+                          <div style={{marginTop:8}}>
                             <p style={{fontSize:11,fontWeight:600,color:"#16a34a",margin:"0 0 6px"}}>✓ Events found on their website:</p>
                             {v.events.map((e,ei)=>(
                               <div key={ei} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #e85d04"}}>
@@ -396,28 +400,6 @@ export default function App() {
                                 </div>
                               </div>
                             ))}
-                          </div>
-                        )}
-
-                        {/* Scanned events */}
-                        {scannedVenues[v.website] !== undefined && (
-                          <div>
-                            {scannedVenues[v.website].length === 0
-                              ? <p style={{fontSize:12,color:"#94a3b8",margin:0}}>No event pages found on this site.</p>
-                              : <>
-                                  <p style={{fontSize:11,fontWeight:600,color:"#16a34a",margin:"0 0 6px"}}>✓ Scanned events from their website:</p>
-                                  {scannedVenues[v.website].map((e,ei)=>(
-                                    <div key={ei} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #e85d04"}}>
-                                      <p style={{fontWeight:600,fontSize:14,margin:"0 0 4px",color:"#0f172a"}}>{e.band}</p>
-                                      <div style={{display:"flex",flexWrap:"wrap",gap:"4px 14px",fontSize:12,color:"#64748b"}}>
-                                        {e.date && <span>📅 {e.date}</span>}
-                                        {e.time && <span>🕐 {e.time}</span>}
-                                        {e.notes && <span>ℹ️ {e.notes}</span>}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </>
-                            }
                           </div>
                         )}
                       </div>
