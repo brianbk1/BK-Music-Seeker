@@ -59,6 +59,67 @@ export async function POST(req) {
       : [];
     const scoringKeywords = [...new Set([...defaultMusicKeywords, ...genreKeywords])];
 
+    // Screenshot and event extraction helper
+    const screenshotPage = async (screenshotUrl) => {
+      const APIFLASH_KEY = process.env.APIFLASH_KEY;
+      if (!APIFLASH_KEY) return null;
+      try {
+        const params = new URLSearchParams({
+          access_key: APIFLASH_KEY,
+          url: screenshotUrl,
+          format: "jpeg",
+          quality: "85",
+          full_page: "true",
+          wait_until: "page_loaded",
+          delay: "2",
+          width: "1280",
+          scroll_page: "true",
+        });
+        const apiRes = await fetch(
+          `https://api.apiflash.com/v1/urltoimage?${params}`,
+          { signal: AbortSignal.timeout(30000) }
+        );
+        if (!apiRes.ok) return null;
+        const buffer = await apiRes.arrayBuffer();
+        return Buffer.from(buffer).toString("base64");
+      } catch { return null; }
+    };
+
+    const extractFromImage = async (base64jpeg) => {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 400,
+          system: `You are a live music event extractor. Extract all upcoming live music or entertainment events visible. Return ONLY a JSON array. Each event: { band, date, time, notes }. Return [] if no events visible. Return ONLY valid JSON.`,
+          messages: [{
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: { type: "base64", media_type: "image/jpeg", data: base64jpeg },
+              },
+              {
+                type: "text",
+                text: "Extract all upcoming live music events visible in this venue events page screenshot.",
+              },
+            ],
+          }],
+        }),
+      });
+      const data = await res.json();
+      if (data.error) return [];
+      const block = data.content?.find(b => b.type === "text");
+      if (!block) return [];
+      const match = block.text.trim().replace(/```json|```/g, "").trim().match(/\[[\s\S]*\]/);
+      return match ? JSON.parse(match[0]) : [];
+    };
+
     // Get details for each venue
     const venues = await Promise.all(unique.map(async (place) => {
       try {
@@ -98,7 +159,7 @@ export async function POST(req) {
           } catch { /* ignore */ }
         }
 
-        // Extract events for HIGH AND MEDIUM confidence music venues (not just high)
+        // Extract events using screenshot + Claude Vision for HIGH AND MEDIUM confidence venues
         let events = [];
         if ((musicScore === "high" || musicScore === "medium") && r.website) {
           try {
@@ -106,40 +167,14 @@ export async function POST(req) {
             const eventPaths = ["/entertainment","/events","/live-music","/music","/calendar","/shows","/whats-on"];
             for (const path of eventPaths) {
               try {
-                const pageRes = await fetch(`${baseUrl}${path}`, {
-                  headers: { "User-Agent": "Mozilla/5.0" },
-                  signal: AbortSignal.timeout(4000),
-                });
-                if (!pageRes.ok) continue;
-                const html = await pageRes.text();
-                const text = html
-                  .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-                  .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-                  .replace(/<[^>]+>/g, " ")
-                  .replace(/\s+/g, " ")
-                  .slice(0, 4000);
-
-                const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    "x-api-key": process.env.ANTHROPIC_API_KEY,
-                    "anthropic-version": "2023-06-01",
-                  },
-                  body: JSON.stringify({
-                    model: "claude-sonnet-4-6",
-                    max_tokens: 400,
-                    system: `Extract live music or entertainment events from venue page text. Return ONLY a JSON array. Each event: { band, date, time, notes }. If no events found return []. Return ONLY valid JSON.`,
-                    messages: [{ role: "user", content: text }],
-                  }),
-                });
-                const cd = await claudeRes.json();
-                const tb = cd.content?.find(b => b.type === "text");
-                if (tb) {
-                  const raw    = tb.text.trim().replace(/```json|```/g, "").trim();
-                  const match  = raw.match(/\[[\s\S]*\]/);
-                  const parsed = match ? JSON.parse(match[0]) : [];
-                  if (parsed.length > 0) { events = parsed; break; }
+                const eventUrl = `${baseUrl}${path}`;
+                const base64 = await screenshotPage(eventUrl);
+                if (base64) {
+                  const extracted = await extractFromImage(base64);
+                  if (extracted && extracted.length > 0) {
+                    events = extracted;
+                    break;
+                  }
                 }
               } catch { continue; }
             }
