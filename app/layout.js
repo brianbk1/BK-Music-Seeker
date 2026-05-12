@@ -36,6 +36,9 @@ export default function App() {
   const [localError, setLocalError] = useState("");
   const [scannedVenues, setScannedVenues] = useState({});
   const [scanningVenue, setScanningVenue] = useState(null);
+  // Schedule state
+  const [venueSchedules, setVenueSchedules] = useState({});
+  const [loadingSchedule, setLoadingSchedule] = useState(null);
 
   const getDateRange = (f) => {
     const d = new Date();
@@ -68,11 +71,36 @@ export default function App() {
     finally { setScanningVenue(null); }
   };
 
+  const fetchSchedule = async (venue) => {
+    const key = venue.website || venue.name;
+    setLoadingSchedule(key);
+    try {
+      const res = await fetch("/api/schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          venueName: venue.name,
+          venueAddress: venue.address,
+          venueWebsite: venue.website,
+        }),
+      });
+      const data = await res.json();
+      setVenueSchedules(prev => ({
+        ...prev,
+        [key]: { schedule: data.schedule || [], source: data.source || "none" },
+      }));
+    } catch {
+      setVenueSchedules(prev => ({ ...prev, [key]: { schedule: [], source: "error" } }));
+    } finally {
+      setLoadingSchedule(null);
+    }
+  };
+
   const search = async (q) => {
     const sq = (q||query).trim();
     if (!sq) return;
     setLoading(true); setError(""); setResults(null); setSearched(sq); setExpanded(null);
-    setLocalVenues(null); setLocalError(""); setScannedVenues({});
+    setLocalVenues(null); setLocalError(""); setScannedVenues({}); setVenueSchedules({});
     const wc = isWC(sq);
     setShowFeatured(wc);
     findLocalVenues(sq, radius);
@@ -169,7 +197,7 @@ export default function App() {
 
         {results !== null && !loading && (
           <>
-            {/* Featured Venues - Filtered by search */}
+            {/* Featured Venues */}
             {showFeatured && (
               <div style={{marginBottom:16}}>
                 <p style={{fontSize:11,fontWeight:600,color:"#e85d04",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 8px"}}>⭐ Featured Venues</p>
@@ -276,6 +304,9 @@ export default function App() {
                   {localVenues.map((v,vi)=>{
                     const sc = v.musicScore==="high"?"#16a34a":v.musicScore==="medium"?"#d97706":"#94a3b8";
                     const sl = v.musicScore==="high"?"🎵 Likely has music":v.musicScore==="medium"?"🎲 Possible music":"🍽 Unknown";
+                    const schedKey = v.website || v.name;
+                    const schedData = venueSchedules[schedKey];
+                    const isLoadingSched = loadingSchedule === schedKey;
                     return (
                       <div key={vi} style={{background:"#f8fafc",borderRadius:14,padding:"14px 16px",marginBottom:10,border:"1px solid #e2e8f0",borderLeft:`4px solid ${sc}`}}>
                         <div style={{marginBottom:8}}>
@@ -301,6 +332,14 @@ export default function App() {
 
                         {/* Action buttons */}
                         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
+                          {/* Get Schedule button */}
+                          <button
+                            onClick={() => fetchSchedule(v)}
+                            disabled={isLoadingSched}
+                            style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:isLoadingSched?"#e2e8f0":"#1D9E75",color:isLoadingSched?"#94a3b8":"#fff",border:"none",cursor:isLoadingSched?"default":"pointer",fontWeight:500}}>
+                            {isLoadingSched ? "🔍 Loading schedule…" : "📅 Get Schedule"}
+                          </button>
+
                           {v.website && (
                             <button onClick={()=>scrapeVenue(v.website)} disabled={scanningVenue===v.website}
                               style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:scanningVenue===v.website?"#e2e8f0":"#e85d04",color:scanningVenue===v.website?"#94a3b8":"#fff",border:"none",cursor:scanningVenue===v.website?"default":"pointer",fontWeight:500}}>
@@ -312,6 +351,36 @@ export default function App() {
                           {v.instagram && <a href={v.instagram} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#c026d3",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>📸 Instagram</a>}
                           {v.facebook && <a href={v.facebook} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#1d4ed8",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>👍 Facebook</a>}
                         </div>
+
+                        {/* Schedule results */}
+                        {schedData && (
+                          <div style={{marginBottom:8}}>
+                            {schedData.schedule.length === 0 ? (
+                              <p style={{fontSize:12,color:"#94a3b8",margin:0}}>No schedule found for this venue.</p>
+                            ) : (
+                              <>
+                                <p style={{fontSize:11,fontWeight:600,color:"#1D9E75",margin:"0 0 6px"}}>
+                                  📅 {schedData.source === "website"
+                                    ? "Schedule from their website:"
+                                    : schedData.source === "web_search"
+                                    ? "Schedule found via web search:"
+                                    : "AI-generated schedule — verify before going:"}
+                                </p>
+                                {schedData.schedule.map((e,ei)=>(
+                                  <div key={ei} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #1D9E75"}}>
+                                    <p style={{fontWeight:600,fontSize:14,margin:"0 0 4px",color:"#0f172a"}}>{e.event || e.band || "Event"}</p>
+                                    <div style={{display:"flex",flexWrap:"wrap",gap:"4px 14px",fontSize:12,color:"#64748b"}}>
+                                      {e.day && <span>📆 {e.day}</span>}
+                                      {e.date && <span>📅 {e.date}</span>}
+                                      {e.time && <span>🕐 {e.time}</span>}
+                                      {e.notes && <span>ℹ️ {e.notes}</span>}
+                                    </div>
+                                  </div>
+                                ))}
+                              </>
+                            )}
+                          </div>
+                        )}
 
                         {/* Auto-found events */}
                         {v.events && v.events.length > 0 && (
