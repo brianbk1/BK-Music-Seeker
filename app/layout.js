@@ -18,6 +18,8 @@ const RADIUS_OPTIONS = [5,10,20];
 const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA"];
 const SYSTEM_PROMPT = `You are a live music event finder. Find live music events near the exact location given. Return ONLY a JSON array with up to 6 results. Each item: { band, venue, date, time, genre, address, tickets, notes, venueBio, bandBio, confidence }. confidence is "high" or "medium". Never return Unknown. Never default to West Chester PA unless asked. Do NOT include Pietro's Prime or Station 142. Return ONLY valid JSON.`;
 
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
 export default function App() {
   const [query, setQuery] = useState("");
   const [activeQuick, setActiveQuick] = useState("");
@@ -37,24 +39,31 @@ export default function App() {
   const [loadingSchedule, setLoadingSchedule] = useState(null);
   const [venueBios, setVenueBios] = useState({});
   const [featuredSchedules, setFeaturedSchedules] = useState({});
-  const [featuredScheduleLoading, setFeaturedScheduleLoading] = useState({});
+  const [featuredLoading, setFeaturedLoading] = useState({});
 
-  // Auto-load schedules for all featured venues on mount
+  // Load featured venue schedules one at a time with stagger to avoid rate limits
   useEffect(() => {
-    FEATURED_VENUES.forEach(v => {
-      setFeaturedScheduleLoading(prev => ({ ...prev, [v.name]: true }));
-      fetch("/api/schedule", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ venueName: v.name, venueAddress: v.address, venueWebsite: v.website }),
-      })
-        .then(r => r.json())
-        .then(data => {
-          setFeaturedSchedules(prev => ({ ...prev, [v.name]: { schedule: data.schedule || [], source: data.source || "none" } }));
-          setFeaturedScheduleLoading(prev => ({ ...prev, [v.name]: false }));
-        })
-        .catch(() => setFeaturedScheduleLoading(prev => ({ ...prev, [v.name]: false })));
-    });
+    const loadAll = async () => {
+      for (let i = 0; i < FEATURED_VENUES.length; i++) {
+        const v = FEATURED_VENUES[i];
+        setFeaturedLoading(prev => ({ ...prev, [v.name]: true }));
+        try {
+          const res = await fetch("/api/schedule", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ venueName: v.name, venueAddress: v.address, venueWebsite: v.website }),
+          });
+          const data = await res.json();
+          if (data.schedule && data.schedule.length > 0) {
+            setFeaturedSchedules(prev => ({ ...prev, [v.name]: { schedule: data.schedule, source: data.source } }));
+          }
+        } catch {}
+        setFeaturedLoading(prev => ({ ...prev, [v.name]: false }));
+        // Stagger requests — wait 1.5s between each to avoid rate limits
+        if (i < FEATURED_VENUES.length - 1) await sleep(1500);
+      }
+    };
+    loadAll();
   }, []);
 
   const getDateRange = (f) => {
@@ -151,15 +160,39 @@ export default function App() {
 
   const ScheduleBlock = ({ schedData, isLoading }) => {
     if (isLoading) return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>🔍 Loading schedule…</p>;
+    // Don't show "No schedule found" for featured venues — just show nothing
+    if (!schedData || schedData.schedule.length === 0) return null;
+    return (
+      <div style={{marginTop:10}}>
+        <p style={{fontSize:11,fontWeight:600,color:"#1D9E75",margin:"0 0 6px"}}>
+          📅 {schedData.source==="website" ? "From their website:" : schedData.source==="web_search" ? "Via web search:" : "AI-generated — verify before going:"}
+        </p>
+        {schedData.schedule.map((e,ei)=>(
+          <div key={ei} style={{background:"rgba(255,255,255,0.7)",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #1D9E75"}}>
+            <p style={{fontWeight:600,fontSize:13,margin:"0 0 3px",color:"#0f172a"}}>{e.event||e.band||"Event"}</p>
+            <div style={{display:"flex",flexWrap:"wrap",gap:"3px 12px",fontSize:11,color:"#64748b"}}>
+              {e.day && <span>📆 {e.day}</span>}
+              {e.date && <span>📅 {e.date}</span>}
+              {e.time && <span>🕐 {e.time}</span>}
+              {e.notes && <span>ℹ️ {e.notes}</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const NearbyScheduleBlock = ({ schedData, isLoading }) => {
+    if (isLoading) return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>🔍 Loading schedule…</p>;
     if (!schedData) return null;
-    if (schedData.schedule.length === 0) return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>No schedule found.</p>;
+    if (schedData.schedule.length === 0) return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>No schedule found for this venue.</p>;
     return (
       <div style={{marginTop:8}}>
         <p style={{fontSize:11,fontWeight:600,color:"#1D9E75",margin:"0 0 6px"}}>
           📅 {schedData.source==="website" ? "From their website:" : schedData.source==="web_search" ? "Via web search:" : "AI-generated — verify before going:"}
         </p>
         {schedData.schedule.map((e,ei)=>(
-          <div key={ei} style={{background:"rgba(255,255,255,0.7)",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #1D9E75"}}>
+          <div key={ei} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #1D9E75"}}>
             <p style={{fontWeight:600,fontSize:13,margin:"0 0 3px",color:"#0f172a"}}>{e.event||e.band||"Event"}</p>
             <div style={{display:"flex",flexWrap:"wrap",gap:"3px 12px",fontSize:11,color:"#64748b"}}>
               {e.day && <span>📆 {e.day}</span>}
@@ -230,7 +263,7 @@ export default function App() {
 
         {results !== null && !loading && (
           <>
-            {/* Featured Venues with auto-loaded schedules */}
+            {/* Featured Venues */}
             {showFeatured && (
               <div style={{marginBottom:16}}>
                 <p style={{fontSize:11,fontWeight:600,color:"#e85d04",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 8px"}}>⭐ Featured Venues</p>
@@ -253,8 +286,8 @@ export default function App() {
                           {v.reserveUrl.includes("instagram") ? "📸 Instagram" : v.reserveUrl.includes("opentable") ? "🍽 Reserve" : "🌍 Website"}
                         </a>
                       </div>
-                      {/* Auto-loaded schedule — no button needed */}
-                      <ScheduleBlock schedData={featuredSchedules[v.name]} isLoading={featuredScheduleLoading[v.name]} />
+                      {/* Schedule loads in background — shows when ready, nothing if not found */}
+                      <ScheduleBlock schedData={featuredSchedules[v.name]} isLoading={featuredLoading[v.name]} />
                     </div>
                   ))}
                 </div>
@@ -350,7 +383,6 @@ export default function App() {
                           </div>
                           <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 2px"}}>📍 {v.address}</p>
                           {v.rating && <p style={{fontSize:11,color:"#94a3b8",margin:0}}>⭐ {v.rating} ({(v.totalRatings||0).toLocaleString()} reviews)</p>}
-                          {/* Google summary or AI bio */}
                           {(v.summary || bio) && (
                             <p style={{fontSize:12,color:"#64748b",margin:"6px 0 0",lineHeight:1.5,fontStyle:"italic"}}>{v.summary || bio}</p>
                           )}
@@ -362,7 +394,6 @@ export default function App() {
                           )}
                         </div>
 
-                        {/* Photos */}
                         {v.photos && v.photos.length > 0 && (
                           <div style={{display:"flex",gap:6,marginBottom:10,overflowX:"auto"}}>
                             {v.photos.map((src,pi)=>(
@@ -371,7 +402,6 @@ export default function App() {
                           </div>
                         )}
 
-                        {/* Simplified action buttons */}
                         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
                           <button onClick={() => fetchSchedule(v)} disabled={isLoadingSched}
                             style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:isLoadingSched?"#e2e8f0":"#1D9E75",color:isLoadingSched?"#94a3b8":"#fff",border:"none",cursor:isLoadingSched?"default":"pointer",fontWeight:500}}>
@@ -383,10 +413,8 @@ export default function App() {
                           {v.facebook && <a href={v.facebook} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#1d4ed8",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>👍 Facebook</a>}
                         </div>
 
-                        {/* Schedule results */}
-                        <ScheduleBlock schedData={schedData} isLoading={isLoadingSched} />
+                        <NearbyScheduleBlock schedData={schedData} isLoading={isLoadingSched} />
 
-                        {/* Auto-found events from initial venue load */}
                         {v.events && v.events.length > 0 && (
                           <div style={{marginTop:8}}>
                             <p style={{fontSize:11,fontWeight:600,color:"#16a34a",margin:"0 0 6px"}}>✓ Events found on their website:</p>
