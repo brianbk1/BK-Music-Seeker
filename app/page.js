@@ -7,13 +7,15 @@ const FEATURED_VENUES = [
   { name:"Brickette Lounge", tag:"Live music & events • 21+", description:"West Chester's lively neighborhood bar featuring live music, events, and a full BBQ menu on weekends. Bar open daily 12pm–2am. 21+ after 5pm.", address:"3 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.brickettelounge.com/music-events", reserveUrl:"https://www.instagram.com/brickettelounge/", color:"#7c3aed" },
   { name:"Slow Hand Food & Drink", tag:"Live music & events", description:"West Chester's upscale American comfort restaurant in a historic firehouse, hosting live performances from local bands and solo artists alongside scratch-made food and award-winning cocktails.", address:"30 N Church St, West Chester, PA 19380", scheduleUrl:"https://www.slowhand-wc.com/events", reserveUrl:"https://www.slowhand-wc.com/", color:"#0f766e" },
   { name:"Square Bar", tag:"Live music • Open since 1950s", description:"West Chester's beloved dive bar for 70+ years featuring live music, games, sports, and great company. A true neighborhood institution at 250 E Chestnut St.", address:"250 E Chestnut St, West Chester, PA 19380", scheduleUrl:"https://www.squarebarwc.com/events", reserveUrl:"https://www.instagram.com/squarebarwc/", color:"#b45309" },
+  { name:"Saloon 151", tag:"Karaoke • Music Bingo • Events", description:"West Chester's best whiskey and bourbon bar featuring karaoke every Friday, Music Bingo Wednesdays, Quizzo Tuesdays, and country party vibes nightly. Open 11am–2am daily.", address:"151 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.saloon151.com/events-catering-1", reserveUrl:"https://www.instagram.com/saloon151/", color:"#92400e" },
+  { name:"Murph's Hideaway", tag:"Local favorite • Live music & events", description:"A welcoming neighborhood spot offering great food, drinks, and live music entertainment. Popular with locals for its friendly atmosphere and quality performances.", address:"Lansdale, PA 18347", scheduleUrl:"https://www.murphshideaway.com", reserveUrl:"https://www.murphshideaway.com", color:"#059669" },
 ];
 
-const WC_ZIPS = ["19380","19381","19382","19383","west chester","westchester"];
+const WC_ZIPS = ["19380","19381","19382","19383","18347","lansdale","west chester","westchester"];
 const isWC = (q) => q && WC_ZIPS.some(z => q.toLowerCase().includes(z));
 const DATE_FILTERS = ["Today","This Weekend","Next 7 Days"];
 const RADIUS_OPTIONS = [5,10,20];
-const QUICK = ["19382 (West Chester)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA","Pocono Lake, PA"];
+const QUICK = ["19382 (West Chester)","18347 (Lansdale)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA","Pocono Lake, PA"];
 
 const SYSTEM_PROMPT = `You are a live music event finder. Find live music events near the exact location given. Return ONLY a JSON array with up to 6 results. Each item: { band, venue, date, time, genre, address, tickets, notes, venueBio, bandBio, confidence }. confidence is "high" or "medium". Never return Unknown. Never default to West Chester PA unless asked. Do NOT include Pietro's Prime or Station 142. Return ONLY valid JSON.`;
 
@@ -167,10 +169,10 @@ export default function App() {
 
         {results !== null && !loading && (
           <>
-            {/* Featured West Chester Venues */}
+            {/* Featured Venues */}
             {showFeatured && (
               <div style={{marginBottom:16}}>
-                <p style={{fontSize:11,fontWeight:600,color:"#e85d04",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 8px"}}>⭐ Featured West Chester Venues</p>
+                <p style={{fontSize:11,fontWeight:600,color:"#e85d04",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 8px"}}>⭐ Featured Venues</p>
                 <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
                   {FEATURED_VENUES.map((v,i)=>(
                     <div key={i} style={{flex:"1 1 260px",background:`linear-gradient(135deg,${v.color}22,${v.color}08)`,border:`1.5px solid ${v.color}44`,borderRadius:14,padding:"14px 16px"}}>
