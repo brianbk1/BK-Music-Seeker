@@ -8,7 +8,6 @@ export async function POST(req) {
 
     const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 
-    // ── Helper: call Claude ───────────────────────────────────────────────────
     const callClaude = async (system, userMsg, tools = null) => {
       const body = {
         model: "claude-sonnet-4-6",
@@ -17,7 +16,6 @@ export async function POST(req) {
         messages: [{ role: "user", content: userMsg }],
       };
       if (tools) body.tools = tools;
-
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: {
@@ -30,7 +28,26 @@ export async function POST(req) {
       return res.json();
     };
 
-    // ── Helper: fetch and clean a page ────────────────────────────────────────
+    // Extract JSON array from any text — handles prose wrapping, code fences, etc.
+    const extractJSON = (text) => {
+      if (!text) return null;
+      const cleaned = text.replace(/```json|```/g, "").trim();
+      // Try direct parse first
+      try {
+        const parsed = JSON.parse(cleaned);
+        if (Array.isArray(parsed)) return parsed;
+      } catch {}
+      // Find array in text
+      const match = cleaned.match(/\[[\s\S]*\]/);
+      if (match) {
+        try {
+          const parsed = JSON.parse(match[0]);
+          if (Array.isArray(parsed)) return parsed;
+        } catch {}
+      }
+      return null;
+    };
+
     const fetchPage = async (url) => {
       try {
         const res = await fetch(url, {
@@ -40,38 +57,43 @@ export async function POST(req) {
         });
         if (!res.ok) return null;
         const html = await res.text();
-        return html
+        const text = html
           .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
           .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
           .replace(/<[^>]+>/g, " ")
           .replace(/\s+/g, " ")
-          .trim()
-          .slice(0, 8000);
+          .trim();
+        if (text.length < 150) return null; // JS-only shell
+        return text.slice(0, 8000);
       } catch { return null; }
     };
 
-    // ── Helper: search web for venue schedule (Claude + web search tool) ──────
+    // ── Step 1: Web search using Claude with web_search tool ─────────────────
     const searchSchedule = async () => {
       try {
+        const cityState = venueAddress ? venueAddress.split(",").slice(0, 2).join(",") : "";
         const data = await callClaude(
-          `You are a live music event researcher. Search for the entertainment schedule, upcoming shows, and weekly events for the given venue. Return a JSON array of events found: [{ day, event, time, notes }]. Be specific with band names, times, and recurring events. ONLY valid JSON array, nothing else.`,
-          `Find the entertainment schedule for "${venueName}"${venueAddress ? ` at ${venueAddress}` : ""}. Look for their weekly recurring events, upcoming shows, trivia nights, karaoke, live music, open mic, DJ nights, etc. List specific band names when known.`,
-          [{
-            type: "web_search_20250305",
-            name: "web_search",
-          }]
+          `You are a live music event researcher. Search for the entertainment schedule for the given venue. Return ONLY a valid JSON array in this exact format, with no other text before or after it:
+[{ "day": "Tuesday", "event": "Karaoke Night", "time": "10pm", "notes": "Weekly recurring" }]
+
+Include all entertainment: live music, trivia, karaoke, open mic, DJ nights, bingo, comedy, themed nights. Be specific with band/artist names and times. If nothing found return [].`,
+          `Search for the entertainment schedule for "${venueName}"${cityState ? ` in ${cityState}` : ""}. Find weekly recurring events and upcoming shows.`,
+          [{ type: "web_search_20250305", name: "web_search" }]
         );
 
-        const textBlock = data.content?.find(b => b.type === "text");
-        if (textBlock) {
-          const match = textBlock.text.trim().replace(/```json|```/g, "").trim().match(/\[[\s\S]*\]/);
-          if (match) return { schedule: JSON.parse(match[0]), source: "web_search" };
-        }
+        // Look through ALL content blocks for text with JSON
+        const allText = (data.content || [])
+          .filter(b => b.type === "text")
+          .map(b => b.text)
+          .join("\n");
+
+        const schedule = extractJSON(allText);
+        if (schedule && schedule.length > 0) return { schedule, source: "web_search" };
         return null;
       } catch { return null; }
     };
 
-    // ── Helper: scrape venue website for schedule ─────────────────────────────
+    // ── Step 2: Scrape venue website ─────────────────────────────────────────
     const scrapeWebsite = async () => {
       if (!venueWebsite) return null;
 
@@ -84,16 +106,13 @@ export async function POST(req) {
         "/trivia", "/karaoke", "/open-mic",
       ];
 
-      const CONTENT_KEYWORDS = [
+      const KEYWORDS = [
         "band", "live music", "entertainment", "show", "perform", "schedule",
         "event", "pm", "trivia", "karaoke", "bingo", "open mic", "dj",
         "tonight", "upcoming", "lineup", "poker", "piano", "dancing",
       ];
 
-      const scoreText = (text) => {
-        const lower = text.toLowerCase();
-        return CONTENT_KEYWORDS.filter(kw => lower.includes(kw)).length;
-      };
+      const score = (text) => KEYWORDS.filter(kw => text.toLowerCase().includes(kw)).length;
 
       const baseUrl = venueWebsite.replace(/\/$/, "");
       let bestText = null;
@@ -103,59 +122,53 @@ export async function POST(req) {
         try {
           const text = await fetchPage(baseUrl + path);
           if (!text) continue;
-          const score = scoreText(text);
-          if (score > bestScore) {
-            bestScore = score;
-            bestText = text;
-            if (score >= 6) break;
-          }
+          const s = score(text);
+          if (s > bestScore) { bestScore = s; bestText = text; if (s >= 6) break; }
         } catch { continue; }
       }
 
       if (!bestText || bestScore < 3) return null;
 
       const data = await callClaude(
-        `You are a live music event extractor. Given text from a venue's website, extract their entertainment schedule. Be specific with band names, times, and event types. Return ONLY a JSON array: [{ day, event, time, notes }]. Return [] if nothing found. ONLY valid JSON.`,
-        `Extract the entertainment schedule from this venue website text. Include all recurring events, upcoming shows, specific band names, and any entertainment like trivia, karaoke, open mic, DJ nights, etc:\n\n${bestText}`
+        `You are a live music event extractor. Extract entertainment schedule from venue website text. Return ONLY a valid JSON array with no other text:
+[{ "day": "Friday", "event": "Live Band", "time": "9pm", "notes": "" }]
+Return [] if nothing found.`,
+        `Extract the entertainment schedule from this venue website text for "${venueName}":\n\n${bestText}`
       );
 
-      const textBlock = data.content?.find(b => b.type === "text");
-      if (textBlock) {
-        const match = textBlock.text.trim().replace(/```json|```/g, "").trim().match(/\[[\s\S]*\]/);
-        if (match) {
-          const schedule = JSON.parse(match[0]);
-          if (schedule.length > 0) return { schedule, source: "website" };
-        }
-      }
+      const allText = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n");
+      const schedule = extractJSON(allText);
+      if (schedule && schedule.length > 0) return { schedule, source: "website" };
       return null;
     };
 
-    // ── Step 1: Try scraping their website first ──────────────────────────────
-    const websiteResult = await scrapeWebsite();
-    if (websiteResult && websiteResult.schedule.length > 0) {
-      return Response.json(websiteResult);
-    }
+    // ── Step 3: Claude general knowledge fallback ─────────────────────────────
+    const knowledgeFallback = async () => {
+      const data = await callClaude(
+        `You are a local entertainment expert. Return known entertainment schedule for the given venue. Return ONLY a valid JSON array with no other text:
+[{ "day": "Friday", "event": "Live Music", "time": "9pm", "notes": "Weekly" }]
+If you know specific band names use them. Include all entertainment types. Return [] only if you truly have no knowledge.`,
+        `Entertainment schedule for "${venueName}"${venueAddress ? ` at ${venueAddress}` : ""}.`
+      );
 
-    // ── Step 2: Web search with Claude ───────────────────────────────────────
-    const searchResult = await searchSchedule();
-    if (searchResult && searchResult.schedule.length > 0) {
-      return Response.json(searchResult);
-    }
+      const allText = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n");
+      const schedule = extractJSON(allText);
+      if (schedule && schedule.length > 0) return { schedule, source: "ai_knowledge" };
+      return null;
+    };
 
-    // ── Step 3: Claude general knowledge ─────────────────────────────────────
-    const data = await callClaude(
-      `You are a local entertainment expert. Return the KNOWN weekly entertainment schedule for the given venue based on your training data. Be specific with band names and event types. Include trivia, karaoke, open mic, DJs, poker, etc. Return ONLY a JSON array: [{ day, event, time, notes }]. Return [] if you truly have no knowledge of this venue. ONLY valid JSON.`,
-      `Entertainment schedule for "${venueName}"${venueAddress ? ` at ${venueAddress}` : ""}. List specific act names when known.`
-    );
+    // Run website scrape and web search in parallel
+    const [websiteResult, searchResult] = await Promise.all([
+      scrapeWebsite(),
+      searchSchedule(),
+    ]);
 
-    const textBlock = data.content?.find(b => b.type === "text");
-    if (textBlock) {
-      const match = textBlock.text.trim().replace(/```json|```/g, "").trim().match(/\[[\s\S]*\]/);
-      if (match) {
-        const schedule = JSON.parse(match[0]);
-        return Response.json({ schedule, source: "ai_knowledge" });
-      }
-    }
+    // Prefer website (most accurate), then web search, then AI knowledge
+    if (websiteResult && websiteResult.schedule.length > 0) return Response.json(websiteResult);
+    if (searchResult && searchResult.schedule.length > 0) return Response.json(searchResult);
+
+    const knowledgeResult = await knowledgeFallback();
+    if (knowledgeResult && knowledgeResult.schedule.length > 0) return Response.json(knowledgeResult);
 
     return Response.json({ schedule: [], source: "none" });
 

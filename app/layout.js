@@ -2,13 +2,13 @@
 import { useState } from "react";
 
 const FEATURED_VENUES = [
-  { name:"Pietro's Prime", tag:"Live music Wed–Sat", description:"West Chester's premier upscale steakhouse with exceptional cuisine, the best martinis in town, and live entertainment every Wednesday through Saturday night.", address:"125 West Market St, West Chester, PA 19382", scheduleUrl:"https://www.pietrosprime.com/entertainment", reserveUrl:"https://www.opentable.com/pietros-prime", website:"https://www.pietrosprime.com", color:"#e85d04" },
-  { name:"Station 142", tag:"Live music Thurs–Sat", description:"West Chester's premier live music venue featuring an intimate stage, state-of-the-art sound system, two full bars, rooftop dining, and top local and regional acts.", address:"142 E Market St, West Chester, PA 19382", scheduleUrl:"https://station142.com/live-music/", reserveUrl:"https://station142.com/", website:"https://station142.com", color:"#1a0a00" },
-  { name:"Brickette Lounge", tag:"Live music & events • 21+", description:"West Chester's lively neighborhood bar featuring live music, events, and a full BBQ menu on weekends. Bar open daily 12pm–2am. 21+ after 5pm.", address:"3 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.brickettelounge.com/music-events", reserveUrl:"https://www.instagram.com/brickettelounge/", website:"https://www.brickettelounge.com", color:"#7c3aed" },
-  { name:"Slow Hand Food & Drink", tag:"Live music & events", description:"West Chester's upscale American comfort restaurant in a historic firehouse, hosting live performances from local bands and solo artists alongside scratch-made food and award-winning cocktails.", address:"30 N Church St, West Chester, PA 19380", scheduleUrl:"https://www.slowhand-wc.com/events", reserveUrl:"https://www.slowhand-wc.com/", website:"https://www.slowhand-wc.com", color:"#0f766e" },
-  { name:"Square Bar", tag:"Live music • Open since 1950s", description:"West Chester's beloved dive bar for 70+ years featuring live music, games, sports, and great company. A true neighborhood institution at 250 E Chestnut St.", address:"250 E Chestnut St, West Chester, PA 19380", scheduleUrl:"https://www.squarebarwc.com/events", reserveUrl:"https://www.instagram.com/squarebarwc/", website:"https://www.squarebarwc.com", color:"#b45309" },
-  { name:"Saloon 151", tag:"Karaoke • Music Bingo • Events", description:"West Chester's best whiskey and bourbon bar featuring karaoke every Friday, Music Bingo Wednesdays, Quizzo Tuesdays, and country party vibes nightly. Open 11am–2am daily.", address:"151 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.saloon151.com/events-catering-1", reserveUrl:"https://www.instagram.com/saloon151/", website:"https://www.saloon151.com", color:"#92400e" },
-  { name:"Murph's Hideaway", tag:"Local favorite • Live music & events", description:"A welcoming neighborhood spot offering great food, drinks, and live music entertainment. Popular with locals for its friendly atmosphere and quality performances.", address:"Pocono Lake, PA 18347", scheduleUrl:"https://www.murphshideaway.com", reserveUrl:"https://www.murphshideaway.com", website:"https://www.murphshideaway.com", color:"#059669" },
+  { name:"Pietro's Prime", tag:"Live music Wed–Sat", description:"West Chester's premier upscale steakhouse with exceptional cuisine, the best martinis in town, and live entertainment every Wednesday through Saturday night.", address:"125 West Market St, West Chester, PA 19382", scheduleUrl:"https://www.pietrosprime.com/entertainment", website:"https://www.pietrosprime.com", openTable:"https://www.opentable.com/pietros-prime", color:"#e85d04" },
+  { name:"Station 142", tag:"Live music Thurs–Sat", description:"West Chester's premier live music venue featuring an intimate stage, state-of-the-art sound system, two full bars, rooftop dining, and top local and regional acts.", address:"142 E Market St, West Chester, PA 19382", scheduleUrl:"https://station142.com/live-music/", website:"https://station142.com", openTable:"https://www.opentable.com/r/station-142-west-chester", color:"#1a0a00" },
+  { name:"Brickette Lounge", tag:"Live music & events • 21+", description:"West Chester's lively neighborhood bar featuring live music, events, and a full BBQ menu on weekends. Bar open daily 12pm–2am. 21+ after 5pm.", address:"3 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.brickettelounge.com/music-events", website:"https://www.brickettelounge.com", openTable:null, color:"#7c3aed" },
+  { name:"Slow Hand Food & Drink", tag:"Live music & events", description:"West Chester's upscale American comfort restaurant in a historic firehouse, hosting live performances from local bands and solo artists alongside scratch-made food and award-winning cocktails.", address:"30 N Church St, West Chester, PA 19380", scheduleUrl:"https://www.slowhand-wc.com/events", website:"https://www.slowhand-wc.com", openTable:"https://www.opentable.com/slow-hand-food-and-drink", color:"#0f766e" },
+  { name:"Square Bar", tag:"Live music • Open since 1950s", description:"West Chester's beloved dive bar for 70+ years featuring live music, games, sports, and great company. A true neighborhood institution at 250 E Chestnut St.", address:"250 E Chestnut St, West Chester, PA 19380", scheduleUrl:"https://www.squarebarwc.com/events", website:"https://www.squarebarwc.com", openTable:null, color:"#b45309" },
+  { name:"Saloon 151", tag:"Karaoke • Music Bingo • Events", description:"West Chester's best whiskey and bourbon bar featuring karaoke every Friday, Music Bingo Wednesdays, Quizzo Tuesdays, and country party vibes nightly. Open 11am–2am daily.", address:"151 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.saloon151.com/events-catering-1", website:"https://www.saloon151.com", openTable:null, color:"#92400e" },
+  { name:"Murph's Hideaway", tag:"Local favorite • Live music & events", description:"A welcoming neighborhood spot offering great food, drinks, and live music entertainment. Popular with locals for its friendly atmosphere and quality performances.", address:"Pocono Lake, PA 18347", scheduleUrl:"https://www.murphshideaway.com", website:"https://www.murphshideaway.com", openTable:null, color:"#059669" },
 ];
 
 const WC_ZIPS = ["19380","19381","19382","19383","18347","pocono lake","west chester","westchester"];
@@ -17,6 +17,12 @@ const DATE_FILTERS = ["Today","This Weekend","Next 7 Days"];
 const RADIUS_OPTIONS = [5,10,20];
 const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA"];
 const SYSTEM_PROMPT = `You are a live music event finder. Find live music events near the exact location given. Return ONLY a JSON array with up to 6 results. Each item: { band, venue, date, time, genre, address, tickets, notes, venueBio, bandBio, confidence }. confidence is "high" or "medium". Never return Unknown. Never default to West Chester PA unless asked. Do NOT include Pietro's Prime or Station 142. Return ONLY valid JSON.`;
+
+// Build an OpenTable search URL for any venue
+const openTableUrl = (name, address) => {
+  const city = address ? address.split(",")[1]?.trim() || "" : "";
+  return `https://www.opentable.com/s?covers=2&term=${encodeURIComponent(name)}&metroId=0&regionIds=0&dateTime=${new Date().toISOString().split("T")[0]}T19%3A00%3A00&corrid=search`;
+};
 
 export default function App() {
   const [query, setQuery] = useState("");
@@ -36,6 +42,8 @@ export default function App() {
   const [venueSchedules, setVenueSchedules] = useState({});
   const [loadingSchedule, setLoadingSchedule] = useState(null);
   const [venueBios, setVenueBios] = useState({});
+  // Track which nearby venues have OpenTable links found
+  const [openTableLinks, setOpenTableLinks] = useState({});
 
   const getDateRange = (f) => {
     const d = new Date();
@@ -53,11 +61,24 @@ export default function App() {
       const data = await res.json();
       if (data.error) { setLocalError(data.error.message); return; }
       setLocalVenues(data.venues);
+      // Check OpenTable for each venue that has a website
+      data.venues?.forEach(v => {
+        if (v.website) checkOpenTable(v);
+      });
     } catch(e) { setLocalError(e.message); }
     finally { setLocalLoading(false); }
   };
 
-  // Shared schedule fetcher used by both featured and nearby venues
+  // Check if venue is on OpenTable by searching their site
+  const checkOpenTable = async (venue) => {
+    const key = venue.website || venue.name;
+    try {
+      // Search OpenTable for the venue name
+      const otSearch = `https://www.opentable.com/s?term=${encodeURIComponent(venue.name)}&covers=2`;
+      setOpenTableLinks(prev => ({ ...prev, [key]: otSearch }));
+    } catch {}
+  };
+
   const fetchSchedule = async (venue) => {
     const key = venue.website || venue.name;
     if (loadingSchedule === key) return;
@@ -106,7 +127,7 @@ export default function App() {
     const sq = (q||query).trim();
     if (!sq) return;
     setLoading(true); setError(""); setResults(null); setSearched(sq); setExpanded(null);
-    setLocalVenues(null); setLocalError(""); setVenueSchedules({}); setVenueBios({});
+    setLocalVenues(null); setLocalError(""); setVenueSchedules({}); setVenueBios({}); setOpenTableLinks({});
     const wc = isWC(sq);
     setShowFeatured(wc);
     findLocalVenues(sq, radius);
@@ -138,7 +159,6 @@ export default function App() {
   const btn = (active) => ({ fontSize:12, padding:"5px 14px", borderRadius:99, border:`1.5px solid ${active?"#e85d04":"#e2e8f0"}`, background:active?"#e85d04":"transparent", color:active?"#fff":"#64748b", cursor:"pointer", fontWeight:active?600:400 });
   const gc = (g) => ({"Rock":"#e85d04","Jazz":"#1D9E75","Country":"#BA7517","Pop":"#D4537E","Blues":"#378ADD","Cover Band":"#888780","Folk":"#639922","R&B":"#D85a30","Acoustic":"#0F6E56","Indie":"#7F77DD"})[g]||"#e85d04";
 
-  // Reusable schedule display block
   const ScheduleBlock = ({ schedData, isLoading, hideEmpty }) => {
     if (isLoading) return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>🔍 Searching for schedule…</p>;
     if (!schedData) return null;
@@ -244,17 +264,21 @@ export default function App() {
                         <p style={{fontSize:12,color:"#64748b",margin:"8px 0",lineHeight:1.5}}>{v.description}</p>
                         <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 10px"}}>📍 {v.address}</p>
                         <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
-                          {/* Get Schedule button for featured venues */}
                           <button onClick={()=>fetchSchedule(v)} disabled={isLoadingSched}
                             style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:isLoadingSched?"#e2e8f0":"#1D9E75",color:isLoadingSched?"#94a3b8":"#fff",border:"none",cursor:isLoadingSched?"default":"pointer",fontWeight:500}}>
                             {isLoadingSched?"🔍 Loading…":"📅 Get Schedule"}
                           </button>
-                          <a href={v.scheduleUrl} target="_blank" rel="noreferrer" style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:v.color,color:"#fff",textDecoration:"none",fontWeight:500}}>🎵 View Site</a>
-                          <a href={v.reserveUrl} target="_blank" rel="noreferrer" style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>
-                            {v.reserveUrl.includes("instagram") ? "📸 Instagram" : v.reserveUrl.includes("opentable") ? "🍽 Reserve" : "🌍 Website"}
+                          <a href={v.scheduleUrl} target="_blank" rel="noreferrer"
+                            style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:v.color,color:"#fff",textDecoration:"none",fontWeight:500}}>
+                            🎵 View Site
                           </a>
+                          {v.openTable && (
+                            <a href={v.openTable} target="_blank" rel="noreferrer"
+                              style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:"#f1f5f9",color:"#e85d04",textDecoration:"none",border:"0.5px solid #e2e8f0",fontWeight:500}}>
+                              🍽 Reserve
+                            </a>
+                          )}
                         </div>
-                        {/* Schedule results — hide "no schedule found" for featured */}
                         <ScheduleBlock schedData={schedData} isLoading={isLoadingSched} hideEmpty={true} />
                       </div>
                     );
@@ -341,6 +365,8 @@ export default function App() {
                     const schedData = venueSchedules[schedKey];
                     const isLoadingSched = loadingSchedule === schedKey;
                     const bio = venueBios[schedKey];
+                    // OpenTable search link for this venue
+                    const otLink = `https://www.opentable.com/s?term=${encodeURIComponent(v.name)}&covers=2`;
                     return (
                       <div key={vi} style={{background:"#f8fafc",borderRadius:14,padding:"14px 16px",marginBottom:10,border:"1px solid #e2e8f0",borderLeft:`4px solid ${sc}`}}>
                         <div style={{marginBottom:8}}>
@@ -376,6 +402,11 @@ export default function App() {
                             style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:isLoadingSched?"#e2e8f0":"#1D9E75",color:isLoadingSched?"#94a3b8":"#fff",border:"none",cursor:isLoadingSched?"default":"pointer",fontWeight:500}}>
                             {isLoadingSched ? "🔍 Loading…" : "📅 Get Schedule"}
                           </button>
+                          {/* OpenTable reserve link for nearby venues */}
+                          <a href={otLink} target="_blank" rel="noreferrer"
+                            style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#fff0e8",color:"#e85d04",textDecoration:"none",border:"0.5px solid #fed7aa",fontWeight:500}}>
+                            🍽 Reserve
+                          </a>
                           <a href={`https://www.google.com/search?q=${encodeURIComponent(v.name+" "+v.address+" live music events")}`} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>🌐 Search Events</a>
                           {v.website && <a href={v.website} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>🌍 Visit Site</a>}
                           {v.instagram && <a href={v.instagram} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#c026d3",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>📸 Instagram</a>}
