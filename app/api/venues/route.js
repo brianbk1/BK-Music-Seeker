@@ -98,9 +98,9 @@ export async function POST(req) {
           } catch { /* ignore */ }
         }
 
-        // If high confidence music venue, try to scrape events
+        // Extract events for HIGH AND MEDIUM confidence music venues (not just high)
         let events = [];
-        if (musicScore === "high" && r.website) {
+        if ((musicScore === "high" || musicScore === "medium") && r.website) {
           try {
             const baseUrl   = r.website.replace(/\/$/, "");
             const eventPaths = ["/entertainment","/events","/live-music","/music","/calendar","/shows","/whats-on"];
@@ -127,7 +127,7 @@ export async function POST(req) {
                     "anthropic-version": "2023-06-01",
                   },
                   body: JSON.stringify({
-                    model: "claude-haiku-4-5-20251001",
+                    model: "claude-sonnet-4-6",
                     max_tokens: 400,
                     system: `Extract live music or entertainment events from venue page text. Return ONLY a JSON array. Each event: { band, date, time, notes }. If no events found return []. Return ONLY valid JSON.`,
                     messages: [{ role: "user", content: text }],
