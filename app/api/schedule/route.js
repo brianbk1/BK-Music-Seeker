@@ -1,4 +1,5 @@
-// Baseline schedules for featured venues — recurring patterns only, not specific dates
+// Baseline schedules for featured venues — recurring patterns only, not specific dates/performers
+// Only used if ALL live lookups (web search + scrape) return empty
 const KNOWN_SCHEDULES = {
   "Pietro's Prime": [
     { day: "Wednesday", event: "Live Music", time: "7:00 PM", notes: "Weekly — check pietrosprime.com/event-list for current performer" },
@@ -36,9 +37,17 @@ const KNOWN_SCHEDULES = {
   ],
 };
 
+// Known direct event page URLs for specific venues
+// These are fetched first before general web search
+const DIRECT_EVENT_PAGES = {
+  "Pietro's Prime": "https://www.pietrosprime.com/event-list",
+  "Station 142": "https://station142.com/live-music/",
+  "Slow Hand Food & Drink": "https://www.slowhand-wc.com/events",
+  "Brickette Lounge": "https://www.brickettelounge.com/music-events",
+  "Saloon 151": "https://www.saloon151.com/events-catering-1",
+};
+
 // ── Site type detector ────────────────────────────────────────────────────────
-// Fetches the homepage and identifies what platform the site runs on.
-// Returns: { type, html, text, canScrape }
 const detectSiteType = async (websiteUrl) => {
   try {
     const res = await fetch(websiteUrl, {
@@ -46,29 +55,18 @@ const detectSiteType = async (websiteUrl) => {
       signal: AbortSignal.timeout(6000),
       redirect: "follow",
     });
-    if (!res.ok) return { type: "unknown", html: "", text: "", canScrape: false };
+    if (!res.ok) return { type: "unknown", text: "", canScrape: false };
 
     const html = await res.text();
-    const lowerHtml = html.toLowerCase();
+    const lower = html.toLowerCase();
+    let type = "html";
 
-    // Detect platform from HTML fingerprints
-    let type = "html"; // default — plain scrapable HTML
+    if (lower.includes("wix.com") || lower.includes("wixsite") || lower.includes("_wix") || lower.includes("wix-thunderbolt")) type = "wix";
+    else if (lower.includes("squarespace") || lower.includes("sqsp") || lower.includes("static.squarespace")) type = "squarespace";
+    else if (lower.includes("webflow") || lower.includes("webflow.io")) type = "webflow";
+    else if (lower.includes("wordpress") || lower.includes("wp-content") || lower.includes("wp-json")) type = "wordpress";
+    else if (lower.includes("godaddy") || lower.includes("godaddysites") || lower.includes("secureserver.net")) type = "godaddy";
 
-    if (lowerHtml.includes("wix.com") || lowerHtml.includes("wixsite") || lowerHtml.includes("_wix") || lowerHtml.includes("wix-thunderbolt")) {
-      type = "wix";
-    } else if (lowerHtml.includes("squarespace") || lowerHtml.includes("sqsp") || lowerHtml.includes("static.squarespace")) {
-      type = "squarespace";
-    } else if (lowerHtml.includes("webflow") || lowerHtml.includes("webflow.io")) {
-      type = "webflow";
-    } else if (lowerHtml.includes("wordpress") || lowerHtml.includes("wp-content") || lowerHtml.includes("wp-json")) {
-      type = "wordpress";
-    } else if (lowerHtml.includes("godaddy") || lowerHtml.includes("godaddysites") || lowerHtml.includes("secureserver.net")) {
-      type = "godaddy";
-    } else if (lowerHtml.includes("shopify")) {
-      type = "shopify";
-    }
-
-    // Check if the page has meaningful text content
     const text = html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
@@ -76,22 +74,17 @@ const detectSiteType = async (websiteUrl) => {
       .replace(/\s+/g, " ")
       .trim();
 
-    // JS-heavy sites render almost no text server-side
-    const canScrape = text.length > 300 && type !== "wix" && type !== "squarespace" && type !== "webflow" && type !== "godaddy";
-
-    return { type, html, text: text.slice(0, 6000), canScrape };
+    const canScrape = text.length > 300 && !["wix","squarespace","webflow","godaddy"].includes(type);
+    return { type, text: text.slice(0, 6000), canScrape };
   } catch {
-    return { type: "unknown", html: "", text: "", canScrape: false };
+    return { type: "unknown", text: "", canScrape: false };
   }
 };
 
 export async function POST(req) {
   try {
     const { venueName, venueAddress, venueWebsite } = await req.json();
-
-    if (!venueName) {
-      return Response.json({ schedule: [], source: "none" });
-    }
+    if (!venueName) return Response.json({ schedule: [], source: "none" });
 
     const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 
@@ -119,10 +112,7 @@ export async function POST(req) {
 
     const extractJSON = (data) => {
       if (!data?.content) return null;
-      const allText = data.content
-        .filter(b => b.type === "text")
-        .map(b => b.text || "")
-        .join("\n");
+      const allText = data.content.filter(b => b.type === "text").map(b => b.text || "").join("\n");
       if (!allText) return null;
       const cleaned = allText.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
       const matches = cleaned.match(/\[[\s\S]*?\]/g);
@@ -146,48 +136,93 @@ export async function POST(req) {
       k.toLowerCase().includes(venueName.toLowerCase())
     );
 
+    // Check if we have a known direct event page for this venue
+    const directPageKey = Object.keys(DIRECT_EVENT_PAGES).find(k =>
+      venueName.toLowerCase().includes(k.toLowerCase()) ||
+      k.toLowerCase().includes(venueName.toLowerCase())
+    );
+    const directEventUrl = directPageKey ? DIRECT_EVENT_PAGES[directPageKey] : null;
+
     const cityState = venueAddress ? venueAddress.split(",").slice(0, 2).join(",") : "";
     const currentMonth = new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
 
-    // ── Detect site type first ────────────────────────────────────────────────
+    // ── PLAN A0: Scrape known direct event page first (fastest, most accurate) ─
+    // For venues like Pietro's where we know the exact event list URL,
+    // fetch it directly before doing anything else.
+    if (directEventUrl) {
+      try {
+        const res = await fetch(directEventUrl, {
+          headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+          signal: AbortSignal.timeout(6000),
+          redirect: "follow",
+        });
+        if (res.ok) {
+          const html = await res.text();
+          const text = html
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+            .replace(/<[^>]+>/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+
+          // Only use if we got real content (not a JS shell)
+          if (text.length > 300) {
+            const data = await callClaude(
+              `Extract the entertainment schedule from this venue events page. Include specific band/artist names, dates, and times. Return ONLY a raw JSON array: [{"day":"Friday May 16","event":"Band Name","time":"7pm","notes":""}]. Return null if no events found.`,
+              `Extract upcoming events for "${venueName}" from this page:\n\n${text.slice(0, 6000)}`
+            );
+            const schedule = extractJSON(data);
+            if (schedule && schedule.length > 0) {
+              return Response.json({ schedule, source: "website" });
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Direct page fetch failed:", e.message);
+      }
+    }
+
+    // ── Detect site type for remaining strategies ─────────────────────────────
     let siteInfo = { type: "unknown", canScrape: false, text: "" };
     if (venueWebsite) {
       siteInfo = await detectSiteType(venueWebsite);
     }
 
-    // Build a platform-specific note for the web search prompt
     const platformHints = {
-      wix:        "Their site is built on Wix — the calendar is JS-rendered so search Google for their events instead of scraping. Search site:thestonetavern1867.com events or search their venue name + events + current month.",
-      squarespace:"Their site is on Squarespace — events may not be scrapable. Search Google, Facebook events, and Instagram for their schedule.",
-      webflow:    "Their site is on Webflow — JS-rendered. Search Google, Facebook, and Instagram for their entertainment schedule.",
-      godaddy:    "Their site is on GoDaddy — may be JS-rendered. Search Google and Facebook events for their schedule.",
-      wordpress:  "Their site runs WordPress — likely scrapable but also check Google and Facebook for the most current events.",
-      html:       "Their site is plain HTML — check their events page directly and also search Google for the most current performers.",
-      unknown:    "Search Google, Facebook, Instagram, and local event sites for their entertainment schedule.",
+      wix:        `Their site is Wix — the calendar is JS-rendered so Google indexes it instead. Search specifically for "${venueName} events ${currentMonth}" and also try fetching their event-list page URL directly if known.`,
+      squarespace:`Their site is Squarespace. Search Google, Facebook events, and Instagram for their current schedule.`,
+      webflow:    `Their site is Webflow. Search Google and Instagram for their entertainment schedule.`,
+      godaddy:    `Their site is GoDaddy. Search Google and Facebook events for their schedule.`,
+      wordpress:  `Their site is WordPress — likely has scrapable event content. Check their events page and also search Google.`,
+      html:       `Their site is plain HTML — check their events page and also search Google for current performers.`,
+      unknown:    `Search Google, Facebook, Instagram, and local event sites for their entertainment schedule.`,
     };
     const platformHint = platformHints[siteInfo.type] || platformHints.unknown;
 
-    // ── PLAN A: Claude + Web Search (works for ALL site types) ───────────────
-    // For JS-rendered sites (Wix, Squarespace) this is the primary strategy
-    // since Google indexes their events even when we can't scrape them.
+    // ── PLAN A: Claude + Web Search ───────────────────────────────────────────
     try {
+      const directPageHint = directEventUrl
+        ? `IMPORTANT: First fetch this URL directly — it contains their event list: ${directEventUrl}`
+        : "";
+
       const data = await callClaude(
-        `You are a live music researcher finding CURRENT entertainment at a specific venue for ${currentMonth}.
+        `You are a live music researcher finding CURRENT entertainment for ${currentMonth}.
 
 ${platformHint}
+${directPageHint}
 
 Search for:
 - Specific upcoming band/artist names with dates
 - Weekly recurring entertainment (trivia, karaoke, bingo, open mic, DJ nights)
-- Their Facebook events page
-- Instagram posts about upcoming events  
+- Facebook events page
+- Instagram posts about upcoming events
 - Local event sites (downtownwestchester.com, allevents.in, eventbrite, bandsintown)
-- Band/artist websites that list this venue on their tour page
+- Band websites that list this venue on their tour schedule
 
 Return ONLY a raw JSON array, no other text:
-[{"day":"Sunday","event":"Bingo","time":"6:00 PM","notes":"Weekly"},{"day":"Wednesday","event":"Quizzo","time":"7:00 PM","notes":"Weekly"}]
+[{"day":"Wednesday May 14","event":"John Grecia (Piano)","time":"7:00 PM","notes":"Weekly recurring"}]
 
-Use real event names and performer names when found. For recurring weekly events use the day name. Only return [] if you find absolutely nothing.`,
+Use real performer names when found. For recurring weekly events without specific upcoming dates, use the day name. Only return [] if you find absolutely nothing after thorough searching.`,
         `Find the current ${currentMonth} entertainment schedule for "${venueName}"${cityState ? ` in ${cityState}` : ""}${venueWebsite ? `. Website: ${venueWebsite}` : ""}.`,
         [{ type: "web_search_20250305", name: "web_search" }]
       );
@@ -200,19 +235,17 @@ Use real event names and performer names when found. For recurring weekly events
       console.error("Plan A failed:", e.message);
     }
 
-    // ── PLAN B: Direct scrape (only for scrapable sites) ─────────────────────
-    // Skipped automatically for Wix, Squarespace, Webflow, GoDaddy.
+    // ── PLAN B: Direct website scrape (scrapable sites only) ─────────────────
     if (venueWebsite && siteInfo.canScrape) {
       try {
         const baseUrl = venueWebsite.replace(/\/$/, "");
         const eventPaths = ["/event-list", "/events", "/entertainment", "/live-music", "/music", "/calendar", "/shows", "/schedule", "/whats-on", ""];
         const KEYWORDS = ["band", "live", "music", "show", "perform", "schedule", "event", "trivia", "karaoke", "dj", "open mic", "pm", "upcoming", "bingo", "quizzo"];
 
-        let bestText = siteInfo.text; // already have homepage text
+        let bestText = siteInfo.text;
         let bestScore = KEYWORDS.filter(kw => bestText.toLowerCase().includes(kw)).length;
 
-        // Try event-specific subpages
-        for (const path of eventPaths.slice(0, -1)) { // skip "" since we have homepage
+        for (const path of eventPaths) {
           try {
             const res = await fetch(baseUrl + path, {
               headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
@@ -239,8 +272,8 @@ Use real event names and performer names when found. For recurring weekly events
 
         if (bestText && bestScore >= 3) {
           const data = await callClaude(
-            `Extract the entertainment schedule from this venue website text. Include specific band/artist names, days, times, event types. Return ONLY a raw JSON array: [{"day":"Friday","event":"Live Band","time":"9pm","notes":""}]. Return null if no events found.`,
-            `Extract schedule for "${venueName}" (${siteInfo.type} site):\n\n${bestText}`
+            `Extract the entertainment schedule from this venue website. Include specific band/artist names, dates, times. Return ONLY a raw JSON array: [{"day":"Friday","event":"Live Band","time":"9pm","notes":""}]. Return null if no events found.`,
+            `Extract schedule for "${venueName}":\n\n${bestText}`
           );
           const schedule = extractJSON(data);
           if (schedule && schedule.length > 0) {
@@ -252,7 +285,7 @@ Use real event names and performer names when found. For recurring weekly events
       }
     }
 
-    // ── PLAN C: Known schedule for featured venues ────────────────────────────
+    // ── PLAN C: Known schedule baseline for featured venues ───────────────────
     if (knownKey) {
       return Response.json({ schedule: KNOWN_SCHEDULES[knownKey], source: "ai_knowledge" });
     }
