@@ -1,7 +1,6 @@
-const VIBE_TTL = 60 * 60; // 1 hour in seconds
-const MAX_VIBES_STORED = 20; // max to store per venue (older ones get trimmed)
+const VIBE_TTL = 60 * 60; // 1 hour
+const MAX_VIBES_STORED = 20;
 
-// Upstash REST helper — POST command
 const redisCommand = async (command) => {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -22,39 +21,44 @@ const redisGet = async (key) => redisCommand(["GET", key]);
 const redisSet = async (key, value, ex) => redisCommand(["SET", key, value, "EX", ex]);
 const redisKeys = async (pattern) => redisCommand(["KEYS", pattern]);
 
-// Filter vibes to only those posted in the last 60 minutes
+// Handles both old single-object format {stars,comment,postedAt}
+// and new array format [{...},{...}]
+const parseVibes = (raw) => {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+    if (parsed && parsed.postedAt) return [parsed]; // old single-object format
+    return [];
+  } catch { return []; }
+};
+
 const filterFresh = (vibes) => {
   const cutoff = Date.now() - VIBE_TTL * 1000;
   return vibes.filter(v => v.postedAt > cutoff);
 };
 
-// GET — fetch vibes
-// ?venue=station-142  OR  ?all=true
+// GET — ?venue=station-142 OR ?all=true
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const venue = searchParams.get("venue");
-    const all = searchParams.get("all");
+    const fetchAll = searchParams.get("all");
 
     if (venue) {
       const raw = await redisGet(`vibe:${venue}`);
-      if (!raw) return Response.json({ vibes: [] });
-      const all = filterFresh(JSON.parse(raw));
-      return Response.json({ vibes: all });
+      const fresh = filterFresh(parseVibes(raw));
+      return Response.json({ vibes: fresh });
     }
 
-    if (all) {
+    if (fetchAll) {
       const keys = await redisKeys("vibe:*");
       if (!keys || keys.length === 0) return Response.json({ vibes: {} });
-
       const result = {};
       await Promise.all(keys.map(async (key) => {
         const raw = await redisGet(key);
-        if (raw) {
-          const venueKey = key.replace("vibe:", "");
-          const fresh = filterFresh(JSON.parse(raw));
-          if (fresh.length > 0) result[venueKey] = fresh;
-        }
+        const fresh = filterFresh(parseVibes(raw));
+        if (fresh.length > 0) result[key.replace("vibe:", "")] = fresh;
       }));
       return Response.json({ vibes: result });
     }
@@ -65,7 +69,7 @@ export async function GET(req) {
   }
 }
 
-// POST — add a vibe to the list for a venue
+// POST — add a vibe for a venue (expires in 1 hour)
 export async function POST(req) {
   try {
     const { venueKey, stars, comment } = await req.json();
@@ -74,10 +78,8 @@ export async function POST(req) {
       return Response.json({ error: "Invalid input" }, { status: 400 });
     }
 
-    // Basic profanity filter
     const blocked = ["fuck", "shit", "bitch", "cunt", "dick", "asshole"];
-    const clean = (comment || "").toLowerCase();
-    if (blocked.some(w => clean.includes(w))) {
+    if (blocked.some(w => (comment || "").toLowerCase().includes(w))) {
       return Response.json({ error: "Please keep it friendly! 🙏" }, { status: 400 });
     }
 
@@ -87,13 +89,11 @@ export async function POST(req) {
       postedAt: Date.now(),
     };
 
-    // Load existing vibes, add new one, trim old ones, save back
     const raw = await redisGet(`vibe:${venueKey}`);
-    const existing = raw ? JSON.parse(raw) : [];
-    const fresh = filterFresh(existing); // drop anything older than 60 min
-    const updated = [...fresh, newVibe].slice(-MAX_VIBES_STORED); // keep newest 20
+    const existing = filterFresh(parseVibes(raw));
+    const updated = [...existing, newVibe].slice(-MAX_VIBES_STORED);
 
-    // TTL of 2 hours so the key doesn't vanish while vibes are still fresh
+    // Store with 2hr TTL so key persists while vibes are still fresh
     await redisSet(`vibe:${venueKey}`, JSON.stringify(updated), VIBE_TTL * 2);
 
     return Response.json({ ok: true, vibe: newVibe, total: updated.length });
