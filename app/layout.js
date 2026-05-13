@@ -189,18 +189,27 @@ const VibeSection = ({ venueName, allVibes, instagram }) => {
 export default function App() {
   const [query, setQuery] = useState("");
 
-  // Inject Google Analytics GA4
+  // Inject Google Analytics GA4 + Google AdSense
   useEffect(() => {
-    if (document.getElementById("ga-script")) return;
-    const s1 = document.createElement("script");
-    s1.id = "ga-script";
-    s1.src = "https://www.googletagmanager.com/gtag/js?id=G-3V60ZZV7H9";
-    s1.async = true;
-    document.head.appendChild(s1);
-    const s2 = document.createElement("script");
-    s2.id = "ga-init";
-    s2.innerHTML = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-3V60ZZV7H9');`;
-    document.head.appendChild(s2);
+    if (!document.getElementById("ga-script")) {
+      const s1 = document.createElement("script");
+      s1.id = "ga-script";
+      s1.src = "https://www.googletagmanager.com/gtag/js?id=G-3V60ZZV7H9";
+      s1.async = true;
+      document.head.appendChild(s1);
+      const s2 = document.createElement("script");
+      s2.id = "ga-init";
+      s2.innerHTML = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-3V60ZZV7H9');`;
+      document.head.appendChild(s2);
+    }
+    if (!document.getElementById("adsense-script")) {
+      const s3 = document.createElement("script");
+      s3.id = "adsense-script";
+      s3.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5006125305468777";
+      s3.async = true;
+      s3.crossOrigin = "anonymous";
+      document.head.appendChild(s3);
+    }
   }, []);
   const [activeQuick, setActiveQuick] = useState("");
   const [dateFilter, setDateFilter] = useState("Next 7 Days");
@@ -539,6 +548,16 @@ export default function App() {
       {/* Nearby Bars & Restaurants */}
       {(localLoading || localVenues !== null || localError) && (
         <div style={{ background: "#fff", borderTop: "1px solid #e2e8f0", padding: "1.25rem 1.5rem" }}>
+          {/* AdSense ad unit */}
+          <div style={{ marginBottom: 16, textAlign: "center", background: "#f8fafc", borderRadius: 10, overflow: "hidden", border: "1px solid #e2e8f0", padding: "4px 0" }}>
+            <p style={{ fontSize: 9, color: "#94a3b8", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "1px" }}>Advertisement</p>
+            <ins className="adsbygoogle"
+              style={{ display: "block" }}
+              data-ad-client="ca-pub-5006125305468777"
+              data-ad-slot="auto"
+              data-ad-format="auto"
+              data-full-width-responsive="true" />
+          </div>
           <p style={{ fontSize: 12, fontWeight: 600, color: "#e85d04", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 8px" }}>🍺 Nearby Bars & Restaurants</p>
           {localLoading && <div style={{ fontSize: 13, color: "#64748b", padding: "8px 0" }}>🔍 Finding venues near {searched}…</div>}
           {localError && <div style={{ fontSize: 12, color: "#dc2626" }}>{localError}</div>}
