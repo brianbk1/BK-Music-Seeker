@@ -194,11 +194,19 @@ export default function App() {
     // Page title
     document.title = "BBK Music Seeker — Find Live Music Near You";
 
-    // Favicon — use the hero image as icon
+    // Favicon
     const link = document.querySelector("link[rel~='icon']") || document.createElement("link");
     link.rel = "icon";
-    link.href = "/hero.png";
+    link.href = "/favicon.ico";
     document.head.appendChild(link);
+
+    // AdSense verification meta tag
+    if (!document.querySelector("meta[name='google-adsense-account']")) {
+      const adsMeta = document.createElement("meta");
+      adsMeta.name = "google-adsense-account";
+      adsMeta.content = "ca-pub-5006125305468777";
+      document.head.appendChild(adsMeta);
+    }
 
     if (!document.getElementById("ga-script")) {
       const s1 = document.createElement("script");
