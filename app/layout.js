@@ -47,13 +47,13 @@ const Stars = ({ count, interactive, onSelect, hovered, onHover, size }) => (
 // ── Single vibe post display ──────────────────────────────────────────────
 const VibePost = ({ vibe, isFirst }) => (
   <div style={{
-    display: "flex", alignItems: "flex-start", gap: 8, padding: "7px 0",
+    display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0",
     borderTop: isFirst ? "none" : "1px solid #f1f5f9",
   }}>
-    <Stars count={vibe.stars} interactive={false} hovered={0} size={12} />
+    <Stars count={vibe.stars} interactive={false} hovered={0} size={13} />
     <div style={{ flex: 1, minWidth: 0 }}>
       {vibe.comment && (
-        <p style={{ fontSize: 12, color: "#0f172a", margin: "0 0 2px", lineHeight: 1.4 }}>
+        <p style={{ fontSize: 12, color: "#0f172a", margin: "0 0 3px", lineHeight: 1.4, fontStyle: "italic" }}>
           "{vibe.comment}"
         </p>
       )}
@@ -62,7 +62,7 @@ const VibePost = ({ vibe, isFirst }) => (
   </div>
 );
 
-// ── Vibe input form ───────────────────────────────────────────────────────
+// ── Vibe input form (shown inside the card when + Share clicked) ──────────
 const VibeForm = ({ venueKey, onSubmit, onCancel }) => {
   const [stars, setStars] = useState(0);
   const [hovered, setHovered] = useState(0);
@@ -86,9 +86,9 @@ const VibeForm = ({ venueKey, onSubmit, onCancel }) => {
   };
 
   return (
-    <div style={{ marginTop: 8, background: "rgba(255,255,255,0.85)", borderRadius: 10, padding: "10px 12px", border: "1px solid #e2e8f0" }}>
-      <p style={{ fontSize: 11, fontWeight: 600, color: "#64748b", margin: "0 0 8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-        What's the vibe right now?
+    <div style={{ padding: "12px 14px", borderTop: "1px solid #f1f5f9" }}>
+      <p style={{ fontSize: 11, fontWeight: 600, color: "#64748b", margin: "0 0 10px" }}>
+        What's happening right now?
       </p>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
         <Stars count={stars} interactive={true} onSelect={setStars} hovered={hovered} onHover={setHovered} />
@@ -102,17 +102,17 @@ const VibeForm = ({ venueKey, onSubmit, onCancel }) => {
         value={comment}
         onChange={e => setComment(e.target.value.slice(0, 120))}
         placeholder="What's happening? (optional)"
-        style={{ width: "100%", fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", outline: "none", boxSizing: "border-box", marginBottom: 6 }}
+        style={{ width: "100%", fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", outline: "none", boxSizing: "border-box", marginBottom: 8 }}
       />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <p style={{ fontSize: 10, color: "#94a3b8", margin: 0 }}>Visible for 1 hour · {120 - comment.length} chars left</p>
         <div style={{ display: "flex", gap: 6 }}>
           <button onClick={onCancel}
-            style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "transparent", color: "#94a3b8", border: "1px solid #e2e8f0", cursor: "pointer" }}>
+            style={{ fontSize: 11, padding: "5px 12px", borderRadius: 8, background: "transparent", color: "#94a3b8", border: "1px solid #e2e8f0", cursor: "pointer" }}>
             Cancel
           </button>
           <button onClick={submit} disabled={submitting || !stars}
-            style={{ fontSize: 11, padding: "5px 14px", borderRadius: 99, background: submitting || !stars ? "#e2e8f0" : "#e85d04", color: submitting || !stars ? "#94a3b8" : "#fff", border: "none", cursor: submitting || !stars ? "default" : "pointer", fontWeight: 500 }}>
+            style={{ fontSize: 11, padding: "5px 14px", borderRadius: 8, background: submitting || !stars ? "#e2e8f0" : "#e85d04", color: submitting || !stars ? "#94a3b8" : "#fff", border: "none", cursor: submitting || !stars ? "default" : "pointer", fontWeight: 600 }}>
             {submitting ? "Posting…" : "Post Vibe"}
           </button>
         </div>
@@ -128,7 +128,6 @@ const VibeSection = ({ venueName, allVibes, instagram }) => {
   const [showForm, setShowForm] = useState(false);
   const [localVibes, setLocalVibes] = useState([]);
 
-  // Merge server vibes with locally posted ones, dedupe by postedAt
   const serverVibes = allVibes[venueKey] || [];
   const merged = [...serverVibes];
   localVibes.forEach(lv => {
@@ -142,52 +141,61 @@ const VibeSection = ({ venueName, allVibes, instagram }) => {
   };
 
   return (
-    <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #e2e8f0" }}>
-      {/* Header row */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: "#64748b", margin: 0, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-            💬 Live Vibe
-            {currentVibes.length > 0 && (
-              <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 400, color: "#94a3b8" }}>
-                {currentVibes.length} report{currentVibes.length !== 1 ? "s" : ""} in the last hour
-              </span>
-            )}
-          </p>
-          {/* Instagram link */}
-          {instagram && (
-            <a href={instagram} target="_blank" rel="noreferrer"
-              style={{ fontSize: 10, color: "#c026d3", textDecoration: "none", fontWeight: 500, whiteSpace: "nowrap" }}>
-              📸 See photos →
-            </a>
+    <div style={{ marginTop: 12, borderRadius: 12, overflow: "hidden", border: "1px solid #e2e8f0" }}>
+
+      {/* Orange header bar */}
+      <div style={{ background: "#e85d04", padding: "9px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 14 }}>🔥</span>
+          <span style={{ color: "white", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            Live Vibe
+          </span>
+          {currentVibes.length > 0 && (
+            <span style={{ background: "rgba(255,255,255,0.25)", color: "white", fontSize: 10, padding: "2px 8px", borderRadius: 99, fontWeight: 400 }}>
+              {currentVibes.length} in the last hour
+            </span>
           )}
         </div>
-        {!showForm && (
-          <button onClick={() => setShowForm(true)}
-            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 99, background: "transparent", color: "#e85d04", border: "1px solid #e85d04", cursor: "pointer", fontWeight: 500, whiteSpace: "nowrap" }}>
-            + Share
-          </button>
-        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {instagram && (
+            <a href={instagram} target="_blank" rel="noreferrer"
+              style={{ color: "rgba(255,255,255,0.9)", fontSize: 11, textDecoration: "none", fontWeight: 500 }}>
+              📸 Photos
+            </a>
+          )}
+          {!showForm && (
+            <button onClick={() => setShowForm(true)}
+              style={{ background: "white", color: "#e85d04", border: "none", borderRadius: 99, fontSize: 11, fontWeight: 600, padding: "3px 10px", cursor: "pointer" }}>
+              + Share
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Vibe posts */}
       {currentVibes.length > 0 && (
-        <div style={{ background: "rgba(255,255,255,0.6)", borderRadius: 10, padding: "4px 10px", border: "1px solid #e2e8f0", marginBottom: showForm ? 6 : 0 }}>
+        <div style={{ background: "white", padding: "0 14px" }}>
           {currentVibes.map((v, i) => (
             <VibePost key={v.postedAt} vibe={v} isFirst={i === 0} />
           ))}
         </div>
       )}
 
+      {/* Empty state */}
       {currentVibes.length === 0 && !showForm && (
-        <p style={{ fontSize: 11, color: "#94a3b8", margin: "4px 0 0", fontStyle: "italic" }}>
-          No reports yet — be the first to share the vibe!
-        </p>
+        <div style={{ background: "white", padding: "10px 14px", display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 14, opacity: 0.4 }}>💬</span>
+          <p style={{ fontSize: 11, color: "#94a3b8", margin: 0, fontStyle: "italic" }}>
+            No reports yet — be the first to share the vibe!
+          </p>
+        </div>
       )}
 
       {/* Post form */}
       {showForm && (
-        <VibeForm venueKey={venueKey} onSubmit={handleSubmit} onCancel={() => setShowForm(false)} />
+        <div style={{ background: "white" }}>
+          <VibeForm venueKey={venueKey} onSubmit={handleSubmit} onCancel={() => setShowForm(false)} />
+        </div>
       )}
     </div>
   );
