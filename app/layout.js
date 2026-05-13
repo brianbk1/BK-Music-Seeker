@@ -2,13 +2,13 @@
 import { useState, useEffect } from "react";
 
 const FEATURED_VENUES = [
-  { name:"Pietro's Prime", tag:"Live music Wed–Sat", description:"West Chester's premier upscale steakhouse with exceptional cuisine, the best martinis in town, and live entertainment every Wednesday through Saturday night.", address:"125 West Market St, West Chester, PA 19382", scheduleUrl:"https://www.pietrosprime.com/event-list", website:"https://www.pietrosprime.com", openTable:"https://www.opentable.com/pietros-prime", color:"#e85d04" },
-  { name:"Station 142", tag:"Live music Thurs–Sat", description:"West Chester's premier live music venue featuring an intimate stage, state-of-the-art sound system, two full bars, rooftop dining, and top local and regional acts.", address:"142 E Market St, West Chester, PA 19382", scheduleUrl:"https://station142.com/live-music/", website:"https://station142.com", openTable:null, color:"#1a0a00" },
-  { name:"Brickette Lounge", tag:"Live music & events • 21+", description:"West Chester's lively neighborhood bar featuring live music, events, and a full BBQ menu on weekends. Bar open daily 12pm–2am. 21+ after 5pm.", address:"3 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.brickettelounge.com/music-events", website:"https://www.brickettelounge.com", openTable:null, color:"#7c3aed" },
-  { name:"Slow Hand Food & Drink", tag:"Live music & events", description:"West Chester's upscale American comfort restaurant in a historic firehouse, hosting live performances from local bands and solo artists alongside scratch-made food and award-winning cocktails.", address:"30 N Church St, West Chester, PA 19380", scheduleUrl:"https://www.slowhand-wc.com/events", website:"https://www.slowhand-wc.com", openTable:"https://www.opentable.com/slow-hand-food-and-drink", color:"#0f766e" },
-  { name:"Square Bar", tag:"Live music • Open since 1950s", description:"West Chester's beloved dive bar for 70+ years featuring live music, games, sports, and great company. A true neighborhood institution at 250 E Chestnut St.", address:"250 E Chestnut St, West Chester, PA 19380", scheduleUrl:"https://www.squarebarwc.com/events", website:"https://www.squarebarwc.com", openTable:null, color:"#b45309" },
-  { name:"Saloon 151", tag:"Karaoke • Music Bingo • Events", description:"West Chester's best whiskey and bourbon bar featuring karaoke every Friday, Music Bingo Wednesdays, Quizzo Tuesdays, and country party vibes nightly. Open 11am–2am daily.", address:"151 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.saloon151.com/events-catering-1", website:"https://www.saloon151.com", openTable:null, color:"#92400e" },
-  { name:"Murph's Hideaway", tag:"Local favorite • Live music & events", description:"A welcoming neighborhood spot offering great food, drinks, and live music entertainment. Popular with locals for its friendly atmosphere and quality performances.", address:"Pocono Lake, PA 18347", scheduleUrl:"https://www.murphshideaway.com", website:"https://www.murphshideaway.com", openTable:null, color:"#059669" },
+  { name:"Pietro's Prime", tag:"Live music Wed–Sat", description:"West Chester's premier upscale steakhouse with exceptional cuisine, the best martinis in town, and live entertainment every Wednesday through Saturday night.", address:"125 West Market St, West Chester, PA 19382", scheduleUrl:"https://www.pietrosprime.com/event-list", website:"https://www.pietrosprime.com", openTable:"https://www.opentable.com/pietros-prime", instagram:"https://www.instagram.com/pietrosprime/", color:"#e85d04" },
+  { name:"Station 142", tag:"Live music Thurs–Sat", description:"West Chester's premier live music venue featuring an intimate stage, state-of-the-art sound system, two full bars, rooftop dining, and top local and regional acts.", address:"142 E Market St, West Chester, PA 19382", scheduleUrl:"https://station142.com/live-music/", website:"https://station142.com", openTable:null, instagram:"https://www.instagram.com/station.142/", color:"#1a0a00" },
+  { name:"Brickette Lounge", tag:"Live music & events • 21+", description:"West Chester's lively neighborhood bar featuring live music, events, and a full BBQ menu on weekends. Bar open daily 12pm–2am. 21+ after 5pm.", address:"3 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.brickettelounge.com/music-events", website:"https://www.brickettelounge.com", openTable:null, instagram:"https://www.instagram.com/brickettelounge/", color:"#7c3aed" },
+  { name:"Slow Hand Food & Drink", tag:"Live music & events", description:"West Chester's upscale American comfort restaurant in a historic firehouse, hosting live performances from local bands and solo artists alongside scratch-made food and award-winning cocktails.", address:"30 N Church St, West Chester, PA 19380", scheduleUrl:"https://www.slowhand-wc.com/events", website:"https://www.slowhand-wc.com", openTable:"https://www.opentable.com/slow-hand-food-and-drink", instagram:"https://www.instagram.com/slowhandwc/", color:"#0f766e" },
+  { name:"Square Bar", tag:"Live music • Open since 1950s", description:"West Chester's beloved dive bar for 70+ years featuring live music, games, sports, and great company. A true neighborhood institution at 250 E Chestnut St.", address:"250 E Chestnut St, West Chester, PA 19380", scheduleUrl:"https://www.squarebarwc.com/events", website:"https://www.squarebarwc.com", openTable:null, instagram:"https://www.instagram.com/squarebarwc/", color:"#b45309" },
+  { name:"Saloon 151", tag:"Karaoke • Music Bingo • Events", description:"West Chester's best whiskey and bourbon bar featuring karaoke every Friday, Music Bingo Wednesdays, Quizzo Tuesdays, and country party vibes nightly. Open 11am–2am daily.", address:"151 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.saloon151.com/events-catering-1", website:"https://www.saloon151.com", openTable:null, instagram:"https://www.instagram.com/saloon151/", color:"#92400e" },
+  { name:"Murph's Hideaway", tag:"Local favorite • Live music & events", description:"A welcoming neighborhood spot offering great food, drinks, and live music entertainment. Popular with locals for its friendly atmosphere and quality performances.", address:"Pocono Lake, PA 18347", scheduleUrl:"https://www.murphshideaway.com", website:"https://www.murphshideaway.com", openTable:null, instagram:null, color:"#059669" },
 ];
 
 const WC_ZIPS = ["19380","19381","19382","19383","18347","pocono lake","west chester","westchester"];
@@ -123,38 +123,48 @@ const VibeForm = ({ venueKey, onSubmit, onCancel }) => {
 };
 
 // ── Full vibe section per venue card ──────────────────────────────────────
-const VibeSection = ({ venueName, allVibes }) => {
+const VibeSection = ({ venueName, allVibes, instagram }) => {
   const venueKey = toVibeKey(venueName);
   const [showForm, setShowForm] = useState(false);
-  const [localVibes, setLocalVibes] = useState(null); // newly posted vibes this session
+  const [localVibes, setLocalVibes] = useState([]);
 
-  // Merge server vibes with any locally posted ones
+  // Merge server vibes with locally posted ones, dedupe by postedAt
   const serverVibes = allVibes[venueKey] || [];
-  const currentVibes = localVibes !== null
-    ? [...serverVibes.filter(v => !localVibes.find(lv => lv.postedAt === v.postedAt)), ...localVibes]
-        .sort((a, b) => b.postedAt - a.postedAt)
-    : [...serverVibes].sort((a, b) => b.postedAt - a.postedAt);
+  const merged = [...serverVibes];
+  localVibes.forEach(lv => {
+    if (!merged.find(sv => sv.postedAt === lv.postedAt)) merged.push(lv);
+  });
+  const currentVibes = merged.sort((a, b) => b.postedAt - a.postedAt);
 
   const handleSubmit = (vibe) => {
-    setLocalVibes(prev => [...(prev || []), vibe]);
+    setLocalVibes(prev => [...prev, vibe]);
     setShowForm(false);
   };
 
   return (
     <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #e2e8f0" }}>
-      {/* Live feed header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: currentVibes.length > 0 ? 6 : 0 }}>
-        <p style={{ fontSize: 11, fontWeight: 600, color: "#64748b", margin: 0, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-          💬 Live Vibe
-          {currentVibes.length > 0 && (
-            <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 400, color: "#94a3b8" }}>
-              {currentVibes.length} report{currentVibes.length !== 1 ? "s" : ""} in the last hour
-            </span>
+      {/* Header row */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: "#64748b", margin: 0, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            💬 Live Vibe
+            {currentVibes.length > 0 && (
+              <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 400, color: "#94a3b8" }}>
+                {currentVibes.length} report{currentVibes.length !== 1 ? "s" : ""} in the last hour
+              </span>
+            )}
+          </p>
+          {/* Instagram link */}
+          {instagram && (
+            <a href={instagram} target="_blank" rel="noreferrer"
+              style={{ fontSize: 10, color: "#c026d3", textDecoration: "none", fontWeight: 500, whiteSpace: "nowrap" }}>
+              📸 See photos →
+            </a>
           )}
-        </p>
+        </div>
         {!showForm && (
           <button onClick={() => setShowForm(true)}
-            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 99, background: "transparent", color: "#e85d04", border: "1px solid #e85d04", cursor: "pointer", fontWeight: 500 }}>
+            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 99, background: "transparent", color: "#e85d04", border: "1px solid #e85d04", cursor: "pointer", fontWeight: 500, whiteSpace: "nowrap" }}>
             + Share
           </button>
         )}
@@ -452,7 +462,7 @@ export default function App() {
                         </div>
                         <ScheduleBlock schedData={schedData} isLoading={isLoadingSched} websiteUrl={v.scheduleUrl} isFeatured={true} />
                         {hasPerformerData === false && schedData && schedData.schedule.length === 0 && <NoScheduleMessage websiteUrl={v.scheduleUrl} />}
-                        <VibeSection venueName={v.name} allVibes={allVibes} />
+                        <VibeSection venueName={v.name} allVibes={allVibes} instagram={v.instagram} />
                       </div>
                     );
                   })}
@@ -574,7 +584,7 @@ export default function App() {
                       </div>
                       <ScheduleBlock schedData={schedData} isLoading={isLoadingSched} websiteUrl={v.website} isFeatured={false} />
                       {hasPerformerData === false && schedData && schedData.schedule.length === 0 && <NoScheduleMessage websiteUrl={v.website} />}
-                      <VibeSection venueName={v.name} allVibes={allVibes} />
+                      <VibeSection venueName={v.name} allVibes={allVibes} instagram={v.instagram || null} />
                     </div>
                   );
                 })}
