@@ -69,7 +69,7 @@ export async function GET(req) {
   }
 }
 
-// POST — add a vibe for a venue (expires in 1 hour)
+// POST — add a vibe for a venue, expires in 1 hour
 export async function POST(req) {
   try {
     const { venueKey, stars, comment } = await req.json();
@@ -93,7 +93,7 @@ export async function POST(req) {
     const existing = filterFresh(parseVibes(raw));
     const updated = [...existing, newVibe].slice(-MAX_VIBES_STORED);
 
-    // Store with 2hr TTL so key persists while vibes are still fresh
+    // 2hr TTL so key persists while vibes are still fresh
     await redisSet(`vibe:${venueKey}`, JSON.stringify(updated), VIBE_TTL * 2);
 
     return Response.json({ ok: true, vibe: newVibe, total: updated.length });
