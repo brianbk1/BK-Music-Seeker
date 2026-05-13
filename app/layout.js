@@ -18,7 +18,11 @@ const RADIUS_OPTIONS = [5,10,20];
 const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA"];
 const SYSTEM_PROMPT = `You are a live music event finder. Find live music events near the exact location given. Return ONLY a JSON array with up to 6 results. Each item: { band, venue, date, time, genre, address, tickets, notes, venueBio, bandBio, confidence }. confidence is "high" or "medium". Never return Unknown. Never default to West Chester PA unless asked. Do NOT include Pietro's Prime or Station 142. Return ONLY valid JSON.`;
 
+// venue name → URL-safe key: "Pietro's Prime" → "pietros-prime"
 const toVibeKey = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+// venue name → Instagram keyword search URL
+const toIgUrl = (name) => `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(name)}`;
 
 const timeAgo = (ts) => {
   const mins = Math.floor((Date.now() - ts) / 60000);
@@ -44,26 +48,19 @@ const Stars = ({ count, interactive, onSelect, hovered, onHover, size }) => (
   </span>
 );
 
-// ── Single vibe post display ──────────────────────────────────────────────
+// ── Single vibe post ──────────────────────────────────────────────────────
 const VibePost = ({ vibe, isFirst }) => (
-  <div style={{
-    display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0",
-    borderTop: isFirst ? "none" : "1px solid #f1f5f9",
-  }}>
+  <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderTop: isFirst ? "none" : "1px solid #f1f5f9" }}>
     <Stars count={vibe.stars} interactive={false} hovered={0} size={13} />
     <div style={{ flex: 1, minWidth: 0 }}>
-      {vibe.comment && (
-        <p style={{ fontSize: 12, color: "#0f172a", margin: "0 0 3px", lineHeight: 1.4, fontStyle: "italic" }}>
-          "{vibe.comment}"
-        </p>
-      )}
+      {vibe.comment && <p style={{ fontSize: 12, color: "#0f172a", margin: "0 0 3px", lineHeight: 1.4, fontStyle: "italic" }}>"{vibe.comment}"</p>}
       <p style={{ fontSize: 10, color: "#94a3b8", margin: 0 }}>{timeAgo(vibe.postedAt)}</p>
     </div>
   </div>
 );
 
-// ── Vibe input form (shown inside the card when + Share clicked) ──────────
-const VibeForm = ({ venueKey, onSubmit, onCancel }) => {
+// ── Vibe input form ───────────────────────────────────────────────────────
+const VibeForm = ({ venueKey, venueName, onSubmit, onCancel }) => {
   const [stars, setStars] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState("");
@@ -86,17 +83,11 @@ const VibeForm = ({ venueKey, onSubmit, onCancel }) => {
   };
 
   return (
-    <div style={{ padding: "12px 14px", borderTop: "1px solid #f1f5f9" }}>
-      <p style={{ fontSize: 11, fontWeight: 600, color: "#64748b", margin: "0 0 10px" }}>
-        What's happening right now?
-      </p>
+    <div style={{ padding: "12px 14px", borderTop: "1px solid #f1f5f9", background: "white" }}>
+      <p style={{ fontSize: 11, fontWeight: 600, color: "#64748b", margin: "0 0 10px" }}>What's happening right now?</p>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
         <Stars count={stars} interactive={true} onSelect={setStars} hovered={hovered} onHover={setHovered} />
-        {(hovered || stars) > 0 && (
-          <span style={{ fontSize: 12, color: "#e85d04", fontWeight: 500 }}>
-            {VIBE_LABELS[hovered || stars]}
-          </span>
-        )}
+        {(hovered || stars) > 0 && <span style={{ fontSize: 12, color: "#e85d04", fontWeight: 500 }}>{VIBE_LABELS[hovered || stars]}</span>}
       </div>
       <input
         value={comment}
@@ -107,8 +98,7 @@ const VibeForm = ({ venueKey, onSubmit, onCancel }) => {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <p style={{ fontSize: 10, color: "#94a3b8", margin: 0 }}>Visible for 1 hour · {120 - comment.length} chars left</p>
         <div style={{ display: "flex", gap: 6 }}>
-          <button onClick={onCancel}
-            style={{ fontSize: 11, padding: "5px 12px", borderRadius: 8, background: "transparent", color: "#94a3b8", border: "1px solid #e2e8f0", cursor: "pointer" }}>
+          <button onClick={onCancel} style={{ fontSize: 11, padding: "5px 12px", borderRadius: 8, background: "transparent", color: "#94a3b8", border: "1px solid #e2e8f0", cursor: "pointer" }}>
             Cancel
           </button>
           <button onClick={submit} disabled={submitting || !stars}
@@ -122,47 +112,39 @@ const VibeForm = ({ venueKey, onSubmit, onCancel }) => {
   );
 };
 
-// ── Full vibe section per venue card ──────────────────────────────────────
+// ── Full vibe section ─────────────────────────────────────────────────────
 const VibeSection = ({ venueName, allVibes, instagram }) => {
   const venueKey = toVibeKey(venueName);
+  const igUrl = instagram || toIgUrl(venueName);
   const [showForm, setShowForm] = useState(false);
   const [localVibes, setLocalVibes] = useState([]);
 
   const serverVibes = allVibes[venueKey] || [];
   const merged = [...serverVibes];
-  localVibes.forEach(lv => {
-    if (!merged.find(sv => sv.postedAt === lv.postedAt)) merged.push(lv);
-  });
+  localVibes.forEach(lv => { if (!merged.find(sv => sv.postedAt === lv.postedAt)) merged.push(lv); });
   const currentVibes = merged.sort((a, b) => b.postedAt - a.postedAt);
 
-  const handleSubmit = (vibe) => {
-    setLocalVibes(prev => [...prev, vibe]);
-    setShowForm(false);
-  };
+  const handleSubmit = (vibe) => { setLocalVibes(prev => [...prev, vibe]); setShowForm(false); };
 
   return (
     <div style={{ marginTop: 12, borderRadius: 12, overflow: "hidden", border: "1px solid #e2e8f0" }}>
-
-      {/* Orange header bar */}
+      {/* Orange header */}
       <div style={{ background: "#e85d04", padding: "9px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 14 }}>🔥</span>
-          <span style={{ color: "white", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-            Live Vibe
-          </span>
+          <span style={{ color: "white", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Live Vibe</span>
           {currentVibes.length > 0 && (
-            <span style={{ background: "rgba(255,255,255,0.25)", color: "white", fontSize: 10, padding: "2px 8px", borderRadius: 99, fontWeight: 400 }}>
+            <span style={{ background: "rgba(255,255,255,0.25)", color: "white", fontSize: 10, padding: "2px 8px", borderRadius: 99 }}>
               {currentVibes.length} in the last hour
             </span>
           )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {instagram && (
-            <a href={instagram} target="_blank" rel="noreferrer"
-              style={{ color: "rgba(255,255,255,0.9)", fontSize: 11, textDecoration: "none", fontWeight: 500 }}>
-              📸 Photos
-            </a>
-          )}
+          {/* Instagram photos link — uses venue's IG account if known, otherwise keyword search */}
+          <a href={igUrl} target="_blank" rel="noreferrer"
+            style={{ color: "rgba(255,255,255,0.9)", fontSize: 11, textDecoration: "none", fontWeight: 500 }}>
+            📸 Photos
+          </a>
           {!showForm && (
             <button onClick={() => setShowForm(true)}
               style={{ background: "white", color: "#e85d04", border: "none", borderRadius: 99, fontSize: 11, fontWeight: 600, padding: "3px 10px", cursor: "pointer" }}>
@@ -171,32 +153,21 @@ const VibeSection = ({ venueName, allVibes, instagram }) => {
           )}
         </div>
       </div>
-
-      {/* Vibe posts */}
+      {/* Posts */}
       {currentVibes.length > 0 && (
         <div style={{ background: "white", padding: "0 14px" }}>
-          {currentVibes.map((v, i) => (
-            <VibePost key={v.postedAt} vibe={v} isFirst={i === 0} />
-          ))}
+          {currentVibes.map((v, i) => <VibePost key={v.postedAt} vibe={v} isFirst={i === 0} />)}
         </div>
       )}
-
       {/* Empty state */}
       {currentVibes.length === 0 && !showForm && (
         <div style={{ background: "white", padding: "10px 14px", display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 14, opacity: 0.4 }}>💬</span>
-          <p style={{ fontSize: 11, color: "#94a3b8", margin: 0, fontStyle: "italic" }}>
-            No reports yet — be the first to share the vibe!
-          </p>
+          <p style={{ fontSize: 11, color: "#94a3b8", margin: 0, fontStyle: "italic" }}>No reports yet — be the first to share the vibe!</p>
         </div>
       )}
-
-      {/* Post form */}
-      {showForm && (
-        <div style={{ background: "white" }}>
-          <VibeForm venueKey={venueKey} onSubmit={handleSubmit} onCancel={() => setShowForm(false)} />
-        </div>
-      )}
+      {/* Form */}
+      {showForm && <VibeForm venueKey={venueKey} venueName={venueName} onSubmit={handleSubmit} onCancel={() => setShowForm(false)} />}
     </div>
   );
 };
@@ -220,7 +191,7 @@ export default function App() {
   const [loadingSchedule, setLoadingSchedule] = useState(null);
   const [allVibes, setAllVibes] = useState({});
 
-  // Fetch all vibes on mount and refresh every 60 seconds
+  // Fetch all vibes on mount and every 60 seconds
   useEffect(() => {
     const fetchVibes = async () => {
       try {
@@ -264,9 +235,7 @@ export default function App() {
         body: JSON.stringify({ venueName: venue.name, venueAddress: venue.address, venueWebsite: venue.website, findPerformers: false }),
       });
       const data = await res.json();
-      if (data.schedule && data.schedule.length > 0) {
-        setVenueSchedules(prev => ({ ...prev, [key]: data }));
-      }
+      if (data.schedule && data.schedule.length > 0) setVenueSchedules(prev => ({ ...prev, [key]: data }));
     } catch {}
   };
 
