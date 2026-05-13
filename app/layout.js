@@ -189,8 +189,17 @@ const VibeSection = ({ venueName, allVibes, instagram }) => {
 export default function App() {
   const [query, setQuery] = useState("");
 
-  // Inject Google Analytics GA4 + Google AdSense
+  // Inject Google Analytics GA4 + Google AdSense + page metadata
   useEffect(() => {
+    // Page title
+    document.title = "BBK Music Seeker — Find Live Music Near You";
+
+    // Favicon — use the hero image as icon
+    const link = document.querySelector("link[rel~='icon']") || document.createElement("link");
+    link.rel = "icon";
+    link.href = "/hero.png";
+    document.head.appendChild(link);
+
     if (!document.getElementById("ga-script")) {
       const s1 = document.createElement("script");
       s1.id = "ga-script";
