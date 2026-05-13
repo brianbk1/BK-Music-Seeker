@@ -24,6 +24,20 @@ const toVibeKey = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").repla
 // venue name → Instagram keyword search URL
 const toIgUrl = (name) => `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(name)}`;
 
+// Add UTM tracking to any URL
+const withUTM = (url, venue) =>
+  `${url}${url.includes("?") ? "&" : "?"}utm_source=locallivemusic&utm_medium=app&utm_campaign=reserve&utm_content=${encodeURIComponent(venue)}`;
+
+// Fire GA event when Reserve is clicked
+const trackReserve = (venueName) => {
+  if (typeof window !== "undefined" && window.gtag) {
+    window.gtag("event", "reserve_click", {
+      event_category: "engagement",
+      event_label: venueName,
+    });
+  }
+};
+
 const timeAgo = (ts) => {
   const mins = Math.floor((Date.now() - ts) / 60000);
   if (mins < 1) return "just now";
@@ -431,7 +445,8 @@ export default function App() {
                             🌍 Visit Site
                           </a>
                           {v.openTable && (
-                            <a href={v.openTable} target="_blank" rel="noreferrer"
+                            <a href={withUTM(v.openTable, v.name)} target="_blank" rel="noreferrer"
+                              onClick={() => trackReserve(v.name)}
                               style={{ fontSize: 12, padding: "6px 14px", borderRadius: 99, background: "#f1f5f9", color: "#e85d04", textDecoration: "none", border: "0.5px solid #e2e8f0", fontWeight: 500 }}>
                               🍽 Reserve
                             </a>
@@ -553,7 +568,7 @@ export default function App() {
                             {isLoadingSched ? "🔍 Searching…" : "🔍 Find This Week's Performers"}
                           </button>
                         )}
-                        <a href={otLink} target="_blank" rel="noreferrer" style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#fff0e8", color: "#e85d04", textDecoration: "none", border: "0.5px solid #fed7aa", fontWeight: 500 }}>🍽 Reserve</a>
+                        <a href={withUTM(otLink, v.name)} target="_blank" rel="noreferrer" onClick={() => trackReserve(v.name)} style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#fff0e8", color: "#e85d04", textDecoration: "none", border: "0.5px solid #fed7aa", fontWeight: 500 }}>🍽 Reserve</a>
                         <a href={`https://www.google.com/search?q=${encodeURIComponent(v.name + " " + v.address + " live music events")}`} target="_blank" rel="noreferrer" style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#64748b", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>🌐 Search Events</a>
                         {v.website && <a href={v.website} target="_blank" rel="noreferrer" style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#64748b", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>🌍 Visit Site</a>}
                         {v.instagram && <a href={v.instagram} target="_blank" rel="noreferrer" style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, background: "#f1f5f9", color: "#c026d3", textDecoration: "none", border: "0.5px solid #e2e8f0" }}>📸 Instagram</a>}
