@@ -18,6 +18,129 @@ const RADIUS_OPTIONS = [5,10,20];
 const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA"];
 const SYSTEM_PROMPT = `You are a live music event finder. Find live music events near the exact location given. Return ONLY a JSON array with up to 6 results. Each item: { band, venue, date, time, genre, address, tickets, notes, venueBio, bandBio, confidence }. confidence is "high" or "medium". Never return Unknown. Never default to West Chester PA unless asked. Do NOT include Pietro's Prime or Station 142. Return ONLY valid JSON.`;
 
+// Convert venue name to a URL-safe key
+const toVibeKey = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+// Format time ago
+const timeAgo = (ts) => {
+  const mins = Math.floor((Date.now() - ts) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  return `${Math.floor(mins/60)}h ago`;
+};
+
+// Star display
+const Stars = ({ count, interactive, onSelect, hovered, onHover }) => (
+  <span style={{display:"inline-flex",gap:2,cursor:interactive?"pointer":"default"}}>
+    {[1,2,3,4,5].map(i => (
+      <span key={i}
+        style={{fontSize:interactive?22:14,lineHeight:1,filter:i<=(hovered||count)?"none":"grayscale(1)",opacity:i<=(hovered||count)?1:0.3,transition:"all 0.1s"}}
+        onClick={()=>interactive&&onSelect&&onSelect(i)}
+        onMouseEnter={()=>interactive&&onHover&&onHover(i)}
+        onMouseLeave={()=>interactive&&onHover&&onHover(0)}>
+        ⭐
+      </span>
+    ))}
+  </span>
+);
+
+// Vibe display block
+const VibeDisplay = ({ vibe }) => {
+  if (!vibe) return null;
+  return (
+    <div style={{marginTop:8,background:"rgba(255,255,255,0.6)",borderRadius:10,padding:"8px 12px",border:"1px solid #e2e8f0"}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+        <Stars count={vibe.stars} interactive={false} hovered={0} />
+        {vibe.comment && <span style={{fontSize:12,color:"#0f172a",fontStyle:"italic"}}>"{vibe.comment}"</span>}
+        <span style={{fontSize:10,color:"#94a3b8",marginLeft:"auto"}}>{timeAgo(vibe.postedAt)}</span>
+      </div>
+    </div>
+  );
+};
+
+// Vibe input form
+const VibeForm = ({ venueKey, onSubmit, onCancel }) => {
+  const [stars, setStars] = useState(0);
+  const [hovered, setHovered] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async () => {
+    if (!stars) { setError("Please select a star rating"); return; }
+    setSubmitting(true); setError("");
+    try {
+      const res = await fetch("/api/vibe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ venueKey, stars, comment }),
+      });
+      const data = await res.json();
+      if (data.error) { setError(data.error); setSubmitting(false); return; }
+      onSubmit(data.vibe);
+    } catch { setError("Something went wrong"); setSubmitting(false); }
+  };
+
+  return (
+    <div style={{marginTop:8,background:"rgba(255,255,255,0.8)",borderRadius:10,padding:"10px 12px",border:"1px solid #e2e8f0"}}>
+      <p style={{fontSize:11,fontWeight:600,color:"#64748b",margin:"0 0 8px",textTransform:"uppercase",letterSpacing:"0.5px"}}>Share the vibe right now</p>
+      <div style={{marginBottom:8}}>
+        <Stars count={stars} interactive={true} onSelect={setStars} hovered={hovered} onHover={setHovered} />
+        {stars > 0 && (
+          <span style={{fontSize:11,color:"#64748b",marginLeft:8}}>
+            {["","Dead in here","It's quiet","Getting going","Good vibe!","🔥 Absolutely packed!"][stars]}
+          </span>
+        )}
+      </div>
+      <input
+        value={comment}
+        onChange={e=>setComment(e.target.value.slice(0,120))}
+        placeholder="What's happening? (optional, max 120 chars)"
+        style={{width:"100%",fontSize:12,padding:"6px 10px",borderRadius:8,border:"1px solid #e2e8f0",outline:"none",boxSizing:"border-box",marginBottom:6}}
+      />
+      {error && <p style={{fontSize:11,color:"#dc2626",margin:"0 0 6px"}}>{error}</p>}
+      <div style={{display:"flex",gap:6}}>
+        <button onClick={submit} disabled={submitting||!stars}
+          style={{fontSize:11,padding:"5px 14px",borderRadius:99,background:submitting||!stars?"#e2e8f0":"#e85d04",color:submitting||!stars?"#94a3b8":"#fff",border:"none",cursor:submitting||!stars?"default":"pointer",fontWeight:500}}>
+          {submitting?"Posting…":"Post Vibe"}
+        </button>
+        <button onClick={onCancel}
+          style={{fontSize:11,padding:"5px 14px",borderRadius:99,background:"transparent",color:"#94a3b8",border:"1px solid #e2e8f0",cursor:"pointer"}}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Full vibe section for a venue card
+const VibeSection = ({ venueName, allVibes }) => {
+  const venueKey = toVibeKey(venueName);
+  const [showForm, setShowForm] = useState(false);
+  const [localVibe, setLocalVibe] = useState(null);
+
+  const currentVibe = localVibe || allVibes[venueKey] || null;
+
+  const handleSubmit = (vibe) => {
+    setLocalVibe(vibe);
+    setShowForm(false);
+  };
+
+  return (
+    <div style={{marginTop:8}}>
+      {currentVibe && <VibeDisplay vibe={currentVibe} />}
+      {!showForm ? (
+        <button onClick={()=>setShowForm(true)}
+          style={{fontSize:11,padding:"4px 12px",borderRadius:99,background:"transparent",color:"#e85d04",border:"1px solid #e85d04",cursor:"pointer",fontWeight:500,marginTop:6}}>
+          {currentVibe ? "✏️ Update Vibe" : "💬 Share the Vibe"}
+        </button>
+      ) : (
+        <VibeForm venueKey={venueKey} onSubmit={handleSubmit} onCancel={()=>setShowForm(false)} />
+      )}
+    </div>
+  );
+};
+
 export default function App() {
   const [query, setQuery] = useState("");
   const [activeQuick, setActiveQuick] = useState("");
@@ -33,9 +156,23 @@ export default function App() {
   const [localVenues, setLocalVenues] = useState(null);
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState("");
-  // venueSchedules stores { schedule, source, days } per venue key
   const [venueSchedules, setVenueSchedules] = useState({});
   const [loadingSchedule, setLoadingSchedule] = useState(null);
+  const [allVibes, setAllVibes] = useState({});
+
+  // Load all vibes on mount and every 60 seconds
+  useEffect(() => {
+    const fetchVibes = async () => {
+      try {
+        const res = await fetch("/api/vibe?all=true");
+        const data = await res.json();
+        if (data.vibes) setAllVibes(data.vibes);
+      } catch {}
+    };
+    fetchVibes();
+    const interval = setInterval(fetchVibes, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const getDateRange = (f) => {
     const d = new Date();
@@ -57,7 +194,6 @@ export default function App() {
     finally { setLocalLoading(false); }
   };
 
-  // Load known schedule for all venues on mount — free, no API call
   const loadKnownSchedule = async (venue) => {
     const key = venue.website || venue.name;
     if (venueSchedules[key]) return;
@@ -65,12 +201,7 @@ export default function App() {
       const res = await fetch("/api/schedule", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          venueName: venue.name,
-          venueAddress: venue.address,
-          venueWebsite: venue.website,
-          findPerformers: false, // free — known schedule only
-        }),
+        body: JSON.stringify({ venueName: venue.name, venueAddress: venue.address, venueWebsite: venue.website, findPerformers: false }),
       });
       const data = await res.json();
       if (data.schedule && data.schedule.length > 0) {
@@ -79,21 +210,9 @@ export default function App() {
     } catch {}
   };
 
-  // Auto-load known schedules when featured venues show
-  useEffect(() => {
-    if (showFeatured) {
-      FEATURED_VENUES.forEach(v => loadKnownSchedule(v));
-    }
-  }, [showFeatured]);
+  useEffect(() => { if (showFeatured) FEATURED_VENUES.forEach(v => loadKnownSchedule(v)); }, [showFeatured]);
+  useEffect(() => { if (localVenues) localVenues.forEach(v => loadKnownSchedule(v)); }, [localVenues]);
 
-  // Auto-load known schedules for nearby venues when they arrive
-  useEffect(() => {
-    if (localVenues) {
-      localVenues.forEach(v => loadKnownSchedule(v));
-    }
-  }, [localVenues]);
-
-  // Find Performers — paid API call, cached 24hrs
   const findPerformers = async (venue) => {
     const key = venue.website || venue.name;
     if (loadingSchedule === key) return;
@@ -102,42 +221,30 @@ export default function App() {
       const res = await fetch("/api/schedule", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          venueName: venue.name,
-          venueAddress: venue.address,
-          venueWebsite: venue.website,
-          findPerformers: true, // triggers web search
-        }),
+        body: JSON.stringify({ venueName: venue.name, venueAddress: venue.address, venueWebsite: venue.website, findPerformers: true }),
       });
       const data = await res.json();
-      setVenueSchedules(prev => ({
-        ...prev,
-        [key]: { schedule: data.schedule || [], source: data.source || "none", days: data.days },
-      }));
+      setVenueSchedules(prev => ({ ...prev, [key]: { schedule: data.schedule || [], source: data.source || "none", days: data.days } }));
     } catch {
       setVenueSchedules(prev => ({ ...prev, [key]: { schedule: [], source: "error" } }));
-    } finally {
-      setLoadingSchedule(null);
-    }
+    } finally { setLoadingSchedule(null); }
   };
 
-  // Filter schedule events to selected date range
   const filterSchedule = (schedule, filter) => {
-    const hasSpecificDates = schedule.some(e => /\d{1,2}/.test((e.day || "") + (e.date || "")));
+    const hasSpecificDates = schedule.some(e => /\d{1,2}/.test((e.day||"")+(e.date||"")));
     if (!hasSpecificDates) return schedule;
     const now = new Date(); now.setHours(0,0,0,0);
     const end = new Date(now);
-    if (filter === "Today") { end.setHours(23,59,59); }
-    else if (filter === "This Weekend") { const d = now.getDay(); end.setDate(now.getDate() + (d===6?1:7-d)); end.setHours(23,59,59); }
+    if (filter==="Today") { end.setHours(23,59,59); }
+    else if (filter==="This Weekend") { const d=now.getDay(); end.setDate(now.getDate()+(d===6?1:7-d)); end.setHours(23,59,59); }
     else { end.setDate(now.getDate()+7); }
     return schedule.filter(e => {
-      const ds = e.date || e.day || "";
-      if (!ds) return true;
-      const p = new Date(ds + " 2026"); if (isNaN(p)) return true;
+      const ds=e.date||e.day||""; if(!ds) return true;
+      const p=new Date(ds+" 2026"); if(isNaN(p)) return true;
       p.setHours(0,0,0,0);
-      if (filter==="Today") return p.getTime()===now.getTime();
-      if (filter==="This Weekend") return (p.getDay()===6||p.getDay()===0) && p>=now && p<=end;
-      return p>=now && p<=end;
+      if(filter==="Today") return p.getTime()===now.getTime();
+      if(filter==="This Weekend") return (p.getDay()===6||p.getDay()===0)&&p>=now&&p<=end;
+      return p>=now&&p<=end;
     });
   };
 
@@ -177,21 +284,13 @@ export default function App() {
   const btn = (active) => ({ fontSize:12, padding:"5px 14px", borderRadius:99, border:`1.5px solid ${active?"#e85d04":"#e2e8f0"}`, background:active?"#e85d04":"transparent", color:active?"#fff":"#64748b", cursor:"pointer", fontWeight:active?600:400 });
   const gc = (g) => ({"Rock":"#e85d04","Jazz":"#1D9E75","Country":"#BA7517","Pop":"#D4537E","Blues":"#378ADD","Cover Band":"#888780","Folk":"#639922","R&B":"#D85a30","Acoustic":"#0F6E56","Indie":"#7F77DD"})[g]||"#e85d04";
 
-  const ScheduleBlock = ({ schedData, isLoading, venue, websiteUrl, isFeatured }) => {
+  const ScheduleBlock = ({ schedData, isLoading, websiteUrl, isFeatured }) => {
     if (isLoading) return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>🔍 Searching for current performers…</p>;
     if (!schedData || schedData.schedule.length === 0) return null;
-
     const filtered = filterSchedule(schedData.schedule, dateFilter);
     if (filtered.length === 0) return null;
-
-    const sourceLabel = schedData.source === "web_search"
-      ? "📅 Found via web search:"
-      : schedData.source === "website"
-      ? "📅 From their website:"
-      : "📅 Typical weekly schedule:";
-
+    const sourceLabel = schedData.source==="web_search" ? "📅 Found via web search:" : schedData.source==="website" ? "📅 From their website:" : "📅 Typical weekly schedule:";
     const bg = isFeatured ? "rgba(255,255,255,0.75)" : "#fff";
-
     return (
       <div style={{marginTop:10}}>
         <p style={{fontSize:11,fontWeight:600,color:"#1D9E75",margin:"0 0 6px"}}>{sourceLabel}</p>
@@ -210,17 +309,10 @@ export default function App() {
     );
   };
 
-  const NoScheduleMessage = ({ venue, websiteUrl, schedData }) => (
+  const NoScheduleMessage = ({ websiteUrl }) => (
     <div style={{marginTop:8,background:"#fff8f0",borderRadius:10,padding:"10px 12px",border:"1px solid #fed7aa"}}>
-      <p style={{fontSize:12,color:"#92400e",margin:"0 0 6px"}}>
-        😕 Couldn't find a specific schedule right now.
-      </p>
-      {websiteUrl && (
-        <a href={websiteUrl} target="_blank" rel="noreferrer"
-          style={{fontSize:12,color:"#e85d04",fontWeight:600,textDecoration:"none"}}>
-          👉 Visit their site to see the current event lineup →
-        </a>
-      )}
+      <p style={{fontSize:12,color:"#92400e",margin:"0 0 6px"}}>😕 Couldn't find a specific schedule right now.</p>
+      {websiteUrl && <a href={websiteUrl} target="_blank" rel="noreferrer" style={{fontSize:12,color:"#e85d04",fontWeight:600,textDecoration:"none"}}>👉 Visit their site to see the current event lineup →</a>}
     </div>
   );
 
@@ -283,16 +375,15 @@ export default function App() {
                 <p style={{fontSize:11,fontWeight:600,color:"#e85d04",textTransform:"uppercase",letterSpacing:"1px",margin:"0 0 8px"}}>⭐ Featured Venues</p>
                 <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
                   {FEATURED_VENUES.filter(v => {
-                    const sl = searched.toLowerCase();
-                    const al = v.address.toLowerCase();
-                    if (sl.includes("19382")||sl.includes("west chester")||sl.includes("westchester")) return al.includes("19382")||al.includes("west chester");
-                    if (sl.includes("18347")||sl.includes("pocono lake")) return al.includes("18347")||al.includes("pocono lake");
+                    const sl=searched.toLowerCase(), al=v.address.toLowerCase();
+                    if(sl.includes("19382")||sl.includes("west chester")||sl.includes("westchester")) return al.includes("19382")||al.includes("west chester");
+                    if(sl.includes("18347")||sl.includes("pocono lake")) return al.includes("18347")||al.includes("pocono lake");
                     return false;
                   }).map((v,i)=>{
-                    const key = v.website || v.name;
-                    const isLoadingSched = loadingSchedule === key;
-                    const schedData = venueSchedules[key];
-                    const hasPerformerData = schedData && (schedData.source === "web_search" || schedData.source === "website");
+                    const key=v.website||v.name;
+                    const isLoadingSched=loadingSchedule===key;
+                    const schedData=venueSchedules[key];
+                    const hasPerformerData=schedData&&(schedData.source==="web_search"||schedData.source==="website");
                     return (
                       <div key={i} style={{flex:"1 1 260px",background:`linear-gradient(135deg,${v.color}22,${v.color}08)`,border:`1.5px solid ${v.color}44`,borderRadius:14,padding:"14px 16px"}}>
                         <p style={{fontWeight:700,fontSize:15,margin:"0 0 4px",color:"#0f172a"}}>{v.name}</p>
@@ -300,7 +391,6 @@ export default function App() {
                         <p style={{fontSize:12,color:"#64748b",margin:"8px 0",lineHeight:1.5}}>{v.description}</p>
                         <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 10px"}}>📍 {v.address}</p>
                         <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
-                          {/* Find Performers button — only show if we don't already have performer data */}
                           {!hasPerformerData && (
                             <button onClick={()=>findPerformers(v)} disabled={isLoadingSched}
                               style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:isLoadingSched?"#e2e8f0":"#1D9E75",color:isLoadingSched?"#94a3b8":"#fff",border:"none",cursor:isLoadingSched?"default":"pointer",fontWeight:500}}>
@@ -318,11 +408,10 @@ export default function App() {
                             </a>
                           )}
                         </div>
-                        <ScheduleBlock schedData={schedData} isLoading={isLoadingSched} venue={v} websiteUrl={v.scheduleUrl} isFeatured={true} />
-                        {/* Show "couldn't find" only after a performer search came back empty */}
-                        {hasPerformerData===false && schedData && schedData.schedule.length===0 && (
-                          <NoScheduleMessage venue={v} websiteUrl={v.scheduleUrl} />
-                        )}
+                        <ScheduleBlock schedData={schedData} isLoading={isLoadingSched} websiteUrl={v.scheduleUrl} isFeatured={true} />
+                        {hasPerformerData===false && schedData && schedData.schedule.length===0 && <NoScheduleMessage websiteUrl={v.scheduleUrl} />}
+                        {/* Vibe section */}
+                        <VibeSection venueName={v.name} allVibes={allVibes} />
                       </div>
                     );
                   })}
@@ -402,13 +491,13 @@ export default function App() {
               : <>
                   <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 10px"}}>Found {localVenues.length} venues • Sorted by music likelihood</p>
                   {localVenues.map((v,vi)=>{
-                    const sc = v.musicScore==="high"?"#16a34a":v.musicScore==="medium"?"#d97706":"#94a3b8";
-                    const sl = v.musicScore==="high"?"🎵 Likely has music":v.musicScore==="medium"?"🎲 Possible music":"🍽 Unknown";
-                    const schedKey = v.website || v.name;
-                    const schedData = venueSchedules[schedKey];
-                    const isLoadingSched = loadingSchedule === schedKey;
-                    const hasPerformerData = schedData && (schedData.source === "web_search" || schedData.source === "website");
-                    const otLink = `https://www.opentable.com/s?term=${encodeURIComponent(v.name)}&covers=2`;
+                    const sc=v.musicScore==="high"?"#16a34a":v.musicScore==="medium"?"#d97706":"#94a3b8";
+                    const sl=v.musicScore==="high"?"🎵 Likely has music":v.musicScore==="medium"?"🎲 Possible music":"🍽 Unknown";
+                    const schedKey=v.website||v.name;
+                    const schedData=venueSchedules[schedKey];
+                    const isLoadingSched=loadingSchedule===schedKey;
+                    const hasPerformerData=schedData&&(schedData.source==="web_search"||schedData.source==="website");
+                    const otLink=`https://www.opentable.com/s?term=${encodeURIComponent(v.name)}&covers=2`;
                     return (
                       <div key={vi} style={{background:"#f8fafc",borderRadius:14,padding:"14px 16px",marginBottom:10,border:"1px solid #e2e8f0",borderLeft:`4px solid ${sc}`}}>
                         <div style={{marginBottom:8}}>
@@ -433,28 +522,22 @@ export default function App() {
 
                         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
                           {!hasPerformerData && (
-                            <button onClick={() => findPerformers(v)} disabled={isLoadingSched}
+                            <button onClick={()=>findPerformers(v)} disabled={isLoadingSched}
                               style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:isLoadingSched?"#e2e8f0":"#1D9E75",color:isLoadingSched?"#94a3b8":"#fff",border:"none",cursor:isLoadingSched?"default":"pointer",fontWeight:500}}>
-                              {isLoadingSched ? "🔍 Searching…" : "🔍 Find This Week's Performers"}
+                              {isLoadingSched?"🔍 Searching…":"🔍 Find This Week's Performers"}
                             </button>
                           )}
-                          <a href={otLink} target="_blank" rel="noreferrer"
-                            style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#fff0e8",color:"#e85d04",textDecoration:"none",border:"0.5px solid #fed7aa",fontWeight:500}}>
-                            🍽 Reserve
-                          </a>
+                          <a href={otLink} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#fff0e8",color:"#e85d04",textDecoration:"none",border:"0.5px solid #fed7aa",fontWeight:500}}>🍽 Reserve</a>
                           <a href={`https://www.google.com/search?q=${encodeURIComponent(v.name+" "+v.address+" live music events")}`} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>🌐 Search Events</a>
                           {v.website && <a href={v.website} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#64748b",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>🌍 Visit Site</a>}
                           {v.instagram && <a href={v.instagram} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#c026d3",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>📸 Instagram</a>}
                           {v.facebook && <a href={v.facebook} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#1d4ed8",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>👍 Facebook</a>}
                         </div>
 
-                        {/* Known schedule — shown free, no API */}
-                        <ScheduleBlock schedData={schedData} isLoading={isLoadingSched} venue={v} websiteUrl={v.website} isFeatured={false} />
-
-                        {/* No schedule found after performer search */}
-                        {hasPerformerData===false && schedData && schedData.schedule.length===0 && (
-                          <NoScheduleMessage venue={v} websiteUrl={v.website} />
-                        )}
+                        <ScheduleBlock schedData={schedData} isLoading={isLoadingSched} websiteUrl={v.website} isFeatured={false} />
+                        {hasPerformerData===false && schedData && schedData.schedule.length===0 && <NoScheduleMessage websiteUrl={v.website} />}
+                        {/* Vibe section */}
+                        <VibeSection venueName={v.name} allVibes={allVibes} />
                       </div>
                     );
                   })}
