@@ -188,6 +188,20 @@ const VibeSection = ({ venueName, allVibes, instagram }) => {
 
 export default function App() {
   const [query, setQuery] = useState("");
+
+  // Inject Google Analytics GA4
+  useEffect(() => {
+    if (document.getElementById("ga-script")) return;
+    const s1 = document.createElement("script");
+    s1.id = "ga-script";
+    s1.src = "https://www.googletagmanager.com/gtag/js?id=G-3V60ZZV7H9";
+    s1.async = true;
+    document.head.appendChild(s1);
+    const s2 = document.createElement("script");
+    s2.id = "ga-init";
+    s2.innerHTML = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-3V60ZZV7H9');`;
+    document.head.appendChild(s2);
+  }, []);
   const [activeQuick, setActiveQuick] = useState("");
   const [dateFilter, setDateFilter] = useState("Next 7 Days");
   const [radius, setRadius] = useState(10);
