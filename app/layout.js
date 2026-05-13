@@ -1,9 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const FEATURED_VENUES = [
   { name:"Pietro's Prime", tag:"Live music Wed–Sat", description:"West Chester's premier upscale steakhouse with exceptional cuisine, the best martinis in town, and live entertainment every Wednesday through Saturday night.", address:"125 West Market St, West Chester, PA 19382", scheduleUrl:"https://www.pietrosprime.com/entertainment", website:"https://www.pietrosprime.com", openTable:"https://www.opentable.com/pietros-prime", color:"#e85d04" },
-  { name:"Station 142", tag:"Live music Thurs–Sat", description:"West Chester's premier live music venue featuring an intimate stage, state-of-the-art sound system, two full bars, rooftop dining, and top local and regional acts.", address:"142 E Market St, West Chester, PA 19382", scheduleUrl:"https://station142.com/live-music/", website:"https://station142.com", openTable:"https://www.opentable.com/r/station-142-west-chester", color:"#1a0a00" },
+  { name:"Station 142", tag:"Live music Thurs–Sat", description:"West Chester's premier live music venue featuring an intimate stage, state-of-the-art sound system, two full bars, rooftop dining, and top local and regional acts.", address:"142 E Market St, West Chester, PA 19382", scheduleUrl:"https://station142.com/live-music/", website:"https://station142.com", openTable:null, color:"#1a0a00" },
   { name:"Brickette Lounge", tag:"Live music & events • 21+", description:"West Chester's lively neighborhood bar featuring live music, events, and a full BBQ menu on weekends. Bar open daily 12pm–2am. 21+ after 5pm.", address:"3 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.brickettelounge.com/music-events", website:"https://www.brickettelounge.com", openTable:null, color:"#7c3aed" },
   { name:"Slow Hand Food & Drink", tag:"Live music & events", description:"West Chester's upscale American comfort restaurant in a historic firehouse, hosting live performances from local bands and solo artists alongside scratch-made food and award-winning cocktails.", address:"30 N Church St, West Chester, PA 19380", scheduleUrl:"https://www.slowhand-wc.com/events", website:"https://www.slowhand-wc.com", openTable:"https://www.opentable.com/slow-hand-food-and-drink", color:"#0f766e" },
   { name:"Square Bar", tag:"Live music • Open since 1950s", description:"West Chester's beloved dive bar for 70+ years featuring live music, games, sports, and great company. A true neighborhood institution at 250 E Chestnut St.", address:"250 E Chestnut St, West Chester, PA 19380", scheduleUrl:"https://www.squarebarwc.com/events", website:"https://www.squarebarwc.com", openTable:null, color:"#b45309" },
@@ -17,12 +17,6 @@ const DATE_FILTERS = ["Today","This Weekend","Next 7 Days"];
 const RADIUS_OPTIONS = [5,10,20];
 const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA"];
 const SYSTEM_PROMPT = `You are a live music event finder. Find live music events near the exact location given. Return ONLY a JSON array with up to 6 results. Each item: { band, venue, date, time, genre, address, tickets, notes, venueBio, bandBio, confidence }. confidence is "high" or "medium". Never return Unknown. Never default to West Chester PA unless asked. Do NOT include Pietro's Prime or Station 142. Return ONLY valid JSON.`;
-
-// Build an OpenTable search URL for any venue
-const openTableUrl = (name, address) => {
-  const city = address ? address.split(",")[1]?.trim() || "" : "";
-  return `https://www.opentable.com/s?covers=2&term=${encodeURIComponent(name)}&metroId=0&regionIds=0&dateTime=${new Date().toISOString().split("T")[0]}T19%3A00%3A00&corrid=search`;
-};
 
 export default function App() {
   const [query, setQuery] = useState("");
@@ -42,8 +36,7 @@ export default function App() {
   const [venueSchedules, setVenueSchedules] = useState({});
   const [loadingSchedule, setLoadingSchedule] = useState(null);
   const [venueBios, setVenueBios] = useState({});
-  // Track which nearby venues have OpenTable links found
-  const [openTableLinks, setOpenTableLinks] = useState({});
+  const [loadingBio, setLoadingBio] = useState({});
 
   const getDateRange = (f) => {
     const d = new Date();
@@ -51,6 +44,27 @@ export default function App() {
     if (f==="Today") return `today only, ${day}`;
     if (f==="This Weekend") return `this weekend (Saturday and Sunday)`;
     return `the next 7 days starting ${day}`;
+  };
+
+  // Generate an AI bio for any venue
+  const fetchBio = async (venue) => {
+    const key = venue.website || venue.name;
+    if (venueBios[key] || loadingBio[key]) return;
+    setLoadingBio(prev => ({ ...prev, [key]: true }));
+    try {
+      const res = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system: `You are a local venue expert. Write a single engaging 2-sentence bio for the given bar or restaurant. Focus on what makes it unique — atmosphere, food, drinks, history, or entertainment. Return ONLY the bio text, nothing else.`,
+          messages: [{ role: "user", content: `Write a short bio for "${venue.name}" at ${venue.address}.` }],
+        }),
+      });
+      const data = await res.json();
+      const tb = data.content?.find(b => b.type === "text");
+      if (tb) setVenueBios(prev => ({ ...prev, [key]: tb.text.trim() }));
+    } catch {}
+    finally { setLoadingBio(prev => ({ ...prev, [key]: false })); }
   };
 
   const findLocalVenues = async (loc, r) => {
@@ -61,23 +75,19 @@ export default function App() {
       const data = await res.json();
       if (data.error) { setLocalError(data.error.message); return; }
       setLocalVenues(data.venues);
-      // Check OpenTable for each venue that has a website
-      data.venues?.forEach(v => {
-        if (v.website) checkOpenTable(v);
-      });
     } catch(e) { setLocalError(e.message); }
     finally { setLocalLoading(false); }
   };
 
-  // Check if venue is on OpenTable by searching their site
-  const checkOpenTable = async (venue) => {
-    const key = venue.website || venue.name;
-    try {
-      // Search OpenTable for the venue name
-      const otSearch = `https://www.opentable.com/s?term=${encodeURIComponent(venue.name)}&covers=2`;
-      setOpenTableLinks(prev => ({ ...prev, [key]: otSearch }));
-    } catch {}
-  };
+  // Auto-load bios for nearby venues when they arrive
+  useEffect(() => {
+    if (localVenues) {
+      localVenues.forEach(v => {
+        const key = v.website || v.name;
+        if (!v.summary && !venueBios[key]) fetchBio(v);
+      });
+    }
+  }, [localVenues]);
 
   const fetchSchedule = async (venue) => {
     const key = venue.website || venue.name;
@@ -105,29 +115,11 @@ export default function App() {
     }
   };
 
-  const fetchBio = async (venue) => {
-    const key = venue.website || venue.name;
-    if (venueBios[key]) return;
-    try {
-      const res = await fetch("/api/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system: `You are a local venue expert. Write a single engaging 2-sentence bio for the given bar or restaurant. Focus on what makes it unique — atmosphere, food, drinks, history, or entertainment. Return ONLY the bio text, nothing else.`,
-          messages: [{ role: "user", content: `Write a short bio for "${venue.name}" at ${venue.address}.` }],
-        }),
-      });
-      const data = await res.json();
-      const tb = data.content?.find(b => b.type === "text");
-      if (tb) setVenueBios(prev => ({ ...prev, [key]: tb.text.trim() }));
-    } catch {}
-  };
-
   const search = async (q) => {
     const sq = (q||query).trim();
     if (!sq) return;
     setLoading(true); setError(""); setResults(null); setSearched(sq); setExpanded(null);
-    setLocalVenues(null); setLocalError(""); setVenueSchedules({}); setVenueBios({}); setOpenTableLinks({});
+    setLocalVenues(null); setLocalError(""); setVenueSchedules({}); setVenueBios({}); setLoadingBio({});
     const wc = isWC(sq);
     setShowFeatured(wc);
     findLocalVenues(sq, radius);
@@ -159,17 +151,39 @@ export default function App() {
   const btn = (active) => ({ fontSize:12, padding:"5px 14px", borderRadius:99, border:`1.5px solid ${active?"#e85d04":"#e2e8f0"}`, background:active?"#e85d04":"transparent", color:active?"#fff":"#64748b", cursor:"pointer", fontWeight:active?600:400 });
   const gc = (g) => ({"Rock":"#e85d04","Jazz":"#1D9E75","Country":"#BA7517","Pop":"#D4537E","Blues":"#378ADD","Cover Band":"#888780","Folk":"#639922","R&B":"#D85a30","Acoustic":"#0F6E56","Indie":"#7F77DD"})[g]||"#e85d04";
 
-  const ScheduleBlock = ({ schedData, isLoading, hideEmpty }) => {
-    if (isLoading) return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>🔍 Searching for schedule…</p>;
+  // Schedule display — shows results or helpful "not found" message with visit site link
+  const ScheduleBlock = ({ schedData, isLoading, venue, hideEmpty, websiteUrl }) => {
+    if (isLoading) return (
+      <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>🔍 Searching for current performers and events…</p>
+    );
     if (!schedData) return null;
+
     if (schedData.schedule.length === 0) {
       if (hideEmpty) return null;
-      return <p style={{fontSize:12,color:"#94a3b8",margin:"8px 0 0"}}>No schedule found for this venue.</p>;
+      return (
+        <div style={{marginTop:8,background:"#fff8f0",borderRadius:10,padding:"10px 12px",border:"1px solid #fed7aa"}}>
+          <p style={{fontSize:12,color:"#92400e",margin:"0 0 6px"}}>
+            😕 We couldn't find a specific schedule for this venue right now.
+          </p>
+          {websiteUrl && (
+            <a href={websiteUrl} target="_blank" rel="noreferrer"
+              style={{fontSize:12,color:"#e85d04",fontWeight:600,textDecoration:"none"}}>
+              👉 Visit their site to see the current event lineup →
+            </a>
+          )}
+        </div>
+      );
     }
-    const sourceLabel = schedData.source==="website" ? "From their website:" : schedData.source==="web_search" ? "Via web search:" : "AI-generated — verify before going:";
+
+    const sourceLabel = schedData.source==="website"
+      ? "📅 From their website:"
+      : schedData.source==="web_search"
+      ? "📅 Found via web search:"
+      : "📅 Typical weekly schedule (verify before going):";
+
     return (
       <div style={{marginTop:10}}>
-        <p style={{fontSize:11,fontWeight:600,color:"#1D9E75",margin:"0 0 6px"}}>📅 {sourceLabel}</p>
+        <p style={{fontSize:11,fontWeight:600,color:"#1D9E75",margin:"0 0 6px"}}>{sourceLabel}</p>
         {schedData.schedule.map((e,ei)=>(
           <div key={ei} style={{background:"rgba(255,255,255,0.75)",borderRadius:10,padding:"10px 12px",marginBottom:6,border:"1px solid #e2e8f0",borderLeft:"3px solid #1D9E75"}}>
             <p style={{fontWeight:600,fontSize:13,margin:"0 0 3px",color:"#0f172a"}}>{e.event||e.band||"Event"}</p>
@@ -261,16 +275,18 @@ export default function App() {
                       <div key={i} style={{flex:"1 1 260px",background:`linear-gradient(135deg,${v.color}22,${v.color}08)`,border:`1.5px solid ${v.color}44`,borderRadius:14,padding:"14px 16px"}}>
                         <p style={{fontWeight:700,fontSize:15,margin:"0 0 4px",color:"#0f172a"}}>{v.name}</p>
                         <span style={{fontSize:11,padding:"2px 8px",borderRadius:99,background:v.color+"22",color:v.color,fontWeight:600}}>{v.tag}</span>
+                        {/* Description / bio */}
                         <p style={{fontSize:12,color:"#64748b",margin:"8px 0",lineHeight:1.5}}>{v.description}</p>
                         <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 10px"}}>📍 {v.address}</p>
+                        {/* Action buttons */}
                         <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
                           <button onClick={()=>fetchSchedule(v)} disabled={isLoadingSched}
                             style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:isLoadingSched?"#e2e8f0":"#1D9E75",color:isLoadingSched?"#94a3b8":"#fff",border:"none",cursor:isLoadingSched?"default":"pointer",fontWeight:500}}>
-                            {isLoadingSched?"🔍 Loading…":"📅 Get Schedule"}
+                            {isLoadingSched?"🔍 Searching…":"📅 Get Schedule"}
                           </button>
-                          <a href={v.scheduleUrl} target="_blank" rel="noreferrer"
+                          <a href={v.website} target="_blank" rel="noreferrer"
                             style={{fontSize:12,padding:"6px 14px",borderRadius:99,background:v.color,color:"#fff",textDecoration:"none",fontWeight:500}}>
-                            🎵 View Site
+                            🌍 Visit Site
                           </a>
                           {v.openTable && (
                             <a href={v.openTable} target="_blank" rel="noreferrer"
@@ -279,7 +295,13 @@ export default function App() {
                             </a>
                           )}
                         </div>
-                        <ScheduleBlock schedData={schedData} isLoading={isLoadingSched} hideEmpty={true} />
+                        <ScheduleBlock
+                          schedData={schedData}
+                          isLoading={isLoadingSched}
+                          venue={v}
+                          hideEmpty={false}
+                          websiteUrl={v.scheduleUrl}
+                        />
                       </div>
                     );
                   })}
@@ -365,7 +387,7 @@ export default function App() {
                     const schedData = venueSchedules[schedKey];
                     const isLoadingSched = loadingSchedule === schedKey;
                     const bio = venueBios[schedKey];
-                    // OpenTable search link for this venue
+                    const isLoadingBio = loadingBio[schedKey];
                     const otLink = `https://www.opentable.com/s?term=${encodeURIComponent(v.name)}&covers=2`;
                     return (
                       <div key={vi} style={{background:"#f8fafc",borderRadius:14,padding:"14px 16px",marginBottom:10,border:"1px solid #e2e8f0",borderLeft:`4px solid ${sc}`}}>
@@ -376,17 +398,16 @@ export default function App() {
                             {v.isOpen===true && <span style={{fontSize:10,padding:"2px 8px",borderRadius:99,background:"#dcfce7",color:"#16a34a",fontWeight:600}}>Open Now</span>}
                             {v.isOpen===false && <span style={{fontSize:10,padding:"2px 8px",borderRadius:99,background:"#fee2e2",color:"#dc2626",fontWeight:600}}>Closed</span>}
                           </div>
-                          <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 2px"}}>📍 {v.address}</p>
-                          {v.rating && <p style={{fontSize:11,color:"#94a3b8",margin:0}}>⭐ {v.rating} ({(v.totalRatings||0).toLocaleString()} reviews)</p>}
-                          {(v.summary || bio) && (
-                            <p style={{fontSize:12,color:"#64748b",margin:"6px 0 0",lineHeight:1.5,fontStyle:"italic"}}>{v.summary || bio}</p>
-                          )}
-                          {!v.summary && !bio && (
-                            <button onClick={()=>fetchBio(v)}
-                              style={{fontSize:11,color:"#94a3b8",background:"none",border:"none",cursor:"pointer",padding:"4px 0",textDecoration:"underline"}}>
-                              + Load AI bio
-                            </button>
-                          )}
+                          <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 4px"}}>📍 {v.address}</p>
+                          {v.rating && <p style={{fontSize:11,color:"#94a3b8",margin:"0 0 6px"}}>⭐ {v.rating} ({(v.totalRatings||0).toLocaleString()} reviews)</p>}
+                          {/* Always show a bio — Google summary, AI bio, or loading state */}
+                          {v.summary ? (
+                            <p style={{fontSize:12,color:"#64748b",margin:0,lineHeight:1.5,fontStyle:"italic"}}>{v.summary}</p>
+                          ) : bio ? (
+                            <p style={{fontSize:12,color:"#64748b",margin:0,lineHeight:1.5,fontStyle:"italic"}}>{bio}</p>
+                          ) : isLoadingBio ? (
+                            <p style={{fontSize:11,color:"#94a3b8",margin:0}}>✍️ Loading bio…</p>
+                          ) : null}
                         </div>
 
                         {v.photos && v.photos.length > 0 && (
@@ -400,9 +421,8 @@ export default function App() {
                         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
                           <button onClick={() => fetchSchedule(v)} disabled={isLoadingSched}
                             style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:isLoadingSched?"#e2e8f0":"#1D9E75",color:isLoadingSched?"#94a3b8":"#fff",border:"none",cursor:isLoadingSched?"default":"pointer",fontWeight:500}}>
-                            {isLoadingSched ? "🔍 Loading…" : "📅 Get Schedule"}
+                            {isLoadingSched ? "🔍 Searching…" : "📅 Get Schedule"}
                           </button>
-                          {/* OpenTable reserve link for nearby venues */}
                           <a href={otLink} target="_blank" rel="noreferrer"
                             style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#fff0e8",color:"#e85d04",textDecoration:"none",border:"0.5px solid #fed7aa",fontWeight:500}}>
                             🍽 Reserve
@@ -413,7 +433,13 @@ export default function App() {
                           {v.facebook && <a href={v.facebook} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"5px 12px",borderRadius:99,background:"#f1f5f9",color:"#1d4ed8",textDecoration:"none",border:"0.5px solid #e2e8f0"}}>👍 Facebook</a>}
                         </div>
 
-                        <ScheduleBlock schedData={schedData} isLoading={isLoadingSched} hideEmpty={false} />
+                        <ScheduleBlock
+                          schedData={schedData}
+                          isLoading={isLoadingSched}
+                          venue={v}
+                          hideEmpty={false}
+                          websiteUrl={v.website}
+                        />
 
                         {v.events && v.events.length > 0 && (
                           <div style={{marginTop:8}}>
