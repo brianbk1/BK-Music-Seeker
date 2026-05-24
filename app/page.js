@@ -191,42 +191,7 @@ export default function App() {
 
   // Inject Google Analytics GA4 + Google AdSense + page metadata
   useEffect(() => {
-    // Page title
     document.title = "BBK Music Seeker — Find Live Music Near You";
-
-    // Favicon
-    const link = document.querySelector("link[rel~='icon']") || document.createElement("link");
-    link.rel = "icon";
-    link.href = "/favicon.ico";
-    document.head.appendChild(link);
-
-    // AdSense verification meta tag
-    if (!document.querySelector("meta[name='google-adsense-account']")) {
-      const adsMeta = document.createElement("meta");
-      adsMeta.name = "google-adsense-account";
-      adsMeta.content = "ca-pub-5006125305468777";
-      document.head.appendChild(adsMeta);
-    }
-
-    if (!document.getElementById("ga-script")) {
-      const s1 = document.createElement("script");
-      s1.id = "ga-script";
-      s1.src = "https://www.googletagmanager.com/gtag/js?id=G-3V60ZZV7H9";
-      s1.async = true;
-      document.head.appendChild(s1);
-      const s2 = document.createElement("script");
-      s2.id = "ga-init";
-      s2.innerHTML = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-3V60ZZV7H9');`;
-      document.head.appendChild(s2);
-    }
-    if (!document.getElementById("adsense-script")) {
-      const s3 = document.createElement("script");
-      s3.id = "adsense-script";
-      s3.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5006125305468777";
-      s3.async = true;
-      s3.crossOrigin = "anonymous";
-      document.head.appendChild(s3);
-    }
   }, []);
   const [activeQuick, setActiveQuick] = useState("");
   const [dateFilter, setDateFilter] = useState("Next 7 Days");
