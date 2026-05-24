@@ -440,6 +440,76 @@ export default function App() {
         </div>
       </div>
 
+      {/* SEO Content Section — visible only on idle homepage, hidden after search */}
+      {results === null && !loading && (
+        <div style={{ background: "#fff", padding: "0 1.5rem 1.5rem", borderTop: "1px solid #f1f5f9" }}>
+
+          {/* Intro */}
+          <div style={{ marginBottom: 24 }}>
+            <h1 style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", margin: "0 0 8px" }}>Find Live Music Near You — Tonight or Any Night</h1>
+            <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.7, margin: 0 }}>
+              BBK Music Seeker helps you discover live music events at bars, restaurants, clubs, and venues in your neighborhood.
+              Whether you're looking for jazz on a Tuesday, a cover band this weekend, or acoustic sets at a local restaurant,
+              just enter your zip code or city and we'll find what's playing near you. We cover hundreds of cities across the US —
+              from Philadelphia and Chicago to Los Angeles and everywhere in between.
+            </p>
+          </div>
+
+          {/* How It Works */}
+          <div style={{ marginBottom: 24 }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: "#e85d04", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 12px" }}>How It Works</h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[
+                { icon: "📍", title: "Enter your location", desc: "Type a zip code, city name, neighborhood, venue, or restaurant — or tap the pin icon to use your current location." },
+                { icon: "🗓", title: "Pick your timeframe", desc: "Filter results by today, this weekend, or the next 7 days so you only see events that fit your schedule." },
+                { icon: "🎵", title: "Discover live music", desc: "We search local venue websites, event listings, and live databases to surface the best live music options near you, ranked by likelihood." },
+                { icon: "🔥", title: "Check the vibe", desc: "See real-time crowd reports from other users so you know what the atmosphere is like before you show up." },
+              ].map((step, i) => (
+                <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "#f8fafc", borderRadius: 12, padding: "12px 14px", border: "1px solid #e2e8f0" }}>
+                  <span style={{ fontSize: 20, flexShrink: 0 }}>{step.icon}</span>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", margin: "0 0 2px" }}>{step.title}</p>
+                    <p style={{ fontSize: 12, color: "#64748b", margin: 0, lineHeight: 1.5 }}>{step.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Popular Cities */}
+          <div style={{ marginBottom: 24 }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: "#e85d04", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 12px" }}>Popular Cities for Live Music</h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[
+                { city: "Philadelphia, PA", desc: "Philly has one of the most vibrant live music scenes on the East Coast. From the dive bars of South Street to intimate jazz clubs in Old City and rock venues in Fishtown, there's live music happening every night of the week." },
+                { city: "West Chester, PA", desc: "West Chester's walkable downtown is packed with bars and restaurants featuring live music Wednesday through Saturday. Station 142, Pietro's Prime, and Slow Hand are local favorites with regular live entertainment." },
+                { city: "Chicago, IL", desc: "Chicago is the birthplace of electric blues and home to world-class jazz clubs, rock venues, and everything in between. The city's live music scene spans neighborhoods from Lincoln Park to Wicker Park to the South Side." },
+                { city: "Los Angeles, CA", desc: "LA's live music scene is unmatched on the West Coast — from legendary venues like the Troubadour and the Roxy to rooftop bars in Silver Lake and intimate acoustic sets in Santa Monica restaurants." },
+                { city: "Sea Isle City, NJ", desc: "Sea Isle is a Jersey Shore destination with a thriving summer live music scene. Local bars and restaurants book bands and solo artists throughout the summer season, making it a favorite for beach visitors looking for nightlife." },
+              ].map((item, i) => (
+                <div key={i} style={{ borderRadius: 12, padding: "12px 14px", border: "1px solid #e2e8f0", borderLeft: "4px solid #e85d04", background: "#fff" }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: "0 0 4px" }}>{item.city}</p>
+                  <p style={{ fontSize: 12, color: "#64748b", margin: 0, lineHeight: 1.6 }}>{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* About */}
+          <div style={{ background: "#fff8f0", borderRadius: 14, padding: "16px 18px", border: "1px solid #fed7aa" }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: "#92400e", margin: "0 0 8px" }}>About BBK Music Seeker</h2>
+            <p style={{ fontSize: 12, color: "#78350f", lineHeight: 1.7, margin: 0 }}>
+              BBK Music Seeker is a free live music discovery tool powered by AI. We aggregate event information from venue websites,
+              social media, and public event databases to help music fans find great live performances near them.
+              Our goal is simple: no more googling five different sites to find out what's playing tonight.
+              Just search your location and get results in seconds. We cover bars, restaurants, clubs, breweries, amphitheaters,
+              and any venue that hosts live music — from small local acts to regional touring artists.
+            </p>
+          </div>
+
+        </div>
+      )}
+
       {/* Results */}
       <div style={{ background: "#fff", padding: "0 1.5rem 1.5rem", minHeight: 80 }}>
         {error && <div style={{ background: "#fee2e2", border: "0.5px solid #fca5a5", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#dc2626", marginBottom: 12 }}>{error}</div>}
