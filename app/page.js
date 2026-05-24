@@ -400,10 +400,10 @@ export default function App() {
   );
 
   return (
-    <div style={{ fontFamily: "system-ui,sans-serif", maxWidth: 700, margin: "0 auto", borderRadius: 20, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.12)" }}>
+    <div style={{ fontFamily: "system-ui,sans-serif", maxWidth: 700, margin: "0 auto", borderRadius: 20, boxShadow: "0 4px 24px rgba(0,0,0,0.12)", overflow: "visible" }}>
 
       {/* Hero */}
-      <div style={{ background: "linear-gradient(135deg,#e85d04 0%,#c44a00 100%)", textAlign: "center", padding: "10px 0 0" }}>
+      <div style={{ background: "linear-gradient(135deg,#e85d04 0%,#c44a00 100%)", textAlign: "center", padding: "10px 0 0", borderRadius: "20px 20px 0 0", overflow: "hidden" }}>
         <p style={{ margin: "0 0 8px", fontSize: 11, color: "rgba(255,255,255,0.85)", letterSpacing: "2px", textTransform: "uppercase" }}>Find live music anywhere</p>
         <img src="/hero.png" alt="" style={{ width: "100%", display: "block", objectFit: "cover", objectPosition: "center top", maxHeight: 220 }} />
       </div>
