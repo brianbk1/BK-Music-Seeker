@@ -365,20 +365,20 @@ export default function App() {
   );
 
   return (
-    <div style={{ fontFamily: "system-ui,sans-serif", maxWidth: 700, margin: "0 auto", borderRadius: 20, boxShadow: "0 4px 24px rgba(0,0,0,0.12)", overflow: "visible" }}>
-
-      {/* Sticky Branding Bar */}
+    <>
+      {/* Fixed Branding Bar — always visible at top of viewport */}
       <div style={{
-        position: "sticky",
+        position: "fixed",
         top: 0,
-        zIndex: 100,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
         background: "linear-gradient(135deg,#e85d04 0%,#c44a00 100%)",
-        borderRadius: "20px 20px 0 0",
         padding: "10px 20px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        boxShadow: "0 2px 12px rgba(232,93,4,0.35)",
+        boxShadow: "0 2px 12px rgba(232,93,4,0.45)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 22 }}>🎵</span>
@@ -390,8 +390,13 @@ export default function App() {
         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", fontStyle: "italic" }}>locallivemusic.ai</div>
       </div>
 
+      {/* Spacer to push content below fixed bar */}
+      <div style={{ height: 52 }} />
+
+    <div style={{ fontFamily: "system-ui,sans-serif", maxWidth: 700, margin: "0 auto", borderRadius: 20, boxShadow: "0 4px 24px rgba(0,0,0,0.12)", overflow: "hidden" }}>
+
       {/* Hero Image */}
-      <div style={{ background: "linear-gradient(135deg,#e85d04 0%,#c44a00 100%)", overflow: "hidden" }}>
+      <div style={{ background: "linear-gradient(135deg,#e85d04 0%,#c44a00 100%)" }}>
         <img src="/hero.png" alt="" style={{ width: "100%", display: "block", objectFit: "cover", objectPosition: "center top", maxHeight: 200 }} />
       </div>
 
@@ -692,5 +697,6 @@ export default function App() {
         </div>
       )}
     </div>
+    </>
   );
 }
