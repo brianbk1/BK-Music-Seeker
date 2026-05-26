@@ -123,6 +123,7 @@ const VibeForm = ({ venueKey, venueName, onSubmit, onCancel }) => {
       </div>
       {error && <p style={{ fontSize: 11, color: "#dc2626", margin: "6px 0 0" }}>{error}</p>}
     </div>
+    </>
   );
 };
 
@@ -366,7 +367,7 @@ export default function App() {
 
   return (
     <>
-      {/* Fixed Branding Bar — always visible at top of viewport */}
+      {/* Fixed Branding Bar */}
       <div style={{
         position: "fixed",
         top: 0,
@@ -390,10 +391,9 @@ export default function App() {
         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", fontStyle: "italic" }}>locallivemusic.ai</div>
       </div>
 
-      {/* Spacer to push content below fixed bar */}
       <div style={{ height: 52 }} />
 
-    <div style={{ fontFamily: "system-ui,sans-serif", maxWidth: 700, margin: "0 auto", borderRadius: 20, boxShadow: "0 4px 24px rgba(0,0,0,0.12)", overflow: "hidden" }}>
+      <div style={{ fontFamily: "system-ui,sans-serif", maxWidth: 700, margin: "0 auto", borderRadius: 20, boxShadow: "0 4px 24px rgba(0,0,0,0.12)", overflow: "hidden" }}>
 
       {/* Hero Image */}
       <div style={{ background: "linear-gradient(135deg,#e85d04 0%,#c44a00 100%)" }}>
