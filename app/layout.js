@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
           crossOrigin="anonymous"
         />
       </head>
-      <body style={{ margin: 0, padding: "1rem", background: "#f1f5f9", minHeight: "100vh" }}>
+      <body style={{ margin: 0, padding: "0 1rem 1rem", background: "#f1f5f9", minHeight: "100vh" }}>
         {children}
       </body>
     </html>

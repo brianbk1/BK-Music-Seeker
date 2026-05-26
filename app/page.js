@@ -367,10 +367,32 @@ export default function App() {
   return (
     <div style={{ fontFamily: "system-ui,sans-serif", maxWidth: 700, margin: "0 auto", borderRadius: 20, boxShadow: "0 4px 24px rgba(0,0,0,0.12)", overflow: "visible" }}>
 
-      {/* Hero */}
-      <div style={{ background: "linear-gradient(135deg,#e85d04 0%,#c44a00 100%)", textAlign: "center", padding: "10px 0 0", borderRadius: "20px 20px 0 0", overflow: "hidden" }}>
-        <p style={{ margin: "0 0 8px", fontSize: 11, color: "rgba(255,255,255,0.85)", letterSpacing: "2px", textTransform: "uppercase" }}>Find live music anywhere</p>
-        <img src="/hero.png" alt="" style={{ width: "100%", display: "block", objectFit: "cover", objectPosition: "center top", maxHeight: 220 }} />
+      {/* Sticky Branding Bar */}
+      <div style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
+        background: "linear-gradient(135deg,#e85d04 0%,#c44a00 100%)",
+        borderRadius: "20px 20px 0 0",
+        padding: "10px 20px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        boxShadow: "0 2px 12px rgba(232,93,4,0.35)",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 22 }}>🎵</span>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.3px" }}>BBK Music Seeker</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.8)", letterSpacing: "1.5px", textTransform: "uppercase", marginTop: 1 }}>Find live music anywhere</div>
+          </div>
+        </div>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", fontStyle: "italic" }}>locallivemusic.ai</div>
+      </div>
+
+      {/* Hero Image */}
+      <div style={{ background: "linear-gradient(135deg,#e85d04 0%,#c44a00 100%)", overflow: "hidden" }}>
+        <img src="/hero.png" alt="" style={{ width: "100%", display: "block", objectFit: "cover", objectPosition: "center top", maxHeight: 200 }} />
       </div>
 
       {/* Search */}
