@@ -123,7 +123,6 @@ const VibeForm = ({ venueKey, venueName, onSubmit, onCancel }) => {
       </div>
       {error && <p style={{ fontSize: 11, color: "#dc2626", margin: "6px 0 0" }}>{error}</p>}
     </div>
-    </>
   );
 };
 
