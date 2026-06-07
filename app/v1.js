@@ -9,17 +9,13 @@ const FEATURED_VENUES = [
   { name:"Square Bar", tag:"Live music • Open since 1950s", description:"West Chester's beloved dive bar for 70+ years featuring live music, games, sports, and great company. A true neighborhood institution at 250 E Chestnut St.", address:"250 E Chestnut St, West Chester, PA 19380", scheduleUrl:"https://www.squarebarwc.com/events", website:"https://www.squarebarwc.com", openTable:null, instagram:"https://www.instagram.com/squarebarwc/", color:"#b45309" },
   { name:"Saloon 151", tag:"Karaoke • Music Bingo • Events", description:"West Chester's best whiskey and bourbon bar featuring karaoke every Friday, Music Bingo Wednesdays, Quizzo Tuesdays, and country party vibes nightly. Open 11am–2am daily.", address:"151 W Gay St, West Chester, PA 19380", scheduleUrl:"https://www.saloon151.com/events-catering-1", website:"https://www.saloon151.com", openTable:null, instagram:"https://www.instagram.com/saloon151/", color:"#92400e" },
   { name:"Murph's Hideaway", tag:"Local favorite • Live music & events", description:"A welcoming neighborhood spot offering great food, drinks, and live music entertainment. Popular with locals for its friendly atmosphere and quality performances.", address:"Pocono Lake, PA 18347", scheduleUrl:"https://www.murphshideaway.com", website:"https://www.murphshideaway.com", openTable:null, instagram:null, color:"#059669" },
-  { name:"Nick's Lakehouse", tag:"Lakeside bar & live music", description:"A beloved Pocono Lakes area bar and grill right on the water, featuring live music, great food, cold drinks, and an unbeatable lakeside atmosphere that keeps locals coming back all summer long.", address:"Pocono Lake, PA 18347", scheduleUrl:"https://www.nickslakehouse.com", website:"https://www.nickslakehouse.com", openTable:null, instagram:null, color:"#0369a1" },
-  { name:"Boulder View Tavern", tag:"Pocono staple • Live music & events", description:"A Pocono Mountains institution serving hearty food and cold drinks with regular live music events. Known for its friendly crowd, rustic atmosphere, and being a true gathering place for the local community.", address:"Pocono Lake, PA 18347", scheduleUrl:"https://www.boulderviewtavern.com", website:"https://www.boulderviewtavern.com", openTable:null, instagram:null, color:"#78350f" },
-  { name:"Jubilee", tag:"Live music & dining • Pocono", description:"A popular Pocono area destination for live music, great food, and a lively atmosphere. Jubilee brings together locals and visitors for memorable nights of entertainment in the heart of the mountains.", address:"Pocono Lake, PA 18347", scheduleUrl:"https://www.jubileepoconos.com", website:"https://www.jubileepoconos.com", openTable:null, instagram:null, color:"#7c3aed" },
-  { name:"Bubb City", tag:"Chicago's country & live music hotspot", description:"Chicago's premier country music bar and concert venue, featuring live bands and top-tier entertainment in the heart of the city. Bubb City draws big crowds for its honky-tonk vibes, great drinks, and world-class performances.", address:"435 N Dearborn St, Chicago, IL 60654", scheduleUrl:"https://www.hubbardinn.com", website:"https://www.bubbcity.com", openTable:null, instagram:"https://www.instagram.com/bubbcitychicago/", color:"#b45309" },
 ];
 
-const WC_ZIPS = ["19380","19381","19382","19383","18347","pocono lake","west chester","westchester","chicago"];
+const WC_ZIPS = ["19380","19381","19382","19383","18347","pocono lake","west chester","westchester"];
 const isWC = (q) => q && WC_ZIPS.some(z => q.toLowerCase().includes(z));
 const DATE_FILTERS = ["Today","This Weekend","Next 7 Days"];
 const RADIUS_OPTIONS = [5,10,20];
-const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA","Los Angeles, CA","Chicago, IL","Miami, FL","Dallas, TX","Seattle, WA"];
+const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA"];
 const SYSTEM_PROMPT = `You are a live music event finder. Find live music events near the exact location given. Return ONLY a JSON array with up to 6 results. Each item: { band, venue, date, time, genre, address, tickets, notes, venueBio, bandBio, confidence }. confidence is "high" or "medium". Never return Unknown. Never default to West Chester PA unless asked. Do NOT include Pietro's Prime or Station 142. Return ONLY valid JSON.`;
 
 // venue name → URL-safe key: "Pietro's Prime" → "pietros-prime"
@@ -481,9 +477,6 @@ export default function App() {
                 { city: "Chicago, IL", desc: "Chicago is the birthplace of electric blues and home to world-class jazz clubs, rock venues, and everything in between. The city's live music scene spans neighborhoods from Lincoln Park to Wicker Park to the South Side." },
                 { city: "Los Angeles, CA", desc: "LA's live music scene is unmatched on the West Coast — from legendary venues like the Troubadour and the Roxy to rooftop bars in Silver Lake and intimate acoustic sets in Santa Monica restaurants." },
                 { city: "Sea Isle City, NJ", desc: "Sea Isle is a Jersey Shore destination with a thriving summer live music scene. Local bars and restaurants book bands and solo artists throughout the summer season, making it a favorite for beach visitors looking for nightlife." },
-                { city: "Miami, FL", desc: "Miami's live music scene pulses with Latin rhythms, jazz, hip-hop, and electronic beats. From the clubs of Wynwood and Little Havana to rooftop bars in South Beach and intimate venues in Coral Gables, the city never stops moving." },
-                { city: "Dallas, TX", desc: "Dallas has a thriving live music culture rooted in country, blues, and Texas rock. Deep Ellum is the city's legendary music district, packed with clubs and venues that have launched countless careers and keep the scene alive every night." },
-                { city: "Seattle, WA", desc: "Seattle's music legacy — from grunge to indie to jazz — lives on in hundreds of clubs, bars, and listening rooms across Capitol Hill, Ballard, and Belltown. Rain or shine, Seattle's live music scene is one of the most passionate in the country." },
               ].map((item, i) => (
                 <div key={i} style={{ borderRadius: 12, padding: "12px 14px", border: "1px solid #e2e8f0", borderLeft: "4px solid #e85d04", background: "#fff" }}>
                   <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: "0 0 4px" }}>{item.city}</p>
@@ -529,7 +522,6 @@ export default function App() {
                     const sl = searched.toLowerCase(), al = v.address.toLowerCase();
                     if (sl.includes("19382") || sl.includes("west chester") || sl.includes("westchester")) return al.includes("19382") || al.includes("west chester");
                     if (sl.includes("18347") || sl.includes("pocono lake")) return al.includes("18347") || al.includes("pocono lake");
-                    if (sl.includes("chicago")) return al.toLowerCase().includes("chicago");
                     return false;
                   }).map((v, i) => {
                     const key = v.website || v.name;
