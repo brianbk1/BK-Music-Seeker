@@ -20,22 +20,6 @@ const isWC = (q) => q && WC_ZIPS.some(z => q.toLowerCase().includes(z));
 const DATE_FILTERS = ["Today","This Weekend","Next 7 Days"];
 const RADIUS_OPTIONS = [5,10,20];
 const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA","Los Angeles, CA","Chicago, IL","Miami, FL","Dallas, TX","Seattle, WA"];
-const CULTURES = [
-  { label: "🍀 Irish / Celtic", value: "Irish and Celtic" },
-  { label: "💃 Latin / Salsa", value: "Latin and Salsa" },
-  { label: "🎷 Jazz", value: "Jazz" },
-  { label: "🎸 Blues", value: "Blues" },
-  { label: "🤠 Bluegrass / Americana", value: "Bluegrass and Americana" },
-  { label: "🙏 Gospel", value: "Gospel and Gospel Soul" },
-  { label: "🌴 Reggae", value: "Reggae" },
-  { label: "🪗 Cajun / Zydeco", value: "Cajun and Zydeco" },
-  { label: "💃 Flamenco", value: "Flamenco" },
-  { label: "🎶 Indian / Bollywood", value: "Indian Classical and Bollywood" },
-  { label: "🥁 Afrobeat", value: "Afrobeat" },
-  { label: "🎻 Klezmer / Jewish", value: "Klezmer and Jewish music" },
-  { label: "🫒 Greek / Mediterranean", value: "Greek and Mediterranean" },
-  { label: "🎤 Hip-Hop / R&B", value: "Hip-Hop and R&B" },
-];
 const SYSTEM_PROMPT = `You are a live music event finder. Find live music events near the exact location given. Return ONLY a JSON array with up to 6 results. Each item: { band, venue, date, time, genre, address, tickets, notes, venueBio, bandBio, confidence }. confidence is "high" or "medium". Never return Unknown. Never default to West Chester PA unless asked. Do NOT include Pietro's Prime or Station 142. Return ONLY valid JSON.`;
 
 // venue name → URL-safe key: "Pietro's Prime" → "pietros-prime"
@@ -216,7 +200,6 @@ export default function App() {
   const [activeQuick, setActiveQuick] = useState("");
   const [dateFilter, setDateFilter] = useState("Next 7 Days");
   const [radius, setRadius] = useState(10);
-  const [cultures, setCultures] = useState([]);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -327,7 +310,7 @@ export default function App() {
     findLocalVenues(sq, radius);
     if (wc) { setResults([]); setLoading(false); return; }
     try {
-      const res = await fetch("/api/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ system: SYSTEM_PROMPT, messages: [{ role: "user", content: `Find live music near: "${sq}" for ${getDateRange(dateFilter)}.${cultures.length > 0 ? " Focus specifically on " + cultures.join(" and ") + " music and cultural venues." : ""}` }] }) });
+      const res = await fetch("/api/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ system: SYSTEM_PROMPT, messages: [{ role: "user", content: `Find live music near: "${sq}" for ${getDateRange(dateFilter)}.` }] }) });
       const data = await res.json();
       if (data.error) { setError(data.error.message); return; }
       const tb = data.content?.find(b => b.type === "text");
@@ -449,31 +432,6 @@ export default function App() {
               {sq}
             </button>
           ))}
-        </div>
-
-        {/* Culture / Genre Filter */}
-        <div style={{ marginBottom: "1.25rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-            <span style={{ fontSize: 11, color: "#94a3b8", whiteSpace: "nowrap", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>🌍 Cultural Style:</span>
-            {cultures.length > 0 && (
-              <button onClick={() => setCultures([])}
-                style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, border: "1px solid #e2e8f0", background: "#f1f5f9", color: "#64748b", cursor: "pointer" }}>
-                Clear
-              </button>
-            )}
-          </div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {CULTURES.map(c => {
-              const active = cultures.includes(c.value);
-              return (
-                <button key={c.value}
-                  onClick={() => setCultures(prev => active ? prev.filter(x => x !== c.value) : [...prev, c.value])}
-                  style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, border: `1.5px solid ${active ? "#7c3aed" : "#e2e8f0"}`, background: active ? "#7c3aed" : "#f8fafc", color: active ? "#fff" : "#475569", cursor: "pointer", fontWeight: active ? 600 : 400, transition: "all 0.15s" }}>
-                  {c.label}
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
 
