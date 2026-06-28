@@ -12,13 +12,14 @@ const FEATURED_VENUES = [
   { name:"Nick's Lakehouse", tag:"Lakeside bar & live music", description:"A beloved Pocono Lakes area bar and grill right on the water, featuring live music, great food, cold drinks, and an unbeatable lakeside atmosphere that keeps locals coming back all summer long.", address:"Pocono Lake, PA 18347", scheduleUrl:"https://www.nickslakehouse.com", website:"https://www.nickslakehouse.com", openTable:null, instagram:null, color:"#0369a1" },
   { name:"Boulder View Tavern", tag:"Pocono staple • Live music & events", description:"A Pocono Mountains institution serving hearty food and cold drinks with regular live music events. Known for its friendly crowd, rustic atmosphere, and being a true gathering place for the local community.", address:"Pocono Lake, PA 18347", scheduleUrl:"https://www.boulderviewtavern.com", website:"https://www.boulderviewtavern.com", openTable:null, instagram:null, color:"#78350f" },
   { name:"Jubilee", tag:"Live music & dining • Pocono", description:"A popular Pocono area destination for live music, great food, and a lively atmosphere. Jubilee brings together locals and visitors for memorable nights of entertainment in the heart of the mountains.", address:"Pocono Lake, PA 18347", scheduleUrl:"https://www.jubileepoconos.com", website:"https://www.jubileepoconos.com", openTable:null, instagram:null, color:"#7c3aed" },
+  { name:"Commodore John Barry Arts & Cultural Center", tag:"Irish & Celtic music • Philadelphia", description:"Philadelphia's premier Irish cultural venue at 6815 Emlen Street in Mt. Airy, hosting world-class Irish and Celtic performers, concerts, traditional music sessions, and cultural events open to the public year-round.", address:"6815 Emlen Street, Philadelphia, PA 19119", scheduleUrl:"https://www.theirishcenter.org/events", website:"https://www.theirishcenter.org", openTable:null, instagram:"https://www.instagram.com/theirishcenterphiladelphia/", color:"#166534" },
   { name:"Bubb City", tag:"Chicago's country & live music hotspot", description:"Chicago's premier country music bar and concert venue, featuring live bands and top-tier entertainment in the heart of the city. Bubb City draws big crowds for its honky-tonk vibes, great drinks, and world-class performances.", address:"435 N Dearborn St, Chicago, IL 60654", scheduleUrl:"https://www.hubbardinn.com", website:"https://www.bubbcity.com", openTable:null, instagram:"https://www.instagram.com/bubbcitychicago/", color:"#b45309" },
 ];
 
-const WC_ZIPS = ["19380","19381","19382","19383","18347","pocono lake","west chester","westchester","chicago"];
+const WC_ZIPS = ["19380","19381","19382","19383","18347","19119","pocono lake","west chester","westchester","chicago","philadelphia"];
 const isWC = (q) => q && WC_ZIPS.some(z => q.toLowerCase().includes(z));
 const DATE_FILTERS = ["Today","This Weekend","Next 7 Days","Next 3 Months","Next 6 Months"];
-const RADIUS_OPTIONS = [5,10,20];
+const RADIUS_OPTIONS = [5,10,20,50];
 const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA","Los Angeles, CA","Chicago, IL","Miami, FL","Dallas, TX","Seattle, WA"];
 const CULTURES = [
   { label: "🍀 Irish / Celtic", value: "Irish and Celtic", venues: ["Commodore John Barry Arts & Cultural Center (Philadelphia, PA)", "The Irish Pub (Philadelphia, PA)", "Rí Rá Irish Pub (multiple cities)", "Fado Irish Pub (multiple cities)", "The Plough and the Stars (San Francisco, CA)", "Celtic Junction Arts Center (St. Paul, MN)", "The Burren (Somerville, MA)"] },
@@ -574,6 +575,7 @@ export default function App() {
                     if (sl.includes("19382") || sl.includes("west chester") || sl.includes("westchester")) return al.includes("19382") || al.includes("west chester");
                     if (sl.includes("18347") || sl.includes("pocono lake")) return al.includes("18347") || al.includes("pocono lake");
                     if (sl.includes("chicago")) return al.toLowerCase().includes("chicago");
+                    if (v.name === "Commodore John Barry Arts & Cultural Center") return cultures.includes("Irish and Celtic") || sl.includes("philadelphia") || sl.includes("19119") || sl.includes("mt. airy") || sl.includes("mt airy");
                     return false;
                   }).map((v, i) => {
                     const key = v.website || v.name;
