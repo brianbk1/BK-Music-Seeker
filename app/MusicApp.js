@@ -17,24 +17,24 @@ const FEATURED_VENUES = [
 
 const WC_ZIPS = ["19380","19381","19382","19383","18347","pocono lake","west chester","westchester","chicago"];
 const isWC = (q) => q && WC_ZIPS.some(z => q.toLowerCase().includes(z));
-const DATE_FILTERS = ["Today","This Weekend","Next 7 Days"];
+const DATE_FILTERS = ["Today","This Weekend","Next 7 Days","Next 3 Months","Next 6 Months"];
 const RADIUS_OPTIONS = [5,10,20];
 const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA","Los Angeles, CA","Chicago, IL","Miami, FL","Dallas, TX","Seattle, WA"];
 const CULTURES = [
-  { label: "🍀 Irish / Celtic", value: "Irish and Celtic" },
-  { label: "💃 Latin / Salsa", value: "Latin and Salsa" },
-  { label: "🎷 Jazz", value: "Jazz" },
-  { label: "🎸 Blues", value: "Blues" },
-  { label: "🤠 Bluegrass / Americana", value: "Bluegrass and Americana" },
-  { label: "🙏 Gospel", value: "Gospel and Gospel Soul" },
-  { label: "🌴 Reggae", value: "Reggae" },
-  { label: "🪗 Cajun / Zydeco", value: "Cajun and Zydeco" },
-  { label: "💃 Flamenco", value: "Flamenco" },
-  { label: "🎶 Indian / Bollywood", value: "Indian Classical and Bollywood" },
-  { label: "🥁 Afrobeat", value: "Afrobeat" },
-  { label: "🎻 Klezmer / Jewish", value: "Klezmer and Jewish music" },
-  { label: "🫒 Greek / Mediterranean", value: "Greek and Mediterranean" },
-  { label: "🎤 Hip-Hop / R&B", value: "Hip-Hop and R&B" },
+  { label: "🍀 Irish / Celtic", value: "Irish and Celtic", venues: ["Commodore John Barry Arts & Cultural Center (Philadelphia, PA)", "The Irish Pub (Philadelphia, PA)", "Rí Rá Irish Pub (multiple cities)", "Fado Irish Pub (multiple cities)", "The Plough and the Stars (San Francisco, CA)", "Celtic Junction Arts Center (St. Paul, MN)", "The Burren (Somerville, MA)"] },
+  { label: "💃 Latin / Salsa", value: "Latin and Salsa", venues: ["Guantanamera (New York, NY)", "SOBs Sounds of Brazil (New York, NY)", "Cafe La Trova (Miami, FL)", "La Descarga (Los Angeles, CA)", "Havana Social Club (Chicago, IL)", "Salsa Con Fuego (Philadelphia, PA)", "Cascabel (Houston, TX)"] },
+  { label: "🎷 Jazz", value: "Jazz", venues: ["Blue Note Jazz Club (New York, NY)", "Jazz at Lincoln Center (New York, NY)", "Green Mill (Chicago, IL)", "Preservation Hall (New Orleans, LA)", "The Jazz Kitchen (Indianapolis, IN)", "Scullers Jazz Club (Boston, MA)", "Chris Jazz Cafe (Philadelphia, PA)", "Dimitriou's Jazz Alley (Seattle, WA)"] },
+  { label: "🎸 Blues", value: "Blues", venues: ["Buddy Guy's Legends (Chicago, IL)", "Antone's (Austin, TX)", "Ground Zero Blues Club (Clarksdale, MS)", "Blues City Deli (St. Louis, MO)", "The Rum Boogie Cafe (Memphis, TN)", "B.B. King's Blues Club (Memphis, TN)", "Tin Pan South venues (Nashville, TN)"] },
+  { label: "🤠 Bluegrass / Americana", value: "Bluegrass and Americana", venues: ["Station Inn (Nashville, TN)", "The Birchmere (Alexandria, VA)", "World Cafe Live (Philadelphia, PA)", "The Bluebird Cafe (Nashville, TN)", "Appalachian Power Company (Fayetteville, WV)", "Merlefest (Wilkesboro, NC)", "Grey Fox Bluegrass Festival (Oak Hill, NY)"] },
+  { label: "🙏 Gospel", value: "Gospel and Gospel Soul", venues: ["Abyssinian Baptist Church (New York, NY)", "Greater St. Stephen Full Gospel Church (New Orleans, LA)", "Trinity United Church of Christ (Chicago, IL)", "Ben Hill United Methodist Church (Atlanta, GA)", "St. Augustine's Catholic Church (New Orleans, LA)", "West Angeles Church of God in Christ (Los Angeles, CA)"] },
+  { label: "🌴 Reggae", value: "Reggae", venues: ["Negril Village (New York, NY)", "The Reggae Lounge (Miami, FL)", "Riddims (Atlanta, GA)", "Ackee Bamboo Jamaican Cuisine (Chicago, IL)", "The Rasta Bar (Los Angeles, CA)", "Reggae on the River (Humboldt County, CA)", "Island Noodles (Philadelphia, PA)"] },
+  { label: "🪗 Cajun / Zydeco", value: "Cajun and Zydeco", venues: ["Tipitina's (New Orleans, LA)", "Rock 'n' Bowl (New Orleans, LA)", "Maple Leaf Bar (New Orleans, LA)", "Cafe des Amis (Breaux Bridge, LA)", "Richard's Club (Lawtell, LA)", "Mid-City Lanes Rock 'n' Bowl (New Orleans, LA)"] },
+  { label: "💃 Flamenco", value: "Flamenco", venues: ["Tablao Flamenco (Chicago, IL)", "Casa Flamenca (Albuquerque, NM)", "La Peña Cultural Center (Berkeley, CA)", "Gitano (New York, NY)", "El Flamenco Live (Miami, FL)", "Museo del Barrio (New York, NY)"] },
+  { label: "🎶 Indian / Bollywood", value: "Indian Classical and Bollywood", venues: ["India Cultural Center (multiple cities)", "Baroda Restaurant (Philadelphia, PA)", "Asha Bhosle Concert venues", "Mirage Banquet Hall (Chicago, IL)", "Bollywood Groove venues (Seattle, WA)", "India House (Houston, TX)", "South Asian Arts (San Francisco, CA)"] },
+  { label: "🥁 Afrobeat", value: "Afrobeat", venues: ["SOBs Sounds of Brazil (New York, NY)", "Afro Lounge (Atlanta, GA)", "The Shrine (New York, NY)", "African Cultural Center (Philadelphia, PA)", "Afrikiko Riverside Restaurant (Houston, TX)", "Calabar Imports (Chicago, IL)", "Mama Africa (Washington, DC)"] },
+  { label: "🎻 Klezmer / Jewish", value: "Klezmer and Jewish music", venues: ["Yiddish New York venues", "Workmen's Circle (New York, NY)", "KlezKanada (Montreal, QC)", "Philadelphia Klezmer Project venues", "Idelsohn Society venues", "92nd Street Y (New York, NY)", "The Fringe Bar (Philadelphia, PA)"] },
+  { label: "🫒 Greek / Mediterranean", value: "Greek and Mediterranean", venues: ["Taverna Opa (multiple cities)", "Zorba's (Philadelphia, PA)", "Greek American Social Club venues", "Hellenic Center (Chicago, IL)", "Estiatorio Milos (New York, NY)", "Santorini by Georgios (Atlanta, GA)", "Mediterranean Festival venues"] },
+  { label: "🎤 Hip-Hop / R&B", value: "Hip-Hop and R&B", venues: ["Apollo Theater (New York, NY)", "Howard Theatre (Washington, DC)", "The Fillmore (multiple cities)", "The Peppermint Club (Los Angeles, CA)", "City Winery (multiple cities)", "The Met Philadelphia (Philadelphia, PA)", "House of Blues (multiple cities)"] },
 ];
 const SYSTEM_PROMPT = `You are a live music event finder. Find live music events near the exact location given. Return ONLY a JSON array with up to 6 results. Each item: { band, venue, date, time, genre, address, tickets, notes, venueBio, bandBio, confidence }. confidence is "high" or "medium". Never return Unknown. Never default to West Chester PA unless asked. Do NOT include Pietro's Prime or Station 142. Return ONLY valid JSON.`;
 
@@ -250,6 +250,8 @@ export default function App() {
     const day = d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
     if (f === "Today") return `today only, ${day}`;
     if (f === "This Weekend") return `this weekend (Saturday and Sunday)`;
+    if (f === "Next 3 Months") return `the next 3 months starting ${day} — include upcoming concerts, shows, and events`;
+    if (f === "Next 6 Months") return `the next 6 months starting ${day} — include upcoming concerts, shows, and events`;
     return `the next 7 days starting ${day}`;
   };
 
@@ -327,7 +329,7 @@ export default function App() {
     findLocalVenues(sq, radius);
     if (wc) { setResults([]); setLoading(false); return; }
     try {
-      const res = await fetch("/api/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ system: SYSTEM_PROMPT, messages: [{ role: "user", content: `Find live music near: "${sq}" for ${getDateRange(dateFilter)}.${cultures.length > 0 ? " Focus specifically on " + cultures.join(" and ") + " music and cultural venues." : ""}` }] }) });
+      const res = await fetch("/api/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ system: SYSTEM_PROMPT, messages: [{ role: "user", content: `Find live music near: "${sq}" for ${getDateRange(dateFilter)}.${cultures.length > 0 ? " Focus specifically on " + cultures.join(" and ") + " music and cultural venues. Known cultural venues for this style include: " + CULTURES.filter(c => cultures.includes(c.value)).flatMap(c => c.venues).join(", ") + " — prioritize these and similar venues in or near the searched location." : ""}` }] }) });
       const data = await res.json();
       if (data.error) { setError(data.error.message); return; }
       const tb = data.content?.find(b => b.type === "text");
