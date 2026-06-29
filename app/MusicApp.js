@@ -27,7 +27,7 @@ const quickHasFeaturedVenue = (sq) => {
     if (sl.includes("19382") || sl.includes("west chester")) return al.includes("19382") || al.includes("west chester");
     if (sl.includes("18347") || sl.includes("pocono lake")) return al.includes("18347") || al.includes("pocono lake");
     if (sl.includes("chicago")) return al.includes("chicago");
-    if (sl.includes("philadelphia") || sl.includes("19119")) return al.includes("philadelphia") || al.includes("19119");
+    if (sl.includes("19119") || sl.includes("philadelphia")) return al.includes("19119") || al.includes("philadelphia");
     return false;
   });
 };
@@ -37,7 +37,7 @@ const FEATURED_BANDS = [
 
 const DATE_FILTERS = ["Today","This Weekend","Next 7 Days","Next 3 Months","Next 6 Months"];
 const RADIUS_OPTIONS = [5,10,20,50];
-const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA","Los Angeles, CA","Chicago, IL","Miami, FL","Dallas, TX","Seattle, WA"];
+const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","19119 (Philadelphia)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA","Los Angeles, CA","Chicago, IL","Miami, FL","Dallas, TX","Seattle, WA"];
 const CULTURES = [
   { label: "🍀 Irish / Celtic", value: "Irish and Celtic", venues: ["Commodore John Barry Arts & Cultural Center (Philadelphia, PA)", "The Irish Pub (Philadelphia, PA)", "Rí Rá Irish Pub (multiple cities)", "Fado Irish Pub (multiple cities)", "The Plough and the Stars (San Francisco, CA)", "Celtic Junction Arts Center (St. Paul, MN)", "The Burren (Somerville, MA)"] },
   { label: "💃 Latin / Salsa", value: "Latin and Salsa", venues: ["Guantanamera (New York, NY)", "SOBs Sounds of Brazil (New York, NY)", "Cafe La Trova (Miami, FL)", "La Descarga (Los Angeles, CA)", "Havana Social Club (Chicago, IL)", "Salsa Con Fuego (Philadelphia, PA)", "Cascabel (Houston, TX)"] },
@@ -435,12 +435,13 @@ export default function App() {
         alignItems: "center",
         justifyContent: "space-between",
         boxShadow: "0 2px 12px rgba(232,93,4,0.45)",
+        overflow: "hidden",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 22 }}>🎵</span>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.3px" }}>BBK Music Seeker</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.8)", letterSpacing: "1.5px", textTransform: "uppercase", marginTop: 1 }}>Find live music anywhere</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.3px", whiteSpace: "nowrap" }}>BBK Music Seeker</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.8)", letterSpacing: "1.5px", textTransform: "uppercase", marginTop: 1, whiteSpace: "nowrap" }}>Find live music anywhere</div>
           </div>
         </div>
         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", fontStyle: "italic" }}>locallivemusic.ai</div>
@@ -478,6 +479,9 @@ export default function App() {
           {RADIUS_OPTIONS.map(r => (<button key={r} style={btn(radius === r)} onClick={() => setRadius(r)}>{r} mi</button>))}
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: "1.25rem" }}>
+          <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 6 }}>
+            ⭐ Locations with Featured Venues
+          </div>
           {QUICK.filter(sq => quickHasFeaturedVenue(sq)).map(sq => (
             <button key={sq} onClick={() => { setActiveQuick(sq); setQuery(sq); search(sq); }}
               style={{ fontSize: 11, padding: "5px 14px", borderRadius: 99, border: "1.5px solid #e85d04", background: activeQuick === sq ? "#e85d04" : "transparent", color: activeQuick === sq ? "#fff" : "#e85d04", cursor: "pointer", fontWeight: activeQuick === sq ? 600 : 400 }}>
@@ -618,7 +622,7 @@ export default function App() {
             <button
               onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); document.querySelector("input[placeholder*='Zip code']")?.focus(); }}
               style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 99, background: "linear-gradient(135deg,#e85d04,#c44a00)", color: "#fff", border: "none", cursor: "pointer", boxShadow: "0 2px 8px rgba(232,93,4,0.35)", letterSpacing: "0.3px", marginBottom: 16, display: "block" }}>
-              🎵 Start Your Search
+              🎵 Start Your Live Music Search
             </button>
             <h1 style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", margin: "0 0 8px" }}>Find Live Music Near You — Tonight or Any Night</h1>
             <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.7, margin: "0 0 16px" }}>
@@ -743,7 +747,7 @@ export default function App() {
                     if (sl.includes("19382") || sl.includes("west chester") || sl.includes("westchester")) return al.includes("19382") || al.includes("west chester");
                     if (sl.includes("18347") || sl.includes("pocono lake")) return al.includes("18347") || al.includes("pocono lake");
                     if (sl.includes("chicago")) return al.toLowerCase().includes("chicago");
-                    if (v.name === "Commodore John Barry Arts & Cultural Center") return cultures.includes("Irish and Celtic") || sl.includes("philadelphia") || sl.includes("19119") || sl.includes("mt. airy") || sl.includes("mt airy");
+                    if (v.name === "Commodore John Barry Arts & Cultural Center") return cultures.includes("Irish and Celtic") || sl.includes("19119") || sl.includes("philadelphia") || sl.includes("mt. airy") || sl.includes("mt airy");
                     return false;
                   }).map((v, i) => {
                     const key = v.website || v.name;
