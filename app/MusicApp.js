@@ -625,9 +625,14 @@ ${venueMsg}`)}`;
         <div style={{ background: "#fff", padding: "0 1.5rem 1.5rem", borderTop: "1px solid #f1f5f9" }}>
 
           {/* Intro */}
-          <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 24, paddingTop: "1.25rem" }}>
+            <button
+              onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); document.querySelector("input[placeholder*='Zip code']")?.focus(); }}
+              style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 99, background: "linear-gradient(135deg,#e85d04,#c44a00)", color: "#fff", border: "none", cursor: "pointer", boxShadow: "0 2px 8px rgba(232,93,4,0.35)", letterSpacing: "0.3px", marginBottom: 16, display: "block" }}>
+              🎵 Start Your Search
+            </button>
             <h1 style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", margin: "0 0 8px" }}>Find Live Music Near You — Tonight or Any Night</h1>
-            <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.7, margin: "0 0 12px" }}>
+            <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.7, margin: "0 0 16px" }}>
               BBK Music Seeker helps you discover live music events at bars, restaurants, clubs, and venues in your neighborhood.
               Whether you're looking for jazz on a Tuesday, a cover band this weekend, or acoustic sets at a local restaurant —
               just enter your zip code or city and we'll find what's playing near you. Looking for your favorite band on tour?
@@ -636,10 +641,43 @@ ${venueMsg}`)}`;
               from Philadelphia and Chicago to Los Angeles and everywhere in between.
             </p>
             <button
-              onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); document.querySelector("input[placeholder*='Zip code']")?.focus(); }}
-              style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 99, background: "linear-gradient(135deg,#e85d04,#c44a00)", color: "#fff", border: "none", cursor: "pointer", boxShadow: "0 2px 8px rgba(232,93,4,0.35)", letterSpacing: "0.3px" }}>
-              🎵 Start Finding Music
+              onClick={() => setShowVenueForm(f => !f)}
+              style={{ fontSize: 12, fontWeight: 600, padding: "8px 18px", borderRadius: 99, background: "#eff6ff", color: "#0369a1", border: "1.5px solid #bfdbfe", cursor: "pointer", letterSpacing: "0.2px" }}>
+              🏛️ Get Your Venue Listed
             </button>
+            {showVenueForm && !venueSent && (
+              <div style={{ marginTop: 12, background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 12, padding: "14px 16px" }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: "#1e3a5f", margin: "0 0 10px" }}>🏛️ Submit a Venue</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <input value={venueName} onChange={e => setVenueName(e.target.value)} placeholder="Venue name" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none" }} />
+                  <input value={venueAddress} onChange={e => setVenueAddress(e.target.value)} placeholder="Address" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none" }} />
+                  <input value={venueWebsite} onChange={e => setVenueWebsite(e.target.value)} placeholder="Website or social media URL" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none" }} />
+                  <input value={venueContactName} onChange={e => setVenueContactName(e.target.value)} placeholder="Your name" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none" }} />
+                  <input value={venueContactEmail} onChange={e => setVenueContactEmail(e.target.value)} placeholder="Your email" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none" }} />
+                  <textarea value={venueMsg} onChange={e => setVenueMsg(e.target.value)} placeholder="Tell us about the venue — music genres, nights, vibe…" rows={3} style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none", resize: "vertical" }} />
+                  <button
+                    onClick={() => {
+                      if (!venueContactEmail || !venueName) return;
+                      const mailto = `mailto:brian@locallivemusic.ai?subject=Venue Listing Request: ${encodeURIComponent(venueName)}&body=${encodeURIComponent(`Venue: ${venueName}
+Address: ${venueAddress}
+Website: ${venueWebsite}
+Submitted by: ${venueContactName} (${venueContactEmail})
+
+${venueMsg}`)}`;
+                      window.location.href = mailto;
+                      setVenueSent(true);
+                    }}
+                    style={{ fontSize: 12, padding: "8px 16px", borderRadius: 8, background: "#0369a1", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600, alignSelf: "flex-start" }}>
+                    Send Request
+                  </button>
+                </div>
+              </div>
+            )}
+            {venueSent && (
+              <div style={{ marginTop: 10, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "10px 14px", fontSize: 12, color: "#166534" }}>
+                ✅ Thanks! We'll look into adding this venue.
+              </div>
+            )}
           </div>
 
           {/* How It Works */}
