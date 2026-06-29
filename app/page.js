@@ -7,28 +7,21 @@ export default function Page() {
     <>
       {/* ── Static SEO content (server-rendered, crawlable by Google) ── */}
       <div
-        aria-hidden="true"
         style={{
-          visibility: "hidden",
-          height: 0,
-          overflow: "hidden",
-          margin: 0,
-          padding: 0,
+          maxWidth: 700,
+          margin: "0 auto",
+          padding: "1.25rem 1.5rem 0",
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         }}
       >
         <header style={{ marginBottom: "1.5rem" }}>
           <h1
             style={{
-              fontSize: "1.1rem",
+              fontSize: "1rem",
               fontWeight: 700,
               color: "#0f172a",
               margin: "0 0 0.5rem",
               lineHeight: 1.3,
-              position: "absolute",
-              left: "-9999px",
-              width: 1,
-              height: 1,
-              overflow: "hidden",
             }}
           >
             BBK Music Seeker — Find Live Music Near You
