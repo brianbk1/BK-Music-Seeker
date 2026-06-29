@@ -162,6 +162,7 @@ const EVENT_PAGES = {
   "Saloon 151":             "https://www.saloon151.com/events-catering-1",
   "Stone Tavern":           "https://www.thestonetavern1867.com/events",
   "The Stone Tavern":       "https://www.thestonetavern1867.com/events",
+  "Commodore John Barry Arts & Cultural Center": "https://theirishcenter.org/irish-center-events-calendar/",
 };
 
 export async function POST(req) {

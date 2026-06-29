@@ -436,6 +436,7 @@ export default function App() {
         justifyContent: "space-between",
         boxShadow: "0 2px 12px rgba(232,93,4,0.45)",
         overflow: "hidden",
+        minHeight: 52,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 22 }}>🎵</span>
@@ -471,6 +472,15 @@ export default function App() {
             {loading ? "…" : "Search"}
           </button>
         </div>
+        {results === null && !loading && (
+          <div style={{ marginBottom: 10 }}>
+            <button
+              onClick={() => { document.querySelector("input[placeholder*='Zip code']")?.focus(); }}
+              style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 99, background: "linear-gradient(135deg,#e85d04,#c44a00)", color: "#fff", border: "none", cursor: "pointer", boxShadow: "0 2px 8px rgba(232,93,4,0.35)", letterSpacing: "0.3px" }}>
+              🎵 Start Your Live Music Search
+            </button>
+          </div>
+        )}
         <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
           {DATE_FILTERS.map(f => (<button key={f} style={btn(dateFilter === f)} onClick={() => setDateFilter(f)}>{f}</button>))}
         </div>
@@ -619,11 +629,7 @@ export default function App() {
 
           {/* Intro */}
           <div style={{ marginBottom: 24, paddingTop: "1.25rem" }}>
-            <button
-              onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); document.querySelector("input[placeholder*='Zip code']")?.focus(); }}
-              style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 99, background: "linear-gradient(135deg,#e85d04,#c44a00)", color: "#fff", border: "none", cursor: "pointer", boxShadow: "0 2px 8px rgba(232,93,4,0.35)", letterSpacing: "0.3px", marginBottom: 16, display: "block" }}>
-              🎵 Start Your Live Music Search
-            </button>
+
             <h1 style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", margin: "0 0 8px" }}>Find Live Music Near You — Tonight or Any Night</h1>
             <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.7, margin: "0 0 16px" }}>
               BBK Music Seeker helps you discover live music events at bars, restaurants, clubs, and venues in your neighborhood.
