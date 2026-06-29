@@ -8,11 +8,12 @@ export default function Page() {
       {/* ── Static SEO content (server-rendered, crawlable by Google) ── */}
       <div
         style={{
-          maxWidth: 800,
-          margin: "0 auto",
-          padding: "2rem 1rem 0",
-          fontFamily:
-            "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+          position: "absolute",
+          left: "-9999px",
+          width: 1,
+          height: 1,
+          overflow: "hidden",
+          pointerEvents: "none",
         }}
       >
         <header style={{ marginBottom: "1.5rem" }}>
