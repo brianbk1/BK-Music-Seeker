@@ -530,14 +530,11 @@ export default function App() {
                 <input value={contactBand} onChange={e => setContactBand(e.target.value)} placeholder="Band or artist name" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #fed7aa", outline: "none" }} />
                 <textarea value={contactMsg} onChange={e => setContactMsg(e.target.value)} placeholder="Tell us about your music, genre, where you play…" rows={3} style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #fed7aa", outline: "none", resize: "vertical" }} />
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     if (!contactEmail || !contactBand) return;
-                    const mailto = `mailto:brian@locallivemusic.ai?subject=Band Listing Request: ${encodeURIComponent(contactBand)}&body=${encodeURIComponent(`Name: ${contactName}
-Email: ${contactEmail}
-Band: ${contactBand}
-
-${contactMsg}`)}`;
-                    window.location.href = mailto;
+                    await fetch("https://formspree.io/f/xnjkzbkl", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ _subject: `Band Listing Request: ${contactBand}`, name: contactName, email: contactEmail, band: contactBand, message: contactMsg }) });
+                    setContactSent(true);
+                  }}
                     setContactSent(true);
                   }}
                   style={{ fontSize: 12, padding: "8px 16px", borderRadius: 8, background: "#e85d04", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600, alignSelf: "flex-start" }}>
@@ -569,15 +566,11 @@ ${contactMsg}`)}`;
                   <input value={venueContactEmail} onChange={e => setVenueContactEmail(e.target.value)} placeholder="Your email" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none" }} />
                   <textarea value={venueMsg} onChange={e => setVenueMsg(e.target.value)} placeholder="Tell us about the venue — music genres, nights, vibe…" rows={3} style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none", resize: "vertical" }} />
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (!venueContactEmail || !venueName) return;
-                      const mailto = `mailto:brian@locallivemusic.ai?subject=Venue Listing Request: ${encodeURIComponent(venueName)}&body=${encodeURIComponent(`Venue: ${venueName}
-Address: ${venueAddress}
-Website: ${venueWebsite}
-Submitted by: ${venueContactName} (${venueContactEmail})
-
-${venueMsg}`)}`;
-                      window.location.href = mailto;
+                      await fetch("https://formspree.io/f/xnjkzbkl", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ _subject: `Venue Listing Request: ${venueName}`, venue: venueName, address: venueAddress, website: venueWebsite, name: venueContactName, email: venueContactEmail, message: venueMsg }) });
+                      setVenueSent(true);
+                    }}
                       setVenueSent(true);
                     }}
                     style={{ fontSize: 12, padding: "8px 16px", borderRadius: 8, background: "#0369a1", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600, alignSelf: "flex-start" }}>
@@ -656,15 +649,11 @@ ${venueMsg}`)}`;
                   <input value={venueContactEmail} onChange={e => setVenueContactEmail(e.target.value)} placeholder="Your email" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none" }} />
                   <textarea value={venueMsg} onChange={e => setVenueMsg(e.target.value)} placeholder="Tell us about the venue — music genres, nights, vibe…" rows={3} style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none", resize: "vertical" }} />
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (!venueContactEmail || !venueName) return;
-                      const mailto = `mailto:brian@locallivemusic.ai?subject=Venue Listing Request: ${encodeURIComponent(venueName)}&body=${encodeURIComponent(`Venue: ${venueName}
-Address: ${venueAddress}
-Website: ${venueWebsite}
-Submitted by: ${venueContactName} (${venueContactEmail})
-
-${venueMsg}`)}`;
-                      window.location.href = mailto;
+                      await fetch("https://formspree.io/f/xnjkzbkl", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ _subject: `Venue Listing Request: ${venueName}`, venue: venueName, address: venueAddress, website: venueWebsite, name: venueContactName, email: venueContactEmail, message: venueMsg }) });
+                      setVenueSent(true);
+                    }}
                       setVenueSent(true);
                     }}
                     style={{ fontSize: 12, padding: "8px 16px", borderRadius: 8, background: "#0369a1", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600, alignSelf: "flex-start" }}>
