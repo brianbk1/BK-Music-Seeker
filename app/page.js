@@ -18,11 +18,16 @@ export default function Page() {
         <header style={{ marginBottom: "1.5rem" }}>
           <h1
             style={{
-              fontSize: "clamp(1.5rem, 4vw, 2.25rem)",
-              fontWeight: 800,
+              fontSize: "1.1rem",
+              fontWeight: 700,
               color: "#0f172a",
               margin: "0 0 0.5rem",
-              lineHeight: 1.2,
+              lineHeight: 1.3,
+              position: "absolute",
+              left: "-9999px",
+              width: 1,
+              height: 1,
+              overflow: "hidden",
             }}
           >
             BBK Music Seeker — Find Live Music Near You
