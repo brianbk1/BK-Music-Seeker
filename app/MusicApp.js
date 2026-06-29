@@ -18,6 +18,23 @@ const FEATURED_VENUES = [
 
 const WC_ZIPS = ["19380","19381","19382","19383","18347","19119","pocono lake","west chester","westchester","chicago","philadelphia"];
 const isWC = (q) => q && WC_ZIPS.some(z => q.toLowerCase().includes(z));
+
+// Returns true if at least one FEATURED_VENUE matches this quick-pick location
+const quickHasFeaturedVenue = (sq) => {
+  const sl = sq.toLowerCase();
+  return FEATURED_VENUES.some(v => {
+    const al = v.address.toLowerCase();
+    if (sl.includes("19382") || sl.includes("west chester")) return al.includes("19382") || al.includes("west chester");
+    if (sl.includes("18347") || sl.includes("pocono lake")) return al.includes("18347") || al.includes("pocono lake");
+    if (sl.includes("chicago")) return al.includes("chicago");
+    if (sl.includes("philadelphia") || sl.includes("19119")) return al.includes("philadelphia") || al.includes("19119");
+    return false;
+  });
+};
+const FEATURED_BANDS = [
+  { name: "Nathan Carter", genre: "Irish Country", instagram: "https://www.instagram.com/nathancartermusic/", bandsintown: "https://www.bandsintown.com/a/nathan-carter", website: "https://www.nathancartermusic.com" },
+];
+
 const DATE_FILTERS = ["Today","This Weekend","Next 7 Days","Next 3 Months","Next 6 Months"];
 const RADIUS_OPTIONS = [5,10,20,50];
 const QUICK = ["19382 (West Chester)","18347 (Pocono Lake)","Sea Isle, NJ","Kennett Square, PA","Malvern, PA","Phoenixville, PA","Los Angeles, CA","Chicago, IL","Miami, FL","Dallas, TX","Seattle, WA"];
@@ -218,6 +235,21 @@ export default function App() {
   const [dateFilter, setDateFilter] = useState("Next 7 Days");
   const [radius, setRadius] = useState(10);
   const [cultures, setCultures] = useState([]);
+  const [bandSearch, setBandSearch] = useState("");
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactBand, setContactBand] = useState("");
+  const [contactMsg, setContactMsg] = useState("");
+  const [contactSent, setContactSent] = useState(false);
+  const [showVenueForm, setShowVenueForm] = useState(false);
+  const [venueName, setVenueName] = useState("");
+  const [venueContactName, setVenueContactName] = useState("");
+  const [venueContactEmail, setVenueContactEmail] = useState("");
+  const [venueAddress, setVenueAddress] = useState("");
+  const [venueWebsite, setVenueWebsite] = useState("");
+  const [venueMsg, setVenueMsg] = useState("");
+  const [venueSent, setVenueSent] = useState(false);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -330,7 +362,7 @@ export default function App() {
     findLocalVenues(sq, radius);
     if (wc) { setResults([]); setLoading(false); return; }
     try {
-      const res = await fetch("/api/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ system: SYSTEM_PROMPT, messages: [{ role: "user", content: `Find live music near: "${sq}" for ${getDateRange(dateFilter)}.${cultures.length > 0 ? " Focus specifically on " + cultures.join(" and ") + " music and cultural venues. Known cultural venues for this style include: " + CULTURES.filter(c => cultures.includes(c.value)).flatMap(c => c.venues).join(", ") + " — prioritize these and similar venues in or near the searched location." : ""}` }] }) });
+      const res = await fetch("/api/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ system: SYSTEM_PROMPT, messages: [{ role: "user", content: `Find live music near: "${sq}" for ${getDateRange(dateFilter)}.${bandSearch.trim() ? ` Search specifically for performances by or events featuring "${bandSearch.trim()}".` : ``}${cultures.length > 0 ? " Focus specifically on " + cultures.join(" and ") + " music and cultural venues. Known cultural venues for this style include: " + CULTURES.filter(c => cultures.includes(c.value)).flatMap(c => c.venues).join(", ") + " — prioritize these and similar venues in or near the searched location." : ""}` }] }) });
       const data = await res.json();
       if (data.error) { setError(data.error.message); return; }
       const tb = data.content?.find(b => b.type === "text");
@@ -446,12 +478,120 @@ export default function App() {
           {RADIUS_OPTIONS.map(r => (<button key={r} style={btn(radius === r)} onClick={() => setRadius(r)}>{r} mi</button>))}
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: "1.25rem" }}>
-          {QUICK.map(sq => (
+          {QUICK.filter(sq => quickHasFeaturedVenue(sq)).map(sq => (
             <button key={sq} onClick={() => { setActiveQuick(sq); setQuery(sq); search(sq); }}
               style={{ fontSize: 11, padding: "5px 14px", borderRadius: 99, border: "1.5px solid #e85d04", background: activeQuick === sq ? "#e85d04" : "transparent", color: activeQuick === sq ? "#fff" : "#e85d04", cursor: "pointer", fontWeight: activeQuick === sq ? 600 : 400 }}>
               {sq}
             </button>
           ))}
+        </div>
+
+        {/* Band / Artist Search */}
+        <div style={{ marginBottom: "1.25rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <span style={{ fontSize: 11, color: "#94a3b8", whiteSpace: "nowrap", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>🎸 Find a Band or Artist:</span>
+            {bandSearch && (
+              <button onClick={() => setBandSearch("")}
+                style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, border: "1px solid #e2e8f0", background: "#f1f5f9", color: "#64748b", cursor: "pointer" }}>
+                Clear
+              </button>
+            )}
+          </div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+            <input
+              value={bandSearch}
+              onChange={e => setBandSearch(e.target.value)}
+              placeholder="e.g. Nathan Carter, The Eagles, local jazz trio…"
+              style={{ flex: 1, fontSize: 13, borderRadius: 10, padding: "8px 12px", border: "1px solid #e2e8f0", outline: "none", background: "#f8fafc", color: "#0f172a" }}
+            />
+          </div>
+          {FEATURED_BANDS.length > 0 && (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
+              <span style={{ fontSize: 10, color: "#94a3b8", alignSelf: "center" }}>Featured:</span>
+              {FEATURED_BANDS.map(b => (
+                <button key={b.name}
+                  onClick={() => setBandSearch(b.name)}
+                  style={{ fontSize: 11, padding: "4px 12px", borderRadius: 99, border: `1.5px solid ${bandSearch === b.name ? "#e85d04" : "#e2e8f0"}`, background: bandSearch === b.name ? "#e85d04" : "#f8fafc", color: bandSearch === b.name ? "#fff" : "#475569", cursor: "pointer", fontWeight: bandSearch === b.name ? 600 : 400 }}>
+                  🎵 {b.name} <span style={{ fontSize: 10, opacity: 0.75 }}>({b.genre})</span>
+                </button>
+              ))}
+            </div>
+          )}
+          <button onClick={() => setShowContactForm(f => !f)}
+            style={{ fontSize: 11, color: "#e85d04", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>
+            + Get your band listed here
+          </button>
+          {showContactForm && !contactSent && (
+            <div style={{ marginTop: 10, background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 12, padding: "14px 16px" }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: "#92400e", margin: "0 0 10px" }}>🎶 Submit Your Band</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <input value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Your name" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #fed7aa", outline: "none" }} />
+                <input value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="Your email" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #fed7aa", outline: "none" }} />
+                <input value={contactBand} onChange={e => setContactBand(e.target.value)} placeholder="Band or artist name" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #fed7aa", outline: "none" }} />
+                <textarea value={contactMsg} onChange={e => setContactMsg(e.target.value)} placeholder="Tell us about your music, genre, where you play…" rows={3} style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #fed7aa", outline: "none", resize: "vertical" }} />
+                <button
+                  onClick={() => {
+                    if (!contactEmail || !contactBand) return;
+                    const mailto = `mailto:brian@locallivemusic.ai?subject=Band Listing Request: ${encodeURIComponent(contactBand)}&body=${encodeURIComponent(`Name: ${contactName}
+Email: ${contactEmail}
+Band: ${contactBand}
+
+${contactMsg}`)}`;
+                    window.location.href = mailto;
+                    setContactSent(true);
+                  }}
+                  style={{ fontSize: 12, padding: "8px 16px", borderRadius: 8, background: "#e85d04", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600, alignSelf: "flex-start" }}>
+                  Send Request
+                </button>
+              </div>
+            </div>
+          )}
+          {contactSent && (
+            <div style={{ marginTop: 10, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "10px 14px", fontSize: 12, color: "#166534" }}>
+              ✅ Thanks! We'll be in touch to get your band listed.
+            </div>
+          )}
+
+          {/* Venue Request */}
+          <div style={{ marginTop: 8 }}>
+            <button onClick={() => setShowVenueForm(f => !f)}
+              style={{ fontSize: 11, color: "#0369a1", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>
+              + Request a venue to be added
+            </button>
+            {showVenueForm && !venueSent && (
+              <div style={{ marginTop: 10, background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 12, padding: "14px 16px" }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: "#1e3a5f", margin: "0 0 10px" }}>🏛️ Submit a Venue</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <input value={venueName} onChange={e => setVenueName(e.target.value)} placeholder="Venue name" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none" }} />
+                  <input value={venueAddress} onChange={e => setVenueAddress(e.target.value)} placeholder="Address" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none" }} />
+                  <input value={venueWebsite} onChange={e => setVenueWebsite(e.target.value)} placeholder="Website or social media URL" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none" }} />
+                  <input value={venueContactName} onChange={e => setVenueContactName(e.target.value)} placeholder="Your name" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none" }} />
+                  <input value={venueContactEmail} onChange={e => setVenueContactEmail(e.target.value)} placeholder="Your email" style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none" }} />
+                  <textarea value={venueMsg} onChange={e => setVenueMsg(e.target.value)} placeholder="Tell us about the venue — music genres, nights, vibe…" rows={3} style={{ fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid #bfdbfe", outline: "none", resize: "vertical" }} />
+                  <button
+                    onClick={() => {
+                      if (!venueContactEmail || !venueName) return;
+                      const mailto = `mailto:brian@locallivemusic.ai?subject=Venue Listing Request: ${encodeURIComponent(venueName)}&body=${encodeURIComponent(`Venue: ${venueName}
+Address: ${venueAddress}
+Website: ${venueWebsite}
+Submitted by: ${venueContactName} (${venueContactEmail})
+
+${venueMsg}`)}`;
+                      window.location.href = mailto;
+                      setVenueSent(true);
+                    }}
+                    style={{ fontSize: 12, padding: "8px 16px", borderRadius: 8, background: "#0369a1", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600, alignSelf: "flex-start" }}>
+                    Send Request
+                  </button>
+                </div>
+              </div>
+            )}
+            {venueSent && (
+              <div style={{ marginTop: 10, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "10px 14px", fontSize: 12, color: "#166534" }}>
+                ✅ Thanks! We'll look into adding this venue.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Culture / Genre Filter */}
@@ -487,12 +627,19 @@ export default function App() {
           {/* Intro */}
           <div style={{ marginBottom: 24 }}>
             <h1 style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", margin: "0 0 8px" }}>Find Live Music Near You — Tonight or Any Night</h1>
-            <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.7, margin: 0 }}>
+            <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.7, margin: "0 0 12px" }}>
               BBK Music Seeker helps you discover live music events at bars, restaurants, clubs, and venues in your neighborhood.
-              Whether you're looking for jazz on a Tuesday, a cover band this weekend, or acoustic sets at a local restaurant,
-              just enter your zip code or city and we'll find what's playing near you. We cover hundreds of cities across the US —
+              Whether you're looking for jazz on a Tuesday, a cover band this weekend, or acoustic sets at a local restaurant —
+              just enter your zip code or city and we'll find what's playing near you. Looking for your favorite band on tour?
+              Search by artist name and find every show near you. Into Irish, Latin, Afrobeat, or Klezmer? Use our Cultural Style
+              filter to surface the venues and events that match your roots. We cover hundreds of cities across the US —
               from Philadelphia and Chicago to Los Angeles and everywhere in between.
             </p>
+            <button
+              onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); document.querySelector("input[placeholder*='Zip code']")?.focus(); }}
+              style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 99, background: "linear-gradient(135deg,#e85d04,#c44a00)", color: "#fff", border: "none", cursor: "pointer", boxShadow: "0 2px 8px rgba(232,93,4,0.35)", letterSpacing: "0.3px" }}>
+              🎵 Start Finding Music
+            </button>
           </div>
 
           {/* How It Works */}
