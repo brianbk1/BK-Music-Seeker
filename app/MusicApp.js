@@ -535,8 +535,6 @@ export default function App() {
                     await fetch("https://formspree.io/f/xnjkzbkl", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ _subject: `Band Listing Request: ${contactBand}`, name: contactName, email: contactEmail, band: contactBand, message: contactMsg }) });
                     setContactSent(true);
                   }}
-                    setContactSent(true);
-                  }}
                   style={{ fontSize: 12, padding: "8px 16px", borderRadius: 8, background: "#e85d04", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600, alignSelf: "flex-start" }}>
                   Send Request
                 </button>
@@ -569,8 +567,6 @@ export default function App() {
                     onClick={async () => {
                       if (!venueContactEmail || !venueName) return;
                       await fetch("https://formspree.io/f/xnjkzbkl", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ _subject: `Venue Listing Request: ${venueName}`, venue: venueName, address: venueAddress, website: venueWebsite, name: venueContactName, email: venueContactEmail, message: venueMsg }) });
-                      setVenueSent(true);
-                    }}
                       setVenueSent(true);
                     }}
                     style={{ fontSize: 12, padding: "8px 16px", borderRadius: 8, background: "#0369a1", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600, alignSelf: "flex-start" }}>
@@ -652,8 +648,6 @@ export default function App() {
                     onClick={async () => {
                       if (!venueContactEmail || !venueName) return;
                       await fetch("https://formspree.io/f/xnjkzbkl", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ _subject: `Venue Listing Request: ${venueName}`, venue: venueName, address: venueAddress, website: venueWebsite, name: venueContactName, email: venueContactEmail, message: venueMsg }) });
-                      setVenueSent(true);
-                    }}
                       setVenueSent(true);
                     }}
                     style={{ fontSize: 12, padding: "8px 16px", borderRadius: 8, background: "#0369a1", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600, alignSelf: "flex-start" }}>
