@@ -7,13 +7,13 @@ export default function Page() {
     <>
       {/* ── Static SEO content (server-rendered, crawlable by Google) ── */}
       <div
+        aria-hidden="true"
         style={{
-          position: "absolute",
-          left: "-9999px",
-          width: 1,
-          height: 1,
+          visibility: "hidden",
+          height: 0,
           overflow: "hidden",
-          pointerEvents: "none",
+          margin: 0,
+          padding: 0,
         }}
       >
         <header style={{ marginBottom: "1.5rem" }}>
