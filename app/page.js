@@ -30,9 +30,9 @@ export default function Page() {
             BBK Music Seeker — Find Live Music Near You
           </h1>
           <p style={{ fontSize: "0.9rem", color: "#475569", margin: 0, lineHeight: 1.6 }}>
-            Discover live music happening tonight at bars, restaurants, clubs,
-            and independent venues near you. Search by zip code or city to see
-            who's playing, what time doors open, and how to get tickets — all in one place.
+            Discover live music happening tonight at bars, restaurants, clubs, and independent
+            venues near you. Search by zip code or city, track down your favorite band on tour,
+            or filter by cultural style — Irish, Latin, Jazz, Afrobeat, and more. All in one place.
           </p>
         </header>
 
@@ -41,17 +41,27 @@ export default function Page() {
             How BBK Music Seeker Works
           </h2>
           <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
-            Enter your zip code or city name and BBK Music Seeker searches
-            hundreds of local venues to surface tonight's live performances. We
-            pull schedules directly from venue websites, cross-reference event
-            listings, and use AI to fill in gaps — so you always get the most
+            Enter your zip code or city name and BBK Music Seeker searches hundreds of local venues
+            to surface tonight's live performances. We pull schedules directly from venue websites,
+            cross-reference event listings, and use AI to fill in gaps — so you always get the most
             current information available.
           </p>
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
+            Looking for a specific artist? Use the Band or Artist search to find every upcoming show
+            near you featuring that performer. Into a particular sound? Our Cultural Style filter
+            surfaces Irish and Celtic sessions, Latin and Salsa nights, Afrobeat, Klezmer, Bluegrass,
+            Gospel, Reggae, and more — including featured cultural venues like the Commodore John Barry
+            Arts and Cultural Center in Philadelphia.
+          </p>
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
+            Each result shows the performing artist, venue name and address, set time, genre, and a
+            direct link to buy tickets or make a reservation. Use the date filter to browse tonight,
+            this weekend, the next 7 days, or plan ahead with 3 and 6 month views.
+          </p>
           <p style={{ fontSize: "0.875rem", color: "#475569", margin: 0, lineHeight: 1.6 }}>
-            Each result shows the performing artist, venue name and address,
-            set time, genre, and a direct link to buy tickets or make a
-            reservation. Use the date filter to browse tonight, this weekend,
-            or the next 7 days.
+            Are you a musician or venue owner? Use the <strong>Get Your Band Listed</strong> or{" "}
+            <strong>Request a Venue</strong> links to get featured on BBK Music Seeker and reach
+            fans actively looking for live music near them.
           </p>
         </section>
 
