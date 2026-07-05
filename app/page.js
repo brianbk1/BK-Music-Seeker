@@ -1,4 +1,4 @@
-// Server Component — renders interactive app first, then rich static SEO content for Google AdSense.
+// Server Component — MusicApp first, then rich editorial SEO content for Google AdSense.
 import MusicApp from "./MusicApp";
 
 export default function Page() {
@@ -6,130 +6,171 @@ export default function Page() {
     <>
       <MusicApp />
 
-      {/* ── Rich static content for Google AdSense compliance ── */}
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "2rem 1.5rem 3rem", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", borderTop: "1px solid #e2e8f0" }}>
 
         <h1 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.75rem" }}>
           BBK Music Seeker — Find Live Music Near You Tonight
         </h1>
-        <p style={{ fontSize: "0.9rem", color: "#475569", margin: "0 0 1.5rem", lineHeight: 1.7 }}>
-          BBK Music Seeker is a free AI-powered live music discovery tool that helps you find out who is playing near you tonight, this weekend, or any night you choose. Search by zip code, city, venue name, or restaurant. Filter by date range, distance, cultural music style, or specific band name. Whether you are looking for a jazz quartet at a neighborhood bar, an Irish folk session at a cultural center, or a touring country artist at a regional venue, BBK Music Seeker surfaces live music that most event apps miss entirely.
+        <p style={{ fontSize: "0.9rem", color: "#475569", margin: "0 0 2rem", lineHeight: 1.7 }}>
+          BBK Music Seeker is a free AI-powered live music discovery tool that helps you find who is playing near you tonight, this weekend, or any night. Search by zip code, city, venue name, or artist. Filter by date, distance, cultural style, or band name. Whether you want jazz at a neighborhood bar, an Irish folk session, or a touring country artist at a regional venue, BBK Music Seeker surfaces live music that most event apps miss entirely.
         </p>
 
         <section style={{ marginBottom: "2rem" }}>
           <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.75rem" }}>How to Find Live Music Near You</h2>
           <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            Finding live music used to mean calling venues, checking multiple websites, or scrolling through Facebook events hoping to catch something before it happened. BBK Music Seeker changes that by doing the research for you. Enter any zip code or city name and the app searches venue websites, cross-references public event listings, and uses AI to fill in gaps where schedules are incomplete or hard to find.
-          </p>
-          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            Results show the performing artist or band name, the venue, the address, the start time, and links to buy tickets, make a reservation, or check the venue's social media for last-minute updates. The interface is designed to be fast — most searches return results in under 10 seconds.
+            Enter any zip code or city name and BBK Music Seeker searches venue websites, cross-references public event listings, and uses AI to fill in gaps where schedules are incomplete or hard to find. Results show the performing artist, venue, address, start time, and links to buy tickets or make a reservation.
           </p>
           <p style={{ fontSize: "0.875rem", color: "#475569", margin: 0, lineHeight: 1.7 }}>
-            Use the date filter to narrow results to tonight, this weekend, the next 7 days, or plan further ahead with the 3-month and 6-month views. The distance filter lets you set your search radius to 5, 10, 20, or 50 miles from your location, so you can find music in your immediate neighborhood or discover venues worth a short drive.
+            Use the date filter to narrow results to tonight, this weekend, the next 7 days, or plan ahead with 3-month and 6-month views. The distance filter sets your search radius to 5, 10, 20, or 50 miles.
           </p>
         </section>
 
         <section style={{ marginBottom: "2rem" }}>
           <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.75rem" }}>Search for Your Favorite Band or Artist</h2>
           <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            One of the most useful features of BBK Music Seeker is the Band and Artist search. Instead of searching for venues and hoping your favorite act happens to be playing, you can search the other way around — type in any band or artist name and find every upcoming performance near you featuring that performer.
-          </p>
-          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            This is especially useful for fans of touring regional and national acts. Irish country star Nathan Carter, for example, is currently featured as a highlighted artist on BBK Music Seeker, with his October 30th show at the Commodore John Barry Arts and Cultural Center in Philadelphia already surfacing for users searching the Philadelphia area. As more artists and venues request to be featured, the artist search will grow to cover hundreds of performers across every genre.
-          </p>
-          <p style={{ fontSize: "0.875rem", color: "#475569", margin: 0, lineHeight: 1.7 }}>
-            Musicians and touring artists can request to be added to BBK Music Seeker directly through the app using the Get Your Band Listed form. Submissions go directly to the BBK Music Seeker team for review and listing.
+            Type in any band or artist name and find every upcoming performance near you. Irish country star Nathan Carter is currently featured, with his October 30th show at the Commodore John Barry Arts and Cultural Center in Philadelphia surfacing for users searching the area. Musicians can request to be added through the Get Your Band Listed form.
           </p>
         </section>
 
         <section style={{ marginBottom: "2rem" }}>
           <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.75rem" }}>Find Music by Cultural Style and Genre</h2>
           <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            BBK Music Seeker includes a Cultural Style filter with 14 genre options that let you search for music tied to specific cultural traditions and communities. This feature is designed for music fans who are not just looking for any live music, but for a specific sound, tradition, or cultural experience.
-          </p>
-          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            Available cultural styles include Irish and Celtic, Latin and Salsa, Jazz, Blues, Bluegrass and Americana, Gospel, Reggae, Cajun and Zydeco, Flamenco, Indian Classical and Bollywood, Afrobeat, Klezmer and Jewish music, Greek and Mediterranean, and Hip-Hop and R&amp;B. Selecting one or more styles filters the AI search to prioritize venues, events, and cultural centers associated with that musical tradition.
-          </p>
-          <p style={{ fontSize: "0.875rem", color: "#475569", margin: 0, lineHeight: 1.7 }}>
-            The Cultural Style filter also activates featured venue cards for culturally specific venues. Selecting Irish and Celtic, for example, will surface the Commodore John Barry Arts and Cultural Center at 6815 Emlen Street in Philadelphia as a featured venue, showing their upcoming events calendar including concerts, traditional music sessions, and cultural programming open to the public.
+            14 genre options let you search for music tied to specific cultural traditions: Irish and Celtic, Latin and Salsa, Jazz, Blues, Bluegrass and Americana, Gospel, Reggae, Cajun and Zydeco, Flamenco, Indian Classical and Bollywood, Afrobeat, Klezmer and Jewish music, Greek and Mediterranean, and Hip-Hop and R&amp;B.
           </p>
         </section>
 
         <section style={{ marginBottom: "2rem" }}>
-          <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.75rem" }}>Featured Venues and Live Music Hotspots</h2>
+          <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.75rem" }}>Featured Live Music Venues</h2>
+
+          <h3 style={{ fontSize: "0.875rem", fontWeight: 700, color: "#e85d04", margin: "0 0 0.4rem" }}>West Chester, PA (19382)</h3>
           <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            BBK Music Seeker maintains a curated list of featured venues in areas with strong live music scenes. These venues appear as highlighted cards at the top of search results for their location, showing their known weekly schedule, a button to find this week's specific performers, a Live Vibe section for community ratings and reports, and links to their website, OpenTable reservation system, and social media.
+            Pietro's Prime hosts live music Wed–Sat 7–10pm. Station 142 features local and regional acts Thu–Sat plus karaoke Tuesdays and open mic Thursdays. Brickette Lounge, Slow Hand Food and Drink, Square Bar, and Saloon 151 complete the downtown strip with live music, karaoke, and music bingo throughout the week.
           </p>
 
-          <h3 style={{ fontSize: "0.9rem", fontWeight: 700, color: "#e85d04", margin: "0 0 0.5rem" }}>West Chester, PA — Live Music Every Weekend</h3>
+          <h3 style={{ fontSize: "0.875rem", fontWeight: 700, color: "#e85d04", margin: "0 0 0.4rem" }}>Pocono Lake, PA (18347)</h3>
           <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            Downtown West Chester, Pennsylvania is one of the most active live music destinations in the Philadelphia suburbs. The walkable borough is packed with venues that book live entertainment Wednesday through Saturday every week. Pietro's Prime at 125 West Market Street hosts live music every Wednesday through Saturday from 7 to 10pm. Station 142 at 142 East Market Street features an intimate stage with local and regional acts Thursday through Saturday, plus karaoke on Tuesdays and an open mic on Thursdays. Brickette Lounge offers live music on Friday and Saturday nights along with line dancing events throughout the week. Slow Hand Food and Drink, housed in a converted historic firehouse, features live music every Friday and Saturday at 7pm. Square Bar and Saloon 151 round out the downtown strip with live music, karaoke, and music bingo programming across the week.
+            Nick's Lakehouse, Boulder View Tavern, Murph's Hideaway, and Jubilee offer year-round live music at lakeside bars and mountain taverns in the Pocono Mountains.
           </p>
 
-          <h3 style={{ fontSize: "0.9rem", fontWeight: 700, color: "#e85d04", margin: "0 0 0.5rem" }}>Pocono Lake, PA — Mountain Music at Its Best</h3>
+          <h3 style={{ fontSize: "0.875rem", fontWeight: 700, color: "#e85d04", margin: "0 0 0.4rem" }}>Philadelphia, PA — Commodore John Barry Arts and Cultural Center</h3>
           <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            The Pocono Lake area in the Pocono Mountains of northeastern Pennsylvania has a year-round live music scene centered on lakeside bars and mountain taverns. Featured venues include Nick's Lakehouse, a beloved waterfront bar and grill on the lake with regular live music throughout the summer and fall; Boulder View Tavern, a Pocono institution known for its casual atmosphere and regular live entertainment; Murph's Hideaway, a local favorite for live music and community events; and Jubilee, a popular destination for live music and dining in the mountains. All four venues are featured on BBK Music Seeker with weekly schedule information and performer lookup.
+            Located at 6815 Emlen Street in Mt. Airy, the center hosts Irish and Celtic concerts, traditional music sessions, and cultural events year-round. Nathan Carter performs October 30th — general admission $50, meet-and-greet packages available. Visit <a href="https://theirishcenter.org/irish-center-events-calendar/" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>theirishcenter.org</a> for the full events calendar.
           </p>
 
-          <h3 style={{ fontSize: "0.9rem", fontWeight: 700, color: "#e85d04", margin: "0 0 0.5rem" }}>Philadelphia, PA — Irish and Celtic Music in Mt. Airy</h3>
-          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            The Commodore John Barry Arts and Cultural Center, located at 6815 Emlen Street in the Mt. Airy neighborhood of Philadelphia, is one of the premier Irish and Celtic cultural venues on the East Coast. The center hosts a diverse calendar of live music and cultural events open to the public year-round, including traditional Irish music sessions, Celtic concerts, and performances by both local artists and internationally recognized performers. Upcoming highlights include a concert by Nathan Carter, one of Ireland's top country and folk artists, on Friday October 30th. General admission tickets are $50 and meet-and-greet packages are also available.
-          </p>
-
-          <h3 style={{ fontSize: "0.9rem", fontWeight: 700, color: "#e85d04", margin: "0 0 0.5rem" }}>Chicago, IL — Country and Live Music at Bubb City</h3>
+          <h3 style={{ fontSize: "0.875rem", fontWeight: 700, color: "#e85d04", margin: "0 0 0.4rem" }}>Chicago, IL — Bubb City</h3>
           <p style={{ fontSize: "0.875rem", color: "#475569", margin: 0, lineHeight: 1.7 }}>
-            Bubb City at 435 North Dearborn Street in Chicago is the city's premier destination for country music and live entertainment. The venue draws large crowds for its honky-tonk atmosphere, high-energy live performances, and world-class sound system. BBK Music Seeker features Bubb City as a highlighted venue for Chicago searches, with weekly schedule information and performer lookup available directly in the app.
+            435 North Dearborn Street, Chicago. The city's premier country music and live entertainment destination with world-class performances nightly.
           </p>
         </section>
 
         <section style={{ marginBottom: "2rem" }}>
-          <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.75rem" }}>Live Music in Major Cities Across the US</h2>
-          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            Beyond its featured venue markets, BBK Music Seeker supports live music searches in cities and towns across the entire United States. The app covers hundreds of markets and is designed to surface live music wherever it is happening — from major metropolitan areas to smaller regional towns with active local music scenes.
+          <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.75rem" }}>Live Music Across the US</h2>
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.5rem", lineHeight: 1.7 }}>
+            <strong style={{ color: "#0f172a" }}>Los Angeles:</strong> Sunset Strip clubs, rooftop bars in Silver Lake, intimate acoustic venues in Santa Monica.
           </p>
-          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            <strong style={{ color: "#0f172a" }}>Los Angeles, CA:</strong> LA's live music scene spans legendary Sunset Strip clubs, rooftop bars in Silver Lake, intimate acoustic venues in Santa Monica, and everything in between. Search any LA neighborhood zip code to find what is playing near you tonight.
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.5rem", lineHeight: 1.7 }}>
+            <strong style={{ color: "#0f172a" }}>Miami:</strong> Latin rhythms, jazz, and hip-hop across Little Havana, Wynwood, and South Beach every night of the week.
           </p>
-          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            <strong style={{ color: "#0f172a" }}>Miami, FL:</strong> Miami's music scene is driven by Latin rhythms, jazz, electronic, and hip-hop. From Little Havana to Wynwood to South Beach, live music is happening every night of the week across dozens of clubs, bars, and cultural venues.
-          </p>
-          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            <strong style={{ color: "#0f172a" }}>Dallas, TX:</strong> Deep Ellum is Dallas's legendary live music and arts district, hosting blues, country, rock, and jazz acts nightly across dozens of clubs and bars. BBK Music Seeker covers Deep Ellum and the broader Dallas metro area.
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.5rem", lineHeight: 1.7 }}>
+            <strong style={{ color: "#0f172a" }}>Dallas:</strong> Deep Ellum's legendary blues, country, rock, and jazz clubs across the broader Dallas metro.
           </p>
           <p style={{ fontSize: "0.875rem", color: "#475569", margin: 0, lineHeight: 1.7 }}>
-            <strong style={{ color: "#0f172a" }}>Seattle, WA:</strong> From grunge to indie rock to jazz, Seattle's music legacy lives on in clubs across Capitol Hill, Ballard, and Belltown. Search Seattle to find live music from local acts and national touring artists playing the city's many renowned venues.
+            <strong style={{ color: "#0f172a" }}>Seattle:</strong> Grunge to indie to jazz across Capitol Hill, Ballard, and Belltown — local acts and national touring artists.
           </p>
+        </section>
+
+        <hr style={{ border: "none", borderTop: "1px solid #e2e8f0", margin: "2rem 0" }} />
+
+        <section style={{ marginBottom: "2rem" }}>
+          <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.75rem" }}>Why Music Is Good for the Soul</h2>
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
+            The connection between music and human wellbeing is one of the most well-documented relationships in science. Research published in 2025 by <a href="https://www.healthline.com/health/benefits-of-music" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Healthline</a> found that listening to music triggers the release of dopamine — the brain's natural reward chemical — along with stress hormones like cortisol that help regulate emotional response. A 2025 systematic review in <a href="https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2025.1608508/full" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Frontiers in Psychology</a> concluded that music-based interventions significantly improve subjective wellbeing across both clinical and non-clinical populations.
+          </p>
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
+            According to the <a href="https://www.menningerclinic.org/news-resources/exploring-the-mental-health-benefits-of-music" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Menninger Clinic</a>, listening to music for just 50 minutes a week can raise levels of disease-fighting antibodies and improve mental health. The <a href="https://www.psychiatry.org/news-room/apa-blogs/power-of-music-in-mental-well-being" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>American Psychiatric Association</a> notes that music engagement plays a measurable role in mood regulation and can be used to address serious mental health and substance use disorders.
+          </p>
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
+            The <a href="https://globalwellnessinstitute.org/global-wellness-institute-blog/2025/04/02/music-for-health-and-wellbeing-initiative-trends-for-2025/" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Global Wellness Institute</a> reported in 2025 that academic interest in music and health has tripled over the past decade, with PubMed showing a threefold increase in "music and health" research publications from 2014 to 2024. Among those surveyed, 57% reported that music improves their overall mental wellbeing.
+          </p>
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
+            But beyond the clinical data, anyone who has stood in a crowd at a live show knows something the research is only beginning to quantify — music experienced together, in the same room, with strangers who become temporary community, does something that headphones and playlists cannot replicate. Live music lowers the barrier between people. It creates shared memory in real time. It is one of the last experiences in modern life that is genuinely communal, unfiltered, and happening only once.
+          </p>
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: 0, lineHeight: 1.7 }}>
+            That is why finding live music near you matters. Not just for the music itself, but for what live music does to us — and for each other — when we are in the same room to hear it.
+          </p>
+        </section>
+
+        <section style={{ marginBottom: "2rem" }}>
+          <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.75rem" }}>A Brief History of Live Music in America</h2>
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
+            Live music performance has roots going back to the earliest human communities, but the American live music tradition as we know it today grew directly out of the African American experience in the Deep South. As documented by the <a href="https://blogs.loc.gov/folklife/2017/02/birth-of-blues-and-jazz/" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Library of Congress</a>, blues music emerged from the spirituals, work songs, and field hollers of enslaved people in the 19th century, evolving through the juke joints of the Mississippi Delta into one of the first wholly American musical forms to achieve worldwide recognition.
+          </p>
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
+            In the early 20th century, jazz developed in New Orleans from a collision of blues, ragtime, brass band music, and the city's uniquely multicultural street culture. As <a href="https://hub.yamaha.com/brand/b-history/the-history-of-musical-genres-part-2-blues-and-jazz/" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Yamaha Music</a> describes it, the result was "an improvised sound that, within a few years, would captivate the nation." Jazz moved from New Orleans to Chicago, New York, and beyond, transforming bars and dance halls along the way. In January 1938, Benny Goodman's Carnegie Hall performance — the first major jazz concert by an integrated band — became a landmark moment in American cultural history.
+          </p>
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
+            The 1950s brought rock and roll, born from the fusion of country, blues, and swing, as documented in the <a href="https://www.howwegettonext.com/the-history-and-future-of-live-music/" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>History of Live Music</a>. The modern concert format emerged in the 1960s when American promoter Bill Graham introduced advance ticketing, modern security measures, and the infrastructure that made large-scale live music commercially viable. The 1969 Woodstock Festival — attended by over 400,000 people — became the defining cultural event of its era and set the template for music festivals that continue today.
+          </p>
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: 0, lineHeight: 1.7 }}>
+            From the Chicago blues bars that gave birth to rock and roll to the intimate West Chester venues where local musicians play every weekend, live music has always been the way communities process joy, grief, identity, and belonging. Every live show happening near you tonight is part of that continuum — something that has been going on, in one form or another, for as long as humans have been human.
+          </p>
+        </section>
+
+        <section style={{ marginBottom: "2rem" }}>
+          <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.75rem" }}>Music Resources, News, and Blogs Worth Following</h2>
+          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 1rem", lineHeight: 1.7 }}>
+            Staying connected to the live music world means knowing where to look. These are some of the best music news sources, blogs, and discovery tools available in 2025:
+          </p>
+
+          <h3 style={{ fontSize: "0.875rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.5rem" }}>Music News and Reviews</h3>
+          <ul style={{ fontSize: "0.875rem", color: "#475569", lineHeight: 2, margin: "0 0 1rem", paddingLeft: "1.25rem" }}>
+            <li><a href="https://pitchfork.com" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Pitchfork</a> — one of the most influential sources for album reviews, artist profiles, and music news across every genre</li>
+            <li><a href="https://www.rollingstone.com/music/" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Rolling Stone Music</a> — iconic coverage of popular music, touring artists, and industry news since 1967</li>
+            <li><a href="https://stereogum.com" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Stereogum</a> — indie music criticism, album reviews, and breaking news with sharp editorial voice since 2002</li>
+            <li><a href="https://www.brooklynvegan.com" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>BrooklynVegan</a> — live music coverage, concert reviews, and tour announcements for indie rock, punk, metal, and hip-hop</li>
+            <li><a href="https://consequenceofsound.net" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Consequence of Sound</a> — festival news, music reviews, and industry coverage with broad genre reach</li>
+          </ul>
+
+          <h3 style={{ fontSize: "0.875rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.5rem" }}>Live Music Specific</h3>
+          <ul style={{ fontSize: "0.875rem", color: "#475569", lineHeight: 2, margin: "0 0 1rem", paddingLeft: "1.25rem" }}>
+            <li><a href="https://liveforlivemusic.com" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Live For Live Music</a> — breaking news, tour announcements, show recaps, and features focused exclusively on the live music experience</li>
+            <li><a href="https://livemusicblog.com" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Live Music Blog</a> — concert reviews, tour news, and artist coverage for the dedicated live music fan</li>
+            <li><a href="https://relix.com" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Relix</a> — covering the jam band and live music scene with deep artist interviews and festival coverage</li>
+            <li><a href="https://www.nugs.net/blog/" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Nugs.net Blog</a> — live music news, exclusive interviews, and concert recordings from major touring artists</li>
+          </ul>
+
+          <h3 style={{ fontSize: "0.875rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.5rem" }}>Concert Listings and Ticket Discovery</h3>
+          <ul style={{ fontSize: "0.875rem", color: "#475569", lineHeight: 2, margin: "0 0 1rem", paddingLeft: "1.25rem" }}>
+            <li><a href="https://www.bandsintown.com" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Bandsintown</a> — follow your favorite artists and get notified when they tour near you</li>
+            <li><a href="https://www.songkick.com" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Songkick</a> — concert discovery and ticket purchasing for venues of all sizes</li>
+            <li><a href="https://www.setlist.fm" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Setlist.fm</a> — community-sourced setlists from concerts worldwide, useful for seeing what artists are playing on their current tour</li>
+          </ul>
+
+          <h3 style={{ fontSize: "0.875rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.5rem" }}>Music History and Education</h3>
+          <ul style={{ fontSize: "0.875rem", color: "#475569", lineHeight: 2, margin: "0 0 0", paddingLeft: "1.25rem" }}>
+            <li><a href="https://timeline.carnegiehall.org" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Carnegie Hall Timeline</a> — a deep dive into the history of American music genres from blues and jazz to classical and beyond</li>
+            <li><a href="https://blogs.loc.gov/folklife/" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>Library of Congress Folklife Blog</a> — authoritative writing on American musical traditions and their cultural roots</li>
+            <li><a href="https://www.schoolofrock.com/resources" target="_blank" rel="noopener noreferrer" style={{ color: "#e85d04" }}>School of Rock Resources</a> — comprehensive guides to the history of blues, jazz, rock, and popular music genres</li>
+          </ul>
         </section>
 
         <section style={{ marginBottom: "2rem" }}>
           <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.75rem" }}>Get Your Venue or Band Listed on BBK Music Seeker</h2>
           <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            BBK Music Seeker welcomes submissions from venue owners, event promoters, and musicians who want to be featured on the platform. Being listed on BBK Music Seeker connects you directly with music fans who are actively searching for live entertainment in your area.
-          </p>
-          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            Venue owners can use the Request a Venue form to submit their venue name, address, website, and social media links along with a description of their live music programming. Featured venues receive a dedicated card in search results showing their known weekly schedule, a performer lookup feature, and community vibe ratings from users who have visited.
-          </p>
-          <p style={{ fontSize: "0.875rem", color: "#475569", margin: 0, lineHeight: 1.7 }}>
-            Musicians and bands can use the Get Your Band Listed form to submit their artist name, genre, and upcoming performance information. Featured artists appear as highlighted pills in the Band and Artist search section, making it easy for fans to find your shows with a single tap.
+            BBK Music Seeker welcomes submissions from venue owners, event promoters, and musicians. Venue owners can submit through the Request a Venue form — featured venues receive a dedicated card in search results with weekly schedule info, performer lookup, and community vibe ratings. Musicians and bands can use the Get Your Band Listed form to appear as highlighted artists in search results.
           </p>
         </section>
 
         <section style={{ marginBottom: "2rem" }}>
           <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.75rem" }}>Why BBK Music Seeker Is Different</h2>
           <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            Most live music discovery apps focus on ticketed concerts at large venues. They are great for finding a stadium show or a sold-out club gig, but they miss the vast majority of live music that happens every week at bars, restaurants, breweries, and smaller venues that do not use ticketing platforms. This is the music that makes a city feel alive — the Friday night jazz duo at a neighborhood wine bar, the acoustic singer-songwriter at a gastropub, the Saturday night cover band that has the whole room dancing.
-          </p>
-          <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            BBK Music Seeker is built specifically to surface this kind of music. By combining AI-powered web search with venue schedule databases, social media monitoring, and direct event page scraping, the app finds live music that does not make it onto Ticketmaster, Songkick, or Bandsintown. The result is a more complete picture of what is actually happening in your neighborhood on any given night.
-          </p>
-          <p style={{ fontSize: "0.875rem", color: "#475569", margin: 0, lineHeight: 1.7 }}>
-            BBK Music Seeker is completely free to use. No account required. No subscription. No ads interrupting your search. Just enter your location and find live music.
+            Most live music apps focus on ticketed concerts at large venues. BBK Music Seeker surfaces the Friday night jazz duo at a neighborhood wine bar, the acoustic singer-songwriter at a gastropub, and the Saturday cover band that has the whole room dancing — music that never makes it onto Ticketmaster. It is completely free, requires no account, and covers hundreds of cities across the United States.
           </p>
         </section>
 
         <hr style={{ border: "none", borderTop: "1px solid #e2e8f0", margin: "0 0 1.5rem" }} />
         <p style={{ fontSize: "0.75rem", color: "#94a3b8", margin: 0, lineHeight: 1.6 }}>
-          BBK Music Seeker is a product of The BK Consulting Group. For venue and artist listing requests, contact us through the forms above. Live music schedules are updated continuously and may vary. Always verify event details with the venue before attending.
+          BBK Music Seeker is a product of <a href="https://thebkcg.com" target="_blank" rel="noopener noreferrer" style={{ color: "#94a3b8" }}>The BK Consulting Group</a>. For venue and artist listing requests, use the forms above. Live music schedules are updated continuously — always verify event details with the venue before attending.
         </p>
 
       </div>
