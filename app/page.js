@@ -31,7 +31,7 @@ export default function Page() {
         </section>
 
         <div style={{ textAlign: "center", padding: "1rem 0 1.5rem" }}>
-          <a href="#music-search" onClick={(e) => { e.preventDefault(); document.querySelector("input[placeholder*='Zip code']")?.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => document.querySelector("input[placeholder*='Zip code']")?.focus(), 600); }}
+          <a href="#music-app"
             style={{ display: "inline-block", background: "linear-gradient(135deg,#e85d04,#c44a00)", color: "#fff", padding: "12px 32px", borderRadius: "99px", textDecoration: "none", fontWeight: 700, fontSize: "15px", boxShadow: "0 2px 12px rgba(232,93,4,0.35)", letterSpacing: "0.3px" }}>
             🎵 Start Your Live Music Search
           </a>
@@ -39,7 +39,7 @@ export default function Page() {
 
       </div>
 
-      <MusicApp />
+      <div id="music-app"><MusicApp /></div>
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "2rem 1.5rem 3rem", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", borderTop: "1px solid #e2e8f0" }}>
 
