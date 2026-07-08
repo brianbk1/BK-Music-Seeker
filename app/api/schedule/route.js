@@ -159,7 +159,7 @@ const EVENT_PAGES = {
   "Station 142":            "https://station142.com/live-music/",
   "Brickette Lounge":       "https://www.brickettelounge.com/music-events",
   "Slow Hand Food & Drink": "https://www.slowhand-wc.com/events",
-  "Saloon 151":             "https://www.saloon151.com/events-catering-1",
+  "Saloon 151":             "https://www.facebook.com/saloon151westchester",
   "Stone Tavern":           "https://www.thestonetavern1867.com/events",
   "The Stone Tavern":       "https://www.thestonetavern1867.com/events",
   "Commodore John Barry Arts & Cultural Center": "https://theirishcenter.org/irish-center-events-calendar/",
@@ -201,10 +201,42 @@ export async function POST(req) {
 
     // ── PLAN A: Web search for real current performers ────────────────────────
     try {
-      const fetchInstruction = eventPageUrl
-        ? `Start by fetching this URL which lists their current upcoming events with real performer names: ${eventPageUrl}
-Then also search Google, Facebook, Instagram, and Bandsintown for additional upcoming events.`
-        : `Search Google, Facebook events, Instagram, Bandsintown, and local event sites for their current schedule and upcoming performers.`;
+      // For known event pages, fetch the HTML directly and pass content to Claude
+      let directPageContent = "";
+      if (eventPageUrl) {
+        try {
+          const pageRes = await fetch(eventPageUrl, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+              "Accept-Language": "en-US,en;q=0.5",
+              "Cache-Control": "no-cache",
+            },
+            signal: AbortSignal.timeout(12000),
+          });
+          if (pageRes.ok) {
+            const html = await pageRes.text();
+            // Strip HTML tags to get plain text
+            directPageContent = html
+              .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+              .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+              .replace(/<[^>]+>/g, " ")
+              .replace(/\s+/g, " ")
+              .trim()
+              .slice(0, 8000);
+          }
+        } catch {}
+      }
+
+      const fetchInstruction = directPageContent
+        ? `Here is the current content from their events page at ${eventPageUrl}:
+
+${directPageContent}
+
+Extract all upcoming events and performers from this content.`
+        : eventPageUrl
+          ? `Search for current events at this URL: ${eventPageUrl} and also search Google, Facebook, Instagram, and Bandsintown.`
+          : `Search Google, Facebook events, Instagram, Bandsintown, and local event sites for their current schedule and upcoming performers.`;
 
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -212,6 +244,7 @@ Then also search Google, Facebook, Instagram, and Bandsintown for additional upc
           "Content-Type": "application/json",
           "x-api-key": ANTHROPIC_KEY,
           "anthropic-version": "2023-06-01",
+          "anthropic-beta": "web-search-2025-03-05",
         },
         body: JSON.stringify({
           model: "claude-sonnet-4-6",
