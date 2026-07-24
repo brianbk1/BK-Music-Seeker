@@ -21,8 +21,28 @@ export const VENUE_FEEDS = [
 
 const TZ = "America/New_York";
 
+// Squarespace returns HTML-encoded text. Strip tags, then decode entities —
+// without this, "&amp;" and "&nbsp;" render literally on the page.
+const decodeEntities = (s) =>
+  String(s || "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;|&apos;|&#x27;/gi, "'")
+    .replace(/&rsquo;/g, "\u2019")
+    .replace(/&lsquo;/g, "\u2018")
+    .replace(/&ldquo;/g, "\u201C")
+    .replace(/&rdquo;/g, "\u201D")
+    .replace(/&mdash;/g, "\u2014")
+    .replace(/&ndash;/g, "\u2013")
+    .replace(/&hellip;/g, "\u2026")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)));
+
 const clean = (s) =>
-  String(s || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  decodeEntities(String(s || "").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
 
 const fetchSquarespace = async (feed) => {
   const res = await fetch(feed.url, {
