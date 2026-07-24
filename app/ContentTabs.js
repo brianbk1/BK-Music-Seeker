@@ -23,11 +23,11 @@ import { PrivacyPolicySection } from "./content/legal";
 
 const ORANGE = "#e85d04";
 
-export default function ContentTabs({ events = [], weeklyRhythm = [], updated = "" }) {
+export default function ContentTabs({ days = [], venues = [], weeklyRhythm = [], updated = "" }) {
   const [active, setActive] = useState(0);
 
   const TABS = [
-    { label: "This Week",       href: "/this-week", node: <ThisWeekSection events={events} weeklyRhythm={weeklyRhythm} updated={updated} /> },
+    { label: "This Week",       href: "/this-week", node: <ThisWeekSection days={days} venues={venues} weeklyRhythm={weeklyRhythm} updated={updated} /> },
     { label: "Venue Guide",     href: "/venues",    node: <VenueGuideSection /> },
     { label: "Genres & Styles", href: "/genres",    node: <GenresSection /> },
     { label: "Live Music 101",  href: "/guide",     node: <LiveMusic101Section /> },

@@ -1,6 +1,6 @@
 import { PageShell } from "../components/SiteChrome";
 import { ThisWeekSection } from "../content/sections";
-import { getUpcomingEvents, feedTimestamp, WEEKLY_RHYTHM } from "../lib/venueFeeds";
+import { getUpcomingEvents, groupByDay, feedTimestamp, WEEKLY_RHYTHM, VENUE_FEEDS } from "../lib/venueFeeds";
 
 export const revalidate = 86400;
 
@@ -11,13 +11,15 @@ export const metadata = {
 };
 
 export default async function ThisWeekPage() {
-  const events = await getUpcomingEvents({ limit: 24 });
+  const events = await getUpcomingEvents({ limit: 40, windowDays: 14 });
+  const days = groupByDay(events);
+  const venues = VENUE_FEEDS.map((f) => f.name);
   return (
     <PageShell
       title="Live Music This Week"
       intro="Confirmed listings pulled straight from venue calendars, plus the recurring weekly schedule that runs year-round."
     >
-      <ThisWeekSection events={events} weeklyRhythm={WEEKLY_RHYTHM} updated={feedTimestamp()} />
+      <ThisWeekSection days={days} venues={venues} weeklyRhythm={WEEKLY_RHYTHM} updated={feedTimestamp()} />
     </PageShell>
   );
 }

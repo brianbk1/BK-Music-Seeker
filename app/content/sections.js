@@ -27,42 +27,75 @@ export const A = ({ href, children }) => (
 
 // ── THIS WEEK ────────────────────────────────────────────────────────────────
 
-export function ThisWeekSection({ events = [], weeklyRhythm = [], updated = "" }) {
+export function ThisWeekSection({ days = [], weeklyRhythm = [], updated = "", venues = [] }) {
+  const total = days.reduce((n, d) => n + d.events.length, 0);
+
   return (
     <section style={S.sec}>
-      <h2 style={S.h2}>Live Music This Week Near West Chester, PA</h2>
+      <h2 style={S.h2}>Live Music This Week in West Chester, PA</h2>
       <p style={S.p}>
-        These listings are pulled directly from venue calendars, not from a ticketing aggregator, so they include the acoustic duo on a Tuesday and the songwriter circle on a Wednesday — the shows that never get a ticketing page. Always confirm with the venue before heading out; small rooms reschedule.
+        Every show below is pulled straight from a venue&rsquo;s own calendar, night by night — including the acoustic duo on a Tuesday and the songwriter circle on a Wednesday, the kind of thing that never gets a ticketing page. Times marked &ldquo;Evening&rdquo; are shows the venue lists without a start time. Always confirm before heading out; small rooms reschedule.
       </p>
+      {venues.length > 0 && (
+        <p style={{ ...S.p, fontSize: "0.8rem" }}>
+          Currently tracking: {venues.join(" · ")}.
+        </p>
+      )}
       {updated && (
-        <p style={{ ...S.p, fontSize: "0.75rem", color: "#94a3b8" }}>Listings last refreshed {updated}.</p>
+        <p style={{ ...S.p, fontSize: "0.75rem", color: "#94a3b8" }}>
+          {total} upcoming {total === 1 ? "show" : "shows"} · last refreshed {updated}
+        </p>
       )}
 
-      {events.length > 0 ? (
-        <div style={{ margin: "1rem 0 1.5rem" }}>
-          {events.map((e, i) => (
-            <div key={i} style={{ borderLeft: `3px solid ${ORANGE}`, background: "#fff8f0", borderRadius: "0 10px 10px 0", padding: "12px 14px", marginBottom: 10 }}>
-              <p style={{ fontSize: "0.9rem", fontWeight: 700, color: "#0f172a", margin: "0 0 3px" }}>
-                {e.url ? <A href={e.url}>{e.title}</A> : e.title}
-              </p>
-              <p style={{ fontSize: "0.75rem", color: "#64748b", margin: "0 0 6px" }}>
-                {e.dateLabel} · {e.timeLabel} · {e.venue}, {e.city}
-              </p>
-              {e.description && (
-                <p style={{ fontSize: "0.8rem", color: "#475569", margin: 0, lineHeight: 1.6 }}>{e.description}</p>
-              )}
+      {days.length > 0 ? (
+        <div style={{ margin: "1.25rem 0 1.75rem" }}>
+          {days.map((d) => (
+            <div key={d.dayKey} style={{ marginBottom: "1.25rem" }}>
+              <h3 style={{
+                fontSize: "0.8rem", fontWeight: 700, color: "#fff", background: ORANGE,
+                display: "inline-block", padding: "4px 12px", borderRadius: 99,
+                margin: "0 0 0.6rem", letterSpacing: "0.3px",
+              }}>
+                {d.dayLabel}
+              </h3>
+              {d.events.map((e, i) => (
+                <div key={i} style={{
+                  display: "flex", gap: 12, alignItems: "baseline",
+                  padding: "9px 12px", marginBottom: 6,
+                  background: "#fff", border: "1px solid #e2e8f0",
+                  borderLeft: `3px solid ${ORANGE}`, borderRadius: "0 10px 10px 0",
+                }}>
+                  <span style={{
+                    flex: "0 0 74px", fontSize: "0.75rem", fontWeight: 700,
+                    color: e.timeKnown ? "#0f172a" : "#94a3b8",
+                  }}>
+                    {e.timeLabel}
+                  </span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "#0f172a", display: "block" }}>
+                      {e.url ? <A href={e.url}>{e.title}</A> : e.title}
+                    </span>
+                    <span style={{ fontSize: "0.75rem", color: "#64748b" }}>{e.venue}</span>
+                    {e.description && (
+                      <span style={{ fontSize: "0.75rem", color: "#94a3b8", display: "block", marginTop: 2, lineHeight: 1.5 }}>
+                        {e.description}
+                      </span>
+                    )}
+                  </span>
+                </div>
+              ))}
             </div>
           ))}
         </div>
       ) : (
         <p style={S.p}>
-          Live listings are refreshing right now. In the meantime, the standing weekly schedule below covers what happens on a typical week — most of these are recurring events that run year-round.
+          Listings are refreshing right now. The standing weekly schedule below covers what happens on a typical week — most of it recurring, year-round.
         </p>
       )}
 
       <h3 style={S.h3}>The Standing Weekly Schedule</h3>
       <p style={S.p}>
-        Beyond one-off bookings, the West Chester and Chester County scene runs on recurring nights. If you learn the rhythm below you can find live music almost any evening of the week without checking a calendar at all.
+        Beyond one-off bookings, the West Chester and Chester County scene runs on recurring nights. Learn the rhythm below and you can find live music almost any evening without checking a calendar at all.
       </p>
       {weeklyRhythm.map((d) => (
         <div key={d.day} style={{ marginBottom: "0.85rem" }}>
@@ -75,7 +108,7 @@ export function ThisWeekSection({ events = [], weeklyRhythm = [], updated = "" }
 
       <h3 style={S.h3}>How These Listings Are Built</h3>
       <p style={S.p}>
-        Every event above comes from a venue&rsquo;s own published calendar. Where a venue publishes structured event data, it is read directly and refreshed automatically. Where a venue only posts to social media, the search tool uses AI to check their pages on demand. Nothing here is invented, and nothing is scraped from a competitor&rsquo;s listings.
+        Each venue&rsquo;s own published calendar is read directly and refreshed automatically — a structured data feed where one exists, and the event markup on the page where it does not. Nothing here is invented, and nothing is copied from another listings site. Venue owners who want to be included can get in touch through the <a href="/contact" style={S.a}>contact page</a>.
       </p>
     </section>
   );

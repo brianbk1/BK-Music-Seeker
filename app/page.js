@@ -7,7 +7,7 @@
 import MusicApp from "./MusicApp";
 import ContentTabs from "./ContentTabs";
 import { SiteNav, SiteFooter } from "./components/SiteChrome";
-import { getUpcomingEvents, feedTimestamp, WEEKLY_RHYTHM } from "./lib/venueFeeds";
+import { getUpcomingEvents, groupByDay, feedTimestamp, WEEKLY_RHYTHM, VENUE_FEEDS } from "./lib/venueFeeds";
 
 export const revalidate = 86400;
 
@@ -18,7 +18,9 @@ export const metadata = {
 };
 
 export default async function Page() {
-  const events = await getUpcomingEvents({ limit: 24 });
+  const events = await getUpcomingEvents({ limit: 40, windowDays: 14 });
+  const days = groupByDay(events);
+  const venues = VENUE_FEEDS.map((f) => f.name);
   const updated = feedTimestamp();
 
   return (
@@ -62,7 +64,7 @@ export default async function Page() {
 
       <div id="music-app"><MusicApp /></div>
 
-      <ContentTabs events={events} weeklyRhythm={WEEKLY_RHYTHM} updated={updated} />
+      <ContentTabs days={days} venues={venues} weeklyRhythm={WEEKLY_RHYTHM} updated={updated} />
 
       <SiteFooter />
     </>
