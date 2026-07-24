@@ -3,6 +3,17 @@
 // Recurring patterns only — never specific dates or performer names
 const ALL_KNOWN_SCHEDULES = {
   // Featured venues
+  "LoCali Wine Lounge": {
+    days: "Wednesdays through Sundays",
+    events: [
+      { day: "Wednesday", event: "Songwriter Circle & Midweek Sessions", time: "7:00 PM – 9:00 PM", notes: "Select Wednesdays — songwriter circles, poetry open mics, and pop-up sets. Teacher happy hour 5–8 PM" },
+      { day: "Thursday",  event: "Bring Your Own Vinyl Night",           time: "6:00 PM – 9:00 PM", notes: "Bring a record to spin or pick from the house collection" },
+      { day: "Friday",    event: "Flight Night",                         time: "6:00 PM – 9:00 PM", notes: "Weekly — three 3oz pours plus complimentary pizza, $25" },
+      { day: "Friday",    event: "Friday Hang — Live Acoustic",          time: "8:00 PM – 10:00 PM", notes: "Weekly local musician — click Find Performers for who's playing" },
+      { day: "Saturday",  event: "LoCali Live — Live Acoustic",          time: "6:00 PM – 8:00 PM", notes: "Weekly original music showcase — click Find Performers for the lineup" },
+      { day: "Sunday",    event: "Sunday Songs",                         time: "4:00 PM – 6:00 PM", notes: "Afternoon acoustic session — click Find Performers for who's playing" },
+    ],
+  },
   "Pietro's Prime": {
     days: "Wednesdays through Saturdays",
     events: [
@@ -155,6 +166,8 @@ const extractJSON = (data) => {
 
 // Known event page URLs — Claude fetches these directly for real performer names
 const EVENT_PAGES = {
+  "LoCali Wine Lounge":     "https://www.enjoylocali.com/events",
+  "LoCali":                 "https://www.enjoylocali.com/events",
   "Pietro's Prime":         "https://www.pietrosprime.com/event-list",
   "Station 142":            "https://station142.com/live-music/",
   "Brickette Lounge":       "https://www.brickettelounge.com/music-events",
@@ -163,6 +176,40 @@ const EVENT_PAGES = {
   "Stone Tavern":           "https://www.thestonetavern1867.com/events",
   "The Stone Tavern":       "https://www.thestonetavern1867.com/events",
   "Commodore John Barry Arts & Cultural Center": "https://theirishcenter.org/irish-center-events-calendar/",
+};
+
+// Squarespace event collections expose a clean JSON feed — far more reliable
+// than stripping tags out of the rendered page. Falls back to HTML if it fails.
+const JSON_EVENT_PAGES = {
+  "LoCali Wine Lounge": "https://www.enjoylocali.com/events?format=json",
+  "LoCali":             "https://www.enjoylocali.com/events?format=json",
+};
+
+// Pull upcoming events out of a Squarespace JSON feed → plain text for Claude
+const fetchSquarespaceEvents = async (url) => {
+  const res = await fetch(url, {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)", "Accept": "application/json" },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!res.ok) return "";
+  const data = await res.json();
+  const items = Array.isArray(data.upcoming) ? data.upcoming
+              : Array.isArray(data.items)    ? data.items
+              : [];
+  const cutoff = Date.now() - 12 * 60 * 60 * 1000; // keep today's events
+  const lines = items
+    .filter(it => it && it.startDate && it.startDate >= cutoff)
+    .sort((a, b) => a.startDate - b.startDate)
+    .slice(0, 20)
+    .map(it => {
+      const d = new Date(it.startDate);
+      const day  = d.toLocaleDateString("en-US", { timeZone: "America/New_York", weekday: "long", month: "long", day: "numeric" });
+      const time = d.toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" });
+      const desc = String(it.excerpt || it.body || "")
+        .replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 180);
+      return `${day} — ${it.title} — ${time}${desc ? ` — ${desc}` : ""}`;
+    });
+  return lines.length ? `Upcoming events:\n${lines.join("\n")}` : "";
 };
 
 export async function POST(req) {
@@ -203,7 +250,17 @@ export async function POST(req) {
     try {
       // For known event pages, fetch the HTML directly and pass content to Claude
       let directPageContent = "";
-      if (eventPageUrl) {
+
+      // Prefer a structured JSON feed when we have one (Squarespace venues)
+      const jsonPageKey = Object.keys(JSON_EVENT_PAGES).find(k =>
+        venueName.toLowerCase().includes(k.toLowerCase()) ||
+        k.toLowerCase().includes(venueName.toLowerCase())
+      );
+      if (jsonPageKey) {
+        try { directPageContent = await fetchSquarespaceEvents(JSON_EVENT_PAGES[jsonPageKey]); } catch {}
+      }
+
+      if (!directPageContent && eventPageUrl) {
         try {
           const pageRes = await fetch(eventPageUrl, {
             headers: {
