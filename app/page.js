@@ -1,14 +1,21 @@
-// Server Component — intro + MusicApp + tabbed editorial content.
+// Server Component — nav + intro + MusicApp + tabbed content + footer.
 //
-// AUTO-REFRESH: `revalidate` below controls how often Next.js regenerates this
-// page and re-pulls venue event feeds. 86400 = once a day. Set to 1209600 for
-// every other week. No redeploy needed for the content to change — the venues
-// update their own calendars and this page picks it up.
+// AUTO-REFRESH: `revalidate` controls how often Next.js regenerates this page
+// and re-pulls venue event feeds. 86400 = once a day. Set to 1209600 for every
+// other week. No redeploy needed for content to change — the venues update
+// their own calendars and this page picks it up.
 import MusicApp from "./MusicApp";
 import ContentTabs from "./ContentTabs";
+import { SiteNav, SiteFooter } from "./components/SiteChrome";
 import { getUpcomingEvents, feedTimestamp, WEEKLY_RHYTHM } from "./lib/venueFeeds";
 
 export const revalidate = 86400;
+
+export const metadata = {
+  title: "BBK Music Seeker — Find Live Music Near You Tonight",
+  description: "Free AI-powered live music discovery. Search any zip code or city to find who is playing tonight at bars, wine lounges, restaurants, and small venues near you.",
+  alternates: { canonical: "/" },
+};
 
 export default async function Page() {
   const events = await getUpcomingEvents({ limit: 24 });
@@ -16,7 +23,9 @@ export default async function Page() {
 
   return (
     <>
-      <div style={{ maxWidth: 700, margin: "0 auto", padding: "1.5rem 1.5rem 0", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+      <SiteNav />
+
+      <div style={{ maxWidth: 700, margin: "0 auto", padding: "0.5rem 1.5rem 0", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
 
         <h1 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.5rem" }}>
           BBK Music Seeker — Find Live Music Near You Tonight
@@ -31,7 +40,7 @@ export default async function Page() {
             Enter any zip code or city name and BBK Music Seeker searches venue websites, cross-references public event listings, and uses AI to fill in gaps where schedules are incomplete or hard to find. Results show the performing artist, venue, address, start time, and links to buy tickets or make a reservation.
           </p>
           <p style={{ fontSize: "0.875rem", color: "#475569", margin: "0 0 0.75rem", lineHeight: 1.7 }}>
-            Use the date filter to narrow results to tonight, this weekend, the next 7 days, or plan ahead with 3-month and 6-month views. The distance filter sets your search radius to 5, 10, 20, or 50 miles. Scroll past the search tool for this week&rsquo;s confirmed lineups, a full venue guide, genre explainers, and practical guides for both fans and working musicians.
+            Use the date filter to narrow results to tonight, this weekend, the next 7 days, or plan ahead with 3-month and 6-month views. The distance filter sets your search radius to 5, 10, 20, or 50 miles. Scroll past the search tool for <a href="/this-week" style={{ color: "#e85d04" }}>this week&rsquo;s confirmed lineups</a>, a full <a href="/venues" style={{ color: "#e85d04" }}>venue guide</a>, <a href="/genres" style={{ color: "#e85d04" }}>genre explainers</a>, and practical guides for both <a href="/guide" style={{ color: "#e85d04" }}>fans</a> and <a href="/musicians" style={{ color: "#e85d04" }}>working musicians</a>.
           </p>
         </section>
 
@@ -54,6 +63,8 @@ export default async function Page() {
       <div id="music-app"><MusicApp /></div>
 
       <ContentTabs events={events} weeklyRhythm={WEEKLY_RHYTHM} updated={updated} />
+
+      <SiteFooter />
     </>
   );
 }

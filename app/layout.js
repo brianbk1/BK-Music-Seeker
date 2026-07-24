@@ -1,6 +1,17 @@
+import { SITE } from "./content/siteInfo";
+
 export const metadata = {
-  title: "BBK Music Seeker — Find Live Music Near You",
+  metadataBase: new URL(SITE.url),
+  title: {
+    default: "BBK Music Seeker — Find Live Music Near You",
+    template: "%s",
+  },
   description: "Discover live music events at bars, restaurants, clubs, and venues near you. Search by zip code or city to find what's playing tonight.",
+  openGraph: {
+    siteName: SITE.name,
+    type: "website",
+    locale: "en_US",
+  },
 };
 
 export default function RootLayout({ children }) {
