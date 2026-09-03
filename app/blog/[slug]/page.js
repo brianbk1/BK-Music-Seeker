@@ -8,8 +8,9 @@ export function generateStaticParams() {
   return BLOG_POSTS.map((p) => ({ slug: p.slug }));
 }
 
-export function generateMetadata({ params }) {
-  const post = getPost(params.slug);
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const post = getPost(slug);
   if (!post) return {};
   return {
     title: `${post.title} | LocalLiveMusic.ai`,
@@ -24,8 +25,9 @@ export function generateMetadata({ params }) {
   };
 }
 
-export default function BlogPostPage({ params }) {
-  const post = getPost(params.slug);
+export default async function BlogPostPage({ params }) {
+  const { slug } = await params;
+  const post = getPost(slug);
   if (!post) notFound();
 
   const Body = post.Body;
