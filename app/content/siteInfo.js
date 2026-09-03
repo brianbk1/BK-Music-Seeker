@@ -28,6 +28,7 @@ export const NAV = [
   { href: "/venues",     label: "Venues" },
   { href: "/genres",     label: "Genres" },
   { href: "/guide",      label: "Guide" },
+  { href: "/blog",       label: "Blog" },
   { href: "/musicians",  label: "Musicians" },
 ];
 
