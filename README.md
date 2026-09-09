@@ -1,62 +1,37 @@
-# LocalLiveMusic.ai — Blog
+# LocalLiveMusic.ai — new post: "September at LoCali"
 
-A `/blog` section for the BK-Music-Seeker (LocalLiveMusic.ai) Next.js app, matching the
-existing design system (700px column, `#e85d04` accent, the shared `S` style tokens,
-`PageShell` chrome). Verified with `next build` — `/blog` prerenders static and each
-post is generated via `generateStaticParams`.
+This is post #2 in the same data-driven blog you already deployed, so it slots into
+the existing Next.js app.
 
-## What's here
+## Replace ONE file
+| File in this zip | Put it at | Action |
+|---|---|---|
+| `app/content/blog.js` | `app/content/blog.js` | **Replace** |
 
-Copy these into your repo, preserving paths:
+That's the only change. `/blog`, `/blog/[slug]`, the Blog nav tab, and `sitemap.xml`
+all read from `BLOG_POSTS`, so they update automatically:
+- New post lives at **/blog/locali-west-chester-september-live-music**
+- It appears first on **/blog** (sorted newest-first; dated Sep 9 vs the Lily Allen post's Sep 1)
+- It's added to the sitemap automatically
 
-```
-app/content/blog.js          NEW  – post data + shared blog UI (BlogImage, PickCard, CtaButton)
-app/blog/page.js             NEW  – blog index (lists all posts as cards)
-app/blog/[slug]/page.js      NEW  – individual post route + per-post SEO metadata
-app/content/siteInfo.js      EDIT – adds { href:"/blog", label:"Blog" } to NAV
-app/sitemap.js               EDIT – also emits every /blog/<slug> URL
-public/blog-images/          NEW  – 3 images for the first post
-```
+Verified with `next build`: both posts prerender with full content, and the index
+lists LoCali above Lily Allen.
 
-The two EDIT files are full replacements. The only real change in each:
-- **siteInfo.js** — one new line in the `NAV` array (Blog, placed after Guide).
-- **sitemap.js** — imports `BLOG_POSTS` and appends post URLs.
+## What changed inside blog.js
+- Added the LoCali post object + its `LoCaliBody`.
+- Added two reusable components to the toolkit (handy for future venue posts):
+  - `Callout` — the soft orange "why it made the list" aside
+  - `LineupTable` — the Date/Artist/Time schedule table
+- The Lily Allen post is unchanged.
 
-## Adding the next post
+## No hero image (by choice)
+No photo came with this post, and I won't fabricate one of a real venue or of the
+local performers. The layout handles image-less posts fine — the index card just shows
+text. To add one later: drop a rights-cleared image (a LoCali interior shot, a West
+Chester streetscape) into `public/blog-images/` and set `hero` + `heroAlt` on the LoCali
+post object.
 
-Everything is data-driven. In `app/content/blog.js`, add one object to `BLOG_POSTS`
-and write a matching `Body` component:
-
-```js
-{
-  slug: "your-post-slug",
-  title: "…",
-  date: "2026-09-15",
-  dateLabel: "September 15, 2026",
-  city: "Philadelphia, PA",
-  venue: "…",
-  author: "LocalLiveMusic.ai",
-  hero: "/blog-images/your-hero.jpg",
-  heroAlt: "…",
-  excerpt: "One or two sentences for the index card + meta description.",
-  Body: YourBodyComponent,
-}
-```
-
-Inside a `Body`, reuse the shared `S` style tokens plus `<BlogImage>`, `<PickCard>`,
-and `<CtaButton>`. Drop hero/inline images into `public/blog-images/`. The index,
-routing, sitemap, and SEO metadata all pick it up automatically.
-
-## First post
-
-`lily-allen-mann-philadelphia` — Lily Allen at the Highmark Mann Center, Sun Sep 6, 2026.
-The Mann calendar link was cleaned to `https://highmarkmann.org/events` (tracking param removed).
-
-## Images (already placed in public/blog-images/)
-
-- `mann-dusk-skyline.jpg` – hero: Mann tents + Philly skyline at dusk
-- `lily-allen-live.jpg`   – Lily Allen performing
-- `mann-lawn-crowd.jpg`   – crowd on the lawn at the Mann
-
-Plain `<img>` tags are used (no `next/image` config needed). If you'd rather use
-`next/image` later, swap the tags in `blog.js` / `blog/page.js` / `blog/[slug]/page.js`.
+## One thing to confirm before publishing
+The lineup (artists, dates, times) and the "remaining September" framing came straight
+from your draft — I didn't independently verify them against LoCali's live calendar
+(enjoylocali.com/events). Worth a glance so a cancelled or moved set doesn't go out wrong.

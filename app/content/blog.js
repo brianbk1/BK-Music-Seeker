@@ -35,7 +35,7 @@ export function BlogImage({ src, alt, caption }) {
   );
 }
 
-// The "Local Live Pick" spec box.
+// The "Local Live Pick" spec box (label/value rows).
 export function PickCard({ rows = [] }) {
   return (
     <div style={{
@@ -56,6 +56,59 @@ export function PickCard({ rows = [] }) {
           </div>
         ))}
       </dl>
+    </div>
+  );
+}
+
+// A soft highlighted aside (orange left border), for "why this made the list" notes.
+export function Callout({ label, children }) {
+  return (
+    <div style={{
+      background: "#fff7ef", border: "1px solid #fde4cf", borderLeft: `4px solid ${ORANGE}`,
+      borderRadius: "0 12px 12px 0", padding: "0.9rem 1.15rem", margin: "1.5rem 0",
+      fontSize: "0.875rem", color: "#475569", lineHeight: 1.7,
+    }}>
+      {label && <strong style={{ color: "#0f172a" }}>{label} </strong>}
+      {children}
+    </div>
+  );
+}
+
+// A schedule/lineup table. columns: string[]; rows: string[][] (same width).
+// Wrapped so wide tables scroll on their own instead of the page body.
+export function LineupTable({ columns = [], rows = [] }) {
+  return (
+    <div style={{ overflowX: "auto", margin: "1.25rem 0 1.75rem" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+        <thead>
+          <tr>
+            {columns.map((c) => (
+              <th key={c} style={{
+                textAlign: "left", background: "#0f172a", color: "#fff",
+                padding: "9px 12px", fontSize: "0.72rem", fontWeight: 700,
+                letterSpacing: "0.4px", textTransform: "uppercase",
+              }}>
+                {c}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, ri) => (
+            <tr key={ri} style={{ background: ri % 2 ? "#f8fafc" : "#fff" }}>
+              {r.map((cell, ci) => (
+                <td key={ci} style={{
+                  padding: "9px 12px", borderBottom: "1px solid #e2e8f0",
+                  color: ci === 0 ? "#0f172a" : "#475569",
+                  fontWeight: ci === 0 ? 600 : 400, whiteSpace: "nowrap",
+                }}>
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -81,8 +134,24 @@ export function CtaButton({ href, children }) {
 }
 
 // ── POSTS ────────────────────────────────────────────────────────────────────
+// Newest first. (The /blog index also sorts by date, so order here is just for
+// readability.)
 
 export const BLOG_POSTS = [
+  {
+    slug: "locali-west-chester-september-live-music",
+    title: "Wine, Acoustic Music and a Local Vibe: September at LoCali",
+    date: "2026-09-09",
+    dateLabel: "September 9, 2026",
+    city: "West Chester, PA",
+    venue: "LoCali Wine Lounge",
+    author: "LocalLiveMusic.ai",
+    // No hero photo supplied. Drop a rights-cleared image in public/blog-images/
+    // and set `hero` + `heroAlt` here to give this post a header + index thumb.
+    excerpt:
+      "LoCali Wine Lounge brings intimate acoustic music to downtown West Chester throughout September 2026. See the remaining September lineup and plan a local night out.",
+    Body: LoCaliBody,
+  },
   {
     slug: "lily-allen-mann-philadelphia",
     title: "Philadelphia’s Sunday Night Pick: Lily Allen Takes Over the Mann",
@@ -101,6 +170,90 @@ export const BLOG_POSTS = [
 ];
 
 // ── POST BODIES ───────────────────────────────────────────────────────────────
+
+function LoCaliBody() {
+  return (
+    <>
+      <p style={{ ...S.p, fontSize: "0.95rem", color: "#334155" }}>
+        Downtown West Chester has plenty of places to grab a drink. LoCali Wine
+        Lounge is building something a little different: a California-inspired wine
+        lounge where live local music is part of the experience, not background
+        noise.
+      </p>
+      <p style={S.p}>
+        Located at <strong style={S.b}>123 E. Market Street</strong>, LoCali
+        describes itself as a music-forward, listening-friendly space built around
+        California wines, relaxed hospitality and community. Its live sets lean
+        intimate and acoustic — the kind of room where you can actually hear the
+        performer while enjoying a glass of wine with friends.
+      </p>
+
+      <Callout label="Why it makes the LocalLiveMusic.ai list:">
+        LoCali puts local performers in an intimate room and gives West Chester
+        another place to discover artists without turning the night into a giant
+        concert production.
+      </Callout>
+
+      <h2 style={S.h2}>The Remaining September Lineup</h2>
+      <LineupTable
+        columns={["Date", "Artist", "Time"]}
+        rows={[
+          ["Sat, Sep 12", "Michael Montesano", "6–8 PM"],
+          ["Sun, Sep 13", "Lisa Chosed", "4–6 PM"],
+          ["Fri, Sep 18", "Kevin Bentley", "8–10 PM"],
+          ["Sat, Sep 19", "Valentina Sounds", "6–8 PM"],
+          ["Sat, Sep 26", "Kat Young", "7–9 PM"],
+          ["Sun, Sep 27", "John Bickel", "4–6 PM"],
+        ]}
+      />
+
+      <h2 style={S.h2}>A Different Kind of Live-Music Night</h2>
+      <p style={S.p}>
+        LoCali says its goal is to create a listening-friendly setting where the
+        music complements the room rather than fighting with it. The September
+        calendar shows that approach clearly: Saturday evening LoCali Live sessions,
+        Sunday afternoon songs and a Friday-night set give you several ways to work
+        live music into a night downtown.
+      </p>
+      <p style={S.p}>
+        The venue also mixes music into a broader community calendar that includes
+        vinyl nights, tastings and other gatherings. Golden Hour runs from 4–6 PM on
+        days the lounge is open, making it easy to start with a drink and stay for
+        the music.
+      </p>
+
+      <h2 style={S.h2}>Our Local Live Pick</h2>
+      <p style={S.p}>
+        If you want to try the room this weekend, start with{" "}
+        <strong style={S.b}>Michael Montesano on Saturday, September 12 from 6–8 PM</strong>,
+        then LoCali follows it with{" "}
+        <strong style={S.b}>Lisa Chosed on Sunday, September 13 from 4–6 PM</strong>.
+        Two different performers, two easy chances to hear live music in downtown
+        West Chester.
+      </p>
+      <p style={S.p}>
+        <strong style={S.b}>LocalLiveMusic.ai takeaway:</strong> Big tours get the
+        headlines. Rooms like LoCali are where a local music scene actually lives.
+        Pick an artist, bring a friend and support the people keeping live music
+        local.
+      </p>
+
+      <p style={{ ...S.p, marginTop: "1.5rem" }}>
+        <strong style={S.b}>LoCali Wine Lounge</strong>
+        <br />
+        123 E Market St., West Chester, PA 19382
+      </p>
+
+      <CtaButton href="https://www.enjoylocali.com/events">
+        View LoCali’s event calendar →
+      </CtaButton>
+      <p style={{ ...S.p, fontSize: "0.75rem", color: "#94a3b8", marginTop: "0.75rem" }}>
+        Schedule checked September 9, 2026. Event details can change — confirm with
+        the venue before heading out.
+      </p>
+    </>
+  );
+}
 
 function LilyAllenBody() {
   return (
