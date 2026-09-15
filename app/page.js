@@ -7,6 +7,7 @@
 import MusicApp from "./MusicApp";
 import ContentTabs from "./ContentTabs";
 import { SiteNav, SiteFooter } from "./components/SiteChrome";
+import InstagramFeed from "./components/InstagramFeed";
 import { getUpcomingEvents, groupByDay, feedTimestamp, WEEKLY_RHYTHM, VENUE_FEEDS } from "./lib/venueFeeds";
 
 export const revalidate = 86400;
@@ -65,6 +66,8 @@ export default async function Page() {
       <div id="music-app"><MusicApp /></div>
 
       <ContentTabs days={days} venues={venues} weeklyRhythm={WEEKLY_RHYTHM} updated={updated} />
+
+      <InstagramFeed />
 
       <SiteFooter />
     </>
