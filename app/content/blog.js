@@ -139,6 +139,21 @@ export function CtaButton({ href, children }) {
 
 export const BLOG_POSTS = [
   {
+    slug: "tampa-three-nights-three-genres",
+    title: "Three Nights, Three Sounds: Tampa’s Biggest Genre-Hopping Run of the Week",
+    date: "2026-09-22",
+    dateLabel: "September 22, 2026",
+    city: "Tampa, FL",
+    venue: "MIDFLORIDA Credit Union Amphitheatre",
+    author: "LocalLiveMusic.ai",
+    hero: "/blog-images/tampa-three-nights-hero.png",
+    heroAlt:
+      "Illustrated Tampa skyline and concert scene promoting three shows from September 23–25, 2026.",
+    excerpt:
+      "Three consecutive nights at Tampa’s MIDFLORIDA Credit Union Amphitheatre — TLC & Salt-N-Pepa with En Vogue, Wu-Tang Forever, and Tim McGraw — show just how wide the city’s live-music audience really is.",
+    Body: TampaBody,
+  },
+  {
     slug: "locali-west-chester-september-live-music",
     title: "Wine, Acoustic Music and a Local Vibe: September at LoCali",
     date: "2026-09-09",
@@ -170,6 +185,120 @@ export const BLOG_POSTS = [
 ];
 
 // ── POST BODIES ───────────────────────────────────────────────────────────────
+
+function TampaBody() {
+  return (
+    <>
+      <p style={{ ...S.p, fontSize: "0.95rem", color: "#334155" }}>
+        Tampa is about to get a three-night reminder of just how broad its
+        live-music audience can be.
+      </p>
+      <p style={S.p}>
+        From Wednesday through Friday, the{" "}
+        <strong style={S.b}>MIDFLORIDA Credit Union Amphitheatre</strong> has three
+        completely different headline bills on consecutive nights: 1990s R&amp;B and
+        pop, foundational New York hip-hop, and arena-sized country. If you want one
+        snapshot of Tampa’s music appetite, this is a pretty good one.
+      </p>
+
+      <LineupTable
+        columns={["Date", "Show", "Time"]}
+        rows={[
+          ["Wed, Sep 23", "TLC & Salt-N-Pepa with En Vogue", "7:30 PM"],
+          ["Thu, Sep 24", "Wu-Tang Forever: The Final Chamber", "7:30 PM"],
+          ["Fri, Sep 25", "Tim McGraw: Pawn Shop Guitar Tour 2026", "7:00 PM"],
+        ]}
+      />
+
+      <Callout label="Why it makes the LocalLiveMusic.ai list:">
+        Three major tours, three different crowds, one venue, three nights in a row —
+        that back-to-back range is exactly the kind of thing a healthy local scene
+        makes possible.
+      </Callout>
+
+      <h2 style={S.h2}>Wednesday: TLC, Salt-N-Pepa and En Vogue</h2>
+      <p style={S.p}>
+        Wednesday, September 23 brings{" "}
+        <strong style={S.b}>TLC &amp; Salt-N-Pepa with En Vogue</strong> to the
+        amphitheatre at 7:30 p.m. The bill is effectively a tour through several of
+        the most recognizable sounds of 1990s R&amp;B, pop and hip-hop crossover — the
+        kind of multi-act night that works especially well for a big outdoor Tampa
+        crowd: familiar catalogs, sing-along moments and three distinct acts on one
+        ticket.
+      </p>
+
+      <h2 style={S.h2}>Thursday: Wu-Tang Forever</h2>
+      <p style={S.p}>
+        Twenty-four hours later, the entire mood changes.{" "}
+        <strong style={S.b}>Wu-Tang Forever: The Final Chamber</strong> is scheduled
+        for Thursday, September 24 at 7:30 p.m. The official venue listing puts one of
+        hip-hop’s defining groups on the same Tampa stage that hosted a
+        nostalgia-heavy R&amp;B package the night before.
+      </p>
+      <p style={S.p}>
+        That contrast is what makes the week interesting. Tampa doesn’t need to be
+        only a country market, an electronic market, a Latin market or a rock market.
+        The audience is large enough to support very different scenes side by side.
+      </p>
+
+      <h2 style={S.h2}>Friday: Tim McGraw</h2>
+      <p style={S.p}>
+        On Friday, September 25,{" "}
+        <strong style={S.b}>Tim McGraw’s Pawn Shop Guitar Tour 2026</strong> takes
+        over at 7:00 p.m. Country has long had a strong Tampa Bay audience, and a
+        Friday-night amphitheatre show gives this three-night run a completely
+        different finish.
+      </p>
+
+      <BlogImage
+        src="/blog-images/tampa-three-nights-inline.png"
+        alt="Verified Tampa concert schedule graphic for September 23–25, 2026 at the MIDFLORIDA Credit Union Amphitheatre."
+        caption="Three consecutive nights, three genres, one venue — the week’s lineup at a glance."
+      />
+
+      <h2 style={S.h2}>Why we’d go</h2>
+      <p style={S.p}>
+        The best part of this week isn’t that any one genre “wins.” It’s that three
+        major tours can land in the same Tampa venue on three consecutive nights and
+        plausibly draw three different crowds.
+      </p>
+      <p style={S.p}>
+        That’s a healthy sign for a local live-music ecosystem. Big amphitheatre shows
+        are only one part of Tampa’s scene, but they help create the energy that also
+        supports smaller rooms, local performers and the neighborhoods people visit
+        before and after shows.
+      </p>
+
+      <PickCard
+        rows={[
+          ["City", "Tampa, Florida"],
+          ["Venue", "MIDFLORIDA Credit Union Amphitheatre"],
+          ["Address", "4802 US-301, Tampa, FL 33610"],
+          ["Dates", "Wed–Fri, September 23–25, 2026"],
+          ["Genres", "R&B/pop · hip-hop · country"],
+        ]}
+      />
+
+      <p style={S.p}>
+        All three concerts are listed at the{" "}
+        <strong style={S.b}>
+          MIDFLORIDA Credit Union Amphitheatre, 4802 US-301, Tampa, FL 33610
+        </strong>
+        . Check the venue or ticketing provider for current entry, parking and ticket
+        information before heading out.
+      </p>
+
+      <CtaButton href="https://www.midflorida.com/events">
+        View the amphitheatre’s event calendar →
+      </CtaButton>
+      <p style={{ ...S.p, fontSize: "0.75rem", color: "#94a3b8", marginTop: "0.75rem" }}>
+        Schedule verified against official MIDFLORIDA Credit Union Amphitheatre event
+        listings on September 22, 2026. Details can change — confirm with the venue
+        before heading out.
+      </p>
+    </>
+  );
+}
 
 function LoCaliBody() {
   return (
