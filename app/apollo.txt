@@ -1,0 +1,198 @@
+First Name,Last Name,Title,Organization,Segment
+Devin,Padavil,Superintendent,Georgetown ISD,K-12 District
+Heather,Stoner,Assistant Superintendent,Georgetown ISD,K-12 District
+Amanda,Johnson,Assistant Superintendent - Human Resources,Georgetown ISD,K-12 District
+Jesus,Chavarria,Superintendent,Anaheim Elementary School District,K-12 District
+Dena,Melland,Assistant Superintendent,Anaheim Elementary School District,K-12 District
+Maria,Villegas,Director of Curriculum and Instruction,Anaheim Elementary School District,K-12 District
+Joseph,Sabbath,Assistant Superintendent,Passaic County Technical-Vocational Schools,K-12 District
+Likisha,Coleman,Assistant Superintendent,Greenwood Leflore Consolidated School District,K-12 District
+Zinnia,Wince,Assistant Superintendent,Greenwood Leflore Consolidated School District,K-12 District
+Rosalyn,Griffin,Human Resources Director,Greenwood Leflore Consolidated School District,K-12 District
+Sharon,Stanislas,Superintendent,Lunenburg County Public Schools,K-12 District
+Jared,Smith,Superintendent,Waterloo Community School District,K-12 District
+Charles,McNulty,Associate Superintendent for Educational Services,Waterloo Community School District,K-12 District
+Sam,Kreassig,Interim Director of Human Resources,Waterloo Community School District,K-12 District
+Walter,Jackson,Superintendent,La Porte ISD,K-12 District
+Julie,Abram,Executive Director of Teaching and Professional Learning,La Porte ISD,K-12 District
+Cristina,Alsop,Director of Instruction/Curriculum,Henrico County Public Schools,K-12 District
+Michelle,Williams,Instructional Director,Henrico County Public Schools,K-12 District
+Wendy,Smith,Director of Curriculum and Instruction,Brevard Public Schools,K-12 District
+Cindy,Flynn,Executive Director HR,Monroe Public Schools,K-12 District
+Chris,Horsley,Senior Director Curriculum & Instruction,Bonita Unified School District,K-12 District
+Reuben,Jones,Senior Director Curriculum & Instruction Secondary,Bonita Unified School District,K-12 District
+Anne,Neal,Director of Instruction/Curriculum,Bonita Unified School District,K-12 District
+Mary,Franciscus,Director of Human Resources,Berks County Intermediate Unit,K-12 District
+Kirsti,Schroeder,"Director of Curriculum & Instruction, Professional Development",Twin Rivers Unified School District,K-12 District
+Paul,Gansemer,Executive Director for Adult Career and Technical Education,School District of Manatee County,K-12 District
+Bertha,Nelson,Assistant Superintendent,Cobb County School District,K-12 District
+Bruce,Fraser,Assistant Superintendent,Cobb County School District,K-12 District
+Shea,Thomas,Assistant Superintendent,Cobb County School District,K-12 District
+Megan,Glanzman,Lower School Director of Curriculum & Instruction,Seminole County Public Schools,K-12 District
+Penny,Mosley,Assistant Superintendent Curriculum and Instruction,DeKalb County School District,K-12 District
+Rose,Prejean-Harris,Assistant Superintendent 6-12 Curriculum and Instruction,DeKalb County School District,K-12 District
+Michelle,Jefferson,Director of Curriculum and Instruction,Guilford County Schools,K-12 District
+Monique,Machado,Assistant Superintendent,Osceola County School District,K-12 District
+Chundra,Evens,Assistant Superintendent High School Curriculum and Instruction,Osceola County School District,K-12 District
+Jennifer,Gripado,Assistant Superintendent Organizational Learning,Tulsa Public Schools,K-12 District
+Kelly,Kane,Executive Director Elementary & Early Childhood Education,Tulsa Public Schools,K-12 District
+Terry,Oatts,Superintendent,Rockdale County Public Schools,K-12 District
+Shauna,Miller,Assistant Superintendent,Rockdale County Public Schools,K-12 District
+Nikia,Rhodes,Education Director,School District of Philadelphia,K-12 District
+Dionne,Johnigan,Career and Technical Education Director,Rockdale County Public Schools,K-12 District
+Brenda,Rask,Associate Dean Career and Technical Education,Aims Community College,Higher Education
+Lynn,Fox,Dean School of Education,American University,Higher Education
+Ingrid,Russo,Director of Field Education,Angelo State University,Higher Education
+Lisa,Vernon-Dotson,Dean College of Education,Ashland University,Higher Education
+Crissy,Lauterbach,Director of Professional Learning Services,Ashland University,Higher Education
+Jim,Powell,Executive Director of Professional Learning Services,Ashland University,Higher Education
+Elizabeth,Bowden,Director of Teacher Education Services and Certification,Athens State University,Higher Education
+Susan,Ruskin-Mayher,Director Middle School Teacher Education,Bank Street College of Education,Higher Education
+Kristin,Sotak,Associate Dean Graduate Education and External Programs,Binghamton University,Higher Education
+Cara,Ponomarev,Director of Field Education,Binghamton University,Higher Education
+Hardin,Coleman,Dean School of Education,Boston University,Higher Education
+Pipier,Smith-Mumford,Field Director of EdD Program in Education Leadership and Policy Studies,Boston University,Higher Education
+Diana,Giron,Director of Programming and Education,Cal Poly San Luis Obispo,Higher Education
+Claire,C,Dean College of Education,California State University Fullerton,Higher Education
+Christine,Ford,Director of Field Education,California State University Fullerton,Higher Education
+Corinne,Martinez,Associate Dean College of Education,California State University-Dominguez Hills,Higher Education
+Terrie,Hampton-Jones,Director of Teaching Scholars,Campbell University,Higher Education
+Jesse,Chenven,Associate Dean School of Education,Central New Mexico Community College,Higher Education
+Elnora,Tayag,Dean of Instructional Support,Chaffey College,Higher Education
+Jason,Chevalier,Dean,Chaffey College,Higher Education
+Atiya,Stokes-Brown,Associate Dean Spadoni College of Education and Social Sciences,Coastal Carolina University,Higher Education
+Catherine,Scott,Associate Dean Spadoni College of Education and Social Sciences,Coastal Carolina University,Higher Education
+Michael,Perez,Dean Continuing Education/Extended Learning,College of DuPage,Higher Education
+Mintesinot,Jiru,Interim Dean College of Arts & Sciences and Education,Coppin State University,Higher Education
+Karen,Rogers,Interim Associate Dean College of Arts & Sciences and Education,Coppin State University,Higher Education
+Robert,Rubin,Associate Dean Executive Education & Corporate Relations,DePaul University,Higher Education
+Jerry,Mihelic,Associate Prof & Dean College of Education and Psychology,East Central University,Higher Education
+Jane,Maas-Brady,Director of Field Education,East Tennessee State University,Higher Education
+Byron,Bond,Dean of Continuing Education,Eastern Kentucky University,Higher Education
+Ryan,Gildersleeve,Dean College of Education,Eastern Michigan University,Higher Education
+Cecil,Short,Director of Secondary Education,Emporia State University,Higher Education
+Evelyn,Bilias-Lolis,Dean School of Education & Human Development,Fairfield University,Higher Education
+Joshua,Elliott,Associate Dean School of Education and Human Development,Fairfield University,Higher Education
+Marsha,Alibrandi,Director of Secondary Teacher Education,Fairfield University,Higher Education
+Cambria,Dehoag,Director of Experiential Education,Ferris State University,Higher Education
+Cynthia,Bauman,Associate Director School Leaders Program Office of Educational Leadership Learning,Florida Atlantic University,Higher Education
+Joan,Swanson,Director of the School of Education,Franklin Pierce University,Higher Education
+Roger,Dow,Associate Dean College of Education,Frostburg State University,Higher Education
+Lettie,Watford,Dean School of Education,Georgia Southwestern State University,Higher Education
+Brooke,Stefancik,Director of Professional and Experiential Learning,Georgia Southwestern State University,Higher Education
+Anita,Stalter,Vice-President for Academic Affairs / Academic Dean,Goshen College,Higher Education
+Suzanne,Ehst,Associate Academic Dean,Goshen College,Higher Education
+Meredith,Critchfield,Dean College of Education,Grand Canyon University,Higher Education
+Alicia,Kozimor,Assistant Dean College of Education,Grand Canyon University,Higher Education
+Linda,Malone-Colon,Dean School of Liberal Arts and Education,Hampton University,Higher Education
+Sherree,Davis,Assistant Dean School of Liberal Arts and Education,Hampton University,Higher Education
+Patricia,Richards-Spruill,Director of Experiential Education,Hampton University,Higher Education
+Wayne,Riggs,Vice President for Academic Affairs and Dean of the Faculty,Hastings College,Higher Education
+Wilma,Bonner,Director of Teacher Education,Howard University,Higher Education
+Scott,Dantley,Senior Associate Dean for Academic Affairs,Howard University,Higher Education
+Terrell,Peace,Director of Undergraduate Teacher Education / Education Department Chair,Huntington University,Higher Education
+Tyanne,Bailey,Director of Graduate and Undergraduate Teacher Education,Huntington University,Higher Education
+Luke,Fetters,Vice President for Academic Affairs,Huntington University,Higher Education
+Jaime,Boeckman,Director of Teacher Education Services,Iowa State University,Higher Education
+Stephanie,Brehm,Director of Graduate Education,Johns Hopkins University,Higher Education
+Susan,Polirstok,Dean College of Education,Kean University,Higher Education
+Meredith,Riddle,Acting Associate Dean College of Education & Director of Alternate Route Programs,Kean University,Higher Education
+Cecelia,Traugh,Dean School of Education,Long Island University,Higher Education
+Valerie,Lava,Associate Dean School of Education,Long Island University,Higher Education
+Cary,Epstein,Assistant Dean College of Education,Long Island University,Higher Education
+Karen,Hayden,Associate Dean of Graduate Programs Winston School of Education & Social Policy,Merrimack College,Higher Education
+Katie,Willard,Director of Field Education,Merrimack College,Higher Education
+Brent,Wright,Assistant Dean Graduate Programs School of Education & Social Policy,Merrimack College,Higher Education
+Christina,Simmons,Director of Teacher Education and Graduate Program of Education,Messiah University,Higher Education
+Suzanne,Fennell,Director of Field Placements for Teacher Education,Messiah University,Higher Education
+Corliss,Thompson,Associate Dean Graduate School of Education,Northeastern University,Higher Education
+Tracy,T,Associate Dean for MS Education and Lifelong Learning,Northeastern University,Higher Education
+Laura,Green,Associate Dean for Teaching Learning and Experiential Education,Northeastern University,Higher Education
+Connie,Fox,Associate Dean College of Education,Northern Illinois University,Higher Education
+Todd,Gilson,Associate Dean for Research Resources and Innovation College of Education,Northern Illinois University,Higher Education
+Mary,Stromberger,Vice Provost for Graduate Education and Dean of the Graduate School,Ohio State University,Higher Education
+Maduakolam,Ireh,Associate Director Northwest Houston Center & Professor of Educational Leadership,Prairie View A&M University,Higher Education
+Carol,Cummings,Dean Feinstein School of Education and Human Development,Rhode Island College,Higher Education
+Jeffrey,Meriwether,Dean Feinstein School of Humanities Arts and Education,Roger Williams University,Higher Education
+Anne,Proctor,Associate Dean Humanities Arts and Education,Roger Williams University,Higher Education
+Lisa,Wisniewski,Office of Clinical Experiences College of Education,Rowan University,Higher Education
+Ed,Malin,Director Isabelle Farrington School of Education,Sacred Heart University,Higher Education
+Steve,Rubin,Director Educational Administration and Leadership,Sacred Heart University,Higher Education
+Katie,Cunningham,Program Director for Teacher Education,Sacred Heart University,Higher Education
+Bev,Gulley,Dean School of Education,Saint Xavier University,Higher Education
+Kristina,Quinlan,Associate Dean of Education,Salem State University,Higher Education
+Laurie,Henry,Dean Seidel School of Education,Salisbury University,Higher Education
+Kristie,Chandler,Assistant Dean for eLearning and Online Education,Samford University,Higher Education
+Cora,Thompson,Dean Hyundai College of Education,Savannah State University,Higher Education
+Joe,Pujol,Dean,Southeast Missouri State University,Higher Education
+Christopher,Trombly,Dean College of Education,Southern Connecticut State University,Higher Education
+Mark,McQuillan,Dean School of Education,Southern New Hampshire University,Higher Education
+Susan,Antonelli,Associate Dean School of Arts Sciences and Education,Southern New Hampshire University,Higher Education
+Pam,Powell,Dean Beverley Taylor Sorenson College of Education and Human Development,Southern Utah University,Higher Education
+Laura,Hill-Bonnet,Director Early Career GSE Professional Learning Extension,Stanford University,Higher Education
+Jeff,Camarillo,Asst. Director of Secondary Education Stanford Teacher Education Program,Stanford University,Higher Education
+Judy,Abbott,Dean Perkins College of Education,Stephen F. Austin State University,Higher Education
+Carrie,Baker,Assistant Director Educator Preparation Program,Stephen F. Austin State University,Higher Education
+Lynn,Jackson,Prof of Professional Practice Dir of Field Education Asst Dean for Strategic Initiatives,Texas Christian University,Higher Education
+Ridley,Scott,Dean College of Education,Texas Tech University,Higher Education
+Judy,Warman-Adams,Director of Field Education,Texas Tech University,Higher Education
+Grammy,B,Director of Teacher Education,Tufts University,Higher Education
+Eleanor,Abrams,Dean College of Education,UMass Lowell,Higher Education
+Jennifer,Hayes,Director of Professional Development & Lifelong Learning,University of Alabama,Higher Education
+Tonia,Dousay,Dean School of Education,University of Alaska,Higher Education
+Edward,Pohl,Dean Graduate School & International Education,University of Arkansas,Higher Education
+Marvin,Lynn,Dean School of Education & Human Development,University of Colorado Denver,Higher Education
+Cindy,Gutierrez,Assistant Dean Teacher Education & Partnerships,University of Colorado Denver,Higher Education
+Michelle,Knight-Manuel,Dean Morgridge College of Education,University of Denver,Higher Education
+Rex,Brown,Interim Director Teacher Education Program,University of Denver,Higher Education
+Julie,McIntosh,Dean College of Education,University of Findlay,Higher Education
+Chrystalla,Mouza,Dean of Education,University of Illinois at Urbana-Champaign,Higher Education
+Jill,Donnel,Executive Director Council on Teacher Education,University of Illinois at Urbana-Champaign,Higher Education
+Todd,Lash,Director of Computer Science Teacher Education,University of Illinois at Urbana-Champaign,Higher Education
+Douglas,Huffman,Associate Dean for Teacher Education and Undergraduate Programs,University of Kansas,Higher Education
+Ann,Larson,Immediate Past Dean College of Education and Human Development,University of Louisville,Higher Education
+Staci,Saner,Assistant Dean Continuing and Professional Education,University of Louisville,Higher Education
+Jan,Lc,Dean School of Education and Human Development,University of Lynchburg,Higher Education
+Stacy,Ernst,Executive Director Office of Teacher Education,University of Minnesota,Higher Education
+Mary,Leach,Director of Professional Development and Lifelong Learning,University of Mississippi,Higher Education
+Karen,Janovy,Director of Education,University of Nebraska,Higher Education
+Angela,Housand,Associate Dean Watson College of Education,University of North Carolina Wilmington,Higher Education
+Symphony,Oxendine,Associate Dean for Graduate Education Professional Programs Research and Faculty Affairs,University of North Carolina Wilmington,Higher Education
+Rhiannon,White,Associate Director of Professional Learning Division of Digital Strategy & Innovation,University of North Texas,Higher Education
+Heather,Pendleton-Helm,Dean College of Education and Behavioral Sciences,University of Northern Colorado,Higher Education
+Deborah,Romero,Director School of Teacher Education,University of Northern Colorado,Higher Education
+Kevin,Fridy,Associate Dean College of Social Science Math and Education,University of Tampa,Higher Education
+Kathryn,Branch,Associate Dean College of Social Sciences Mathematics and Education,University of Tampa,Higher Education
+Frankie,Laanan,Dean College of Education,University of Utah,Higher Education
+Ray,Reutzel,Dean College of Education,University of Wyoming,Higher Education
+Jeff,Frick,Vice President for Academic Affairs and Dean of the College,Washington & Jefferson College,Higher Education
+Thomas,Cornell,Interim Dean School of Education,Webster University,Higher Education
+Benjamin,Forsyth,Vice President and Dean School of Education,Western Governors University,Higher Education
+Bart,Reynolds,Director Teacher Education,Western Governors University,Higher Education
+Don,Devilbiss,Associate Dean School of Education Innovation and Continuing Studies,Widener University,Higher Education
+Susan,Schaming,Director of Undergraduate Education & Counselor Education,Widener University,Higher Education
+Neesha,Daulat,Director of Educational Leadership Concentration,William James College,Higher Education
+Kathleen,Farfsing,Director Montessori Teacher Education,Xavier University,Higher Education
+Jennifer,Galambos,Head of School,Kent Place School,Independent School
+Julia,Gentile,Associate Head of School,Kent Place School,Independent School
+Alex,Curtis,Head of School,Choate Rosemary Hall,Independent School
+Stephanie,Rubin,Head of School,Sierra Canyon School,Independent School
+Sanje,Ratnavale,Associate Head of School,Sierra Canyon School,Independent School
+Kirk,Sykes,Head of School/Superintendent,Seed School of Maryland,Independent School
+Travis,Larrabee,Head of School,Norfolk Academy,Independent School
+Grayson,Bryant,Assistant Head of School,Norfolk Academy,Independent School
+Jonathan,Strecker,Head of School,Valley School of Ligonier,Independent School
+Clair,Ward,Head of School,Valley School of Ligonier,Independent School
+Mark,McKee,Head of School and President,Viewpoint School,Independent School
+Olivia,Powell,Assistant Head of School,Viewpoint School,Independent School
+Anneke,Emerson,Associate Head of School,Viewpoint School,Independent School
+Matt,Walter,Head of School,Portsmouth Abbey School,Independent School
+Aileen,Baker,Assistant Head of School,Portsmouth Abbey School,Independent School
+Thomas,Hagerman,Head of School,Latin School of Chicago,Independent School
+Ryan,Allen,Assistant Head of School,Latin School of Chicago,Independent School
+Shelley,Greenwood,Assistant Head of School,Latin School of Chicago,Independent School
+Mike,Drude,Head of School,Miller School of Albemarle,Independent School
+Sam,Hale,Assistant Head of School,Miller School of Albemarle,Independent School
+Deepali,Deshmukh,Head of School,Stratford School,Independent School
+Gigi,Tate,Head of School,Stratford School,Independent School
+Julia,Macgregor,Head of School,Stratford School,Independent School

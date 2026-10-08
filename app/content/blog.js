@@ -139,19 +139,19 @@ export function CtaButton({ href, children }) {
 
 export const BLOG_POSTS = [
   {
-    slug: "tampa-three-nights-three-genres",
-    title: "Three Nights, Three Sounds: Tampa’s Biggest Genre-Hopping Run of the Week",
-    date: "2026-09-22",
-    dateLabel: "September 22, 2026",
-    city: "Tampa, FL",
-    venue: "MIDFLORIDA Credit Union Amphitheatre",
+    slug: "nathan-carter-philadelphia-irish-center-october-2026",
+    title: "Nathan Carter Returns to Philadelphia This October",
+    date: "2026-10-08",
+    dateLabel: "October 8, 2026",
+    city: "Philadelphia, PA",
+    venue: "Commodore John Barry Arts & Cultural Center (The Irish Center)",
     author: "LocalLiveMusic.ai",
-    hero: "/blog-images/tampa-three-nights-hero.png",
+    hero: "/blog-images/nathan-carter-irish-center.jpg",
     heroAlt:
-      "Illustrated Tampa skyline and concert scene promoting three shows from September 23–25, 2026.",
+      "Illustrated acoustic guitar and vintage microphone against green and amber stage lighting with shamrocks, for a Nathan Carter concert preview.",
     excerpt:
-      "Three consecutive nights at Tampa’s MIDFLORIDA Credit Union Amphitheatre — TLC & Salt-N-Pepa with En Vogue, Wu-Tang Forever, and Tim McGraw — show just how wide the city’s live-music audience really is.",
-    Body: TampaBody,
+      "Make a live music plan for the Friday before Halloween. Nathan Carter returns to Philadelphia’s Irish Center on October 30, with advance and VIP ticket options.",
+    Body: NathanCarterBody,
   },
   {
     slug: "locali-west-chester-september-live-music",
@@ -186,115 +186,120 @@ export const BLOG_POSTS = [
 
 // ── POST BODIES ───────────────────────────────────────────────────────────────
 
-function TampaBody() {
+function NathanCarterBody() {
   return (
     <>
       <p style={{ ...S.p, fontSize: "0.95rem", color: "#334155" }}>
-        Tampa is about to get a three-night reminder of just how broad its
-        live-music audience can be.
+        A Friday night at the Irish Center offers a reason to put live music on
+        your Halloween-weekend calendar.
       </p>
       <p style={S.p}>
-        From Wednesday through Friday, the{" "}
-        <strong style={S.b}>MIDFLORIDA Credit Union Amphitheatre</strong> has three
-        completely different headline bills on consecutive nights: 1990s R&amp;B and
-        pop, foundational New York hip-hop, and arena-sized country. If you want one
-        snapshot of Tampa’s music appetite, this is a pretty good one.
+        Still deciding how to spend the Friday before Halloween?{" "}
+        <strong style={S.b}>Nathan Carter</strong> is scheduled to return to
+        Philadelphia’s Commodore John Barry Arts and Cultural Center — the Irish
+        Center — on <strong style={S.b}>Friday, October 30, 2026</strong>. The date
+        appears on both the venue’s announcement and Carter’s official tour
+        calendar.
+      </p>
+      <p style={S.p}>
+        For listeners looking beyond their usual rotation of bars and concert
+        listings, this is a show worth investigating: a touring artist, a community
+        devoted to Irish culture and a Friday you can plan around now.
       </p>
 
-      <LineupTable
-        columns={["Date", "Show", "Time"]}
-        rows={[
-          ["Wed, Sep 23", "TLC & Salt-N-Pepa with En Vogue", "7:30 PM"],
-          ["Thu, Sep 24", "Wu-Tang Forever: The Final Chamber", "7:30 PM"],
-          ["Fri, Sep 25", "Tim McGraw: Pawn Shop Guitar Tour 2026", "7:00 PM"],
-        ]}
-      />
+      <h2 style={S.h2}>Start with the music</h2>
+      <p style={S.p}>
+        If Carter is new to you, give yourself a short listening session before
+        buying tickets. His official music page offers a useful path through his
+        work, from <em>Wagon Wheel</em> to <em>Irish Heartland</em> and{" "}
+        <em>Music Man</em>, alongside <em>Live From Garavogue</em> and the 2026
+        single <em>Priceless</em>.
+      </p>
+      <p style={S.p}>
+        Try a few recordings, then visit his official video page to explore
+        performance footage. It is a better way to decide whether an artist is your
+        kind of night out than relying on a genre label alone. These are listening
+        suggestions, not a promised setlist for Philadelphia.
+      </p>
+      <p style={S.p}>
+        Already a fan? The Philadelphia date comes immediately before the October 31
+        stop at Zankel Hall at Carnegie Hall in New York, followed by Chicago on
+        November 1. The official calendar places the show within Carter’s{" "}
+        <em>Priceless</em> Tour listings.
+      </p>
 
-      <Callout label="Why it makes the LocalLiveMusic.ai list:">
-        Three major tours, three different crowds, one venue, three nights in a row —
-        that back-to-back range is exactly the kind of thing a healthy local scene
-        makes possible.
+      <h2 style={S.h2}>An Irish cultural home in Philadelphia</h2>
+      <p style={S.p}>
+        The venue is the Commodore John Barry Arts and Cultural Center at{" "}
+        <strong style={S.b}>6815 Emlen Street, Philadelphia, PA 19119</strong>. Its
+        stated mission is to share Irish art, history, culture and heritage across
+        the Delaware Valley, and its welcome extends to visitors of every
+        background.
+      </p>
+      <p style={S.p}>
+        That gives this pick a local connection beyond a name on a tour poster. If
+        you have been meaning to explore Philadelphia’s Irish cultural scene, a
+        concert can be a natural first visit. You do not need to arrive as an
+        expert — or with Irish roots — to take an interest.
+      </p>
+
+      <h2 style={S.h2}>Tickets and planning your evening</h2>
+      <p style={S.p}>
+        The venue’s announcement lists advance admission at{" "}
+        <strong style={S.b}>$50</strong> per person, admission at the door at{" "}
+        <strong style={S.b}>$65</strong>, and a <strong style={S.b}>$100</strong>{" "}
+        VIP option with premium seating and a meet-and-greet. Use the purchase links
+        on the official event announcement to check availability and the final
+        checkout total.
+      </p>
+      <p style={S.p}>
+        Advance admission is listed $15 below the door price. For two people, that
+        is a $30 difference in the advertised base price. Buying ahead also avoids
+        building your evening around the assumption that tickets will still be
+        available when you arrive.
+      </p>
+      <Callout label="Before you plan dinner or travel:">
+        Confirm the performance time and doors with the venue — those times were not
+        established from the official page text reviewed for this preview. Ask about
+        accessibility, seating and any age restrictions relevant to your group; the
+        venue lists 215-843-8051 as its contact number.
       </Callout>
-
-      <h2 style={S.h2}>Wednesday: TLC, Salt-N-Pepa and En Vogue</h2>
-      <p style={S.p}>
-        Wednesday, September 23 brings{" "}
-        <strong style={S.b}>TLC &amp; Salt-N-Pepa with En Vogue</strong> to the
-        amphitheatre at 7:30 p.m. The bill is effectively a tour through several of
-        the most recognizable sounds of 1990s R&amp;B, pop and hip-hop crossover — the
-        kind of multi-act night that works especially well for a big outdoor Tampa
-        crowd: familiar catalogs, sing-along moments and three distinct acts on one
-        ticket.
-      </p>
-
-      <h2 style={S.h2}>Thursday: Wu-Tang Forever</h2>
-      <p style={S.p}>
-        Twenty-four hours later, the entire mood changes.{" "}
-        <strong style={S.b}>Wu-Tang Forever: The Final Chamber</strong> is scheduled
-        for Thursday, September 24 at 7:30 p.m. The official venue listing puts one of
-        hip-hop’s defining groups on the same Tampa stage that hosted a
-        nostalgia-heavy R&amp;B package the night before.
-      </p>
-      <p style={S.p}>
-        That contrast is what makes the week interesting. Tampa doesn’t need to be
-        only a country market, an electronic market, a Latin market or a rock market.
-        The audience is large enough to support very different scenes side by side.
-      </p>
-
-      <h2 style={S.h2}>Friday: Tim McGraw</h2>
-      <p style={S.p}>
-        On Friday, September 25,{" "}
-        <strong style={S.b}>Tim McGraw’s Pawn Shop Guitar Tour 2026</strong> takes
-        over at 7:00 p.m. Country has long had a strong Tampa Bay audience, and a
-        Friday-night amphitheatre show gives this three-night run a completely
-        different finish.
-      </p>
-
-      <BlogImage
-        src="/blog-images/tampa-three-nights-inline.png"
-        alt="Verified Tampa concert schedule graphic for September 23–25, 2026 at the MIDFLORIDA Credit Union Amphitheatre."
-        caption="Three consecutive nights, three genres, one venue — the week’s lineup at a glance."
-      />
-
-      <h2 style={S.h2}>Why we’d go</h2>
-      <p style={S.p}>
-        The best part of this week isn’t that any one genre “wins.” It’s that three
-        major tours can land in the same Tampa venue on three consecutive nights and
-        plausibly draw three different crowds.
-      </p>
-      <p style={S.p}>
-        That’s a healthy sign for a local live-music ecosystem. Big amphitheatre shows
-        are only one part of Tampa’s scene, but they help create the energy that also
-        supports smaller rooms, local performers and the neighborhoods people visit
-        before and after shows.
-      </p>
 
       <PickCard
         rows={[
-          ["City", "Tampa, Florida"],
-          ["Venue", "MIDFLORIDA Credit Union Amphitheatre"],
-          ["Address", "4802 US-301, Tampa, FL 33610"],
-          ["Dates", "Wed–Fri, September 23–25, 2026"],
-          ["Genres", "R&B/pop · hip-hop · country"],
+          ["Artist", "Nathan Carter"],
+          ["City", "Philadelphia, Pennsylvania"],
+          ["Venue", "Commodore John Barry Arts & Cultural Center (The Irish Center)"],
+          ["Date", "Friday, October 30, 2026"],
+          ["Tickets", "$50 advance · $65 door · $100 VIP"],
+          ["Tour", "The Priceless Tour"],
         ]}
       />
 
+      <h2 style={S.h2}>Make it your next live music discovery</h2>
       <p style={S.p}>
-        All three concerts are listed at the{" "}
-        <strong style={S.b}>
-          MIDFLORIDA Credit Union Amphitheatre, 4802 US-301, Tampa, FL 33610
-        </strong>
-        . Check the venue or ticketing provider for current entry, parking and ticket
-        information before heading out.
+        Our pick is simple: listen to a few tracks, send the show to a friend and
+        decide whether this is the Friday night you want. Check the official listing
+        again before heading out, since schedules and ticket availability can change.
+      </p>
+      <p style={S.p}>
+        For more options, visit LocalLiveMusic.ai and search Philadelphia, your own
+        ZIP code or a favorite artist. Let this be the start of a new local music
+        habit.
       </p>
 
-      <CtaButton href="https://www.midflorida.com/events">
-        View the amphitheatre’s event calendar →
+      <CtaButton href="https://theirishcenter.org/2026/03/25/nathan-carter-live-at-our-irish-center/">
+        View the Irish Center’s event announcement →
       </CtaButton>
-      <p style={{ ...S.p, fontSize: "0.75rem", color: "#94a3b8", marginTop: "0.75rem" }}>
-        Schedule verified against official MIDFLORIDA Credit Union Amphitheatre event
-        listings on September 22, 2026. Details can change — confirm with the venue
-        before heading out.
+
+      <p style={{ ...S.p, fontSize: "0.78rem", color: "#94a3b8", marginTop: "1.25rem", lineHeight: 1.6 }}>
+        <strong style={{ color: "#64748b" }}>Sources:</strong> Event information
+        checked October 8, 2026. Date and city agree across the artist and venue
+        sources. Ticket prices come from the venue’s announcement; live inventory and
+        the final checkout total were not verified. (1) Irish Center — event
+        announcement &amp; ticket links; (2) Nathan Carter — official tour dates;
+        (3) Nathan Carter — official music catalog; (4) Nathan Carter — official
+        videos; (5) Irish Center — venue address, contact &amp; mission.
       </p>
     </>
   );

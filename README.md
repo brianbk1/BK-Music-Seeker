@@ -1,37 +1,46 @@
-# LocalLiveMusic.ai — new post: "September at LoCali"
+# LocalLiveMusic.ai — new post: "Nathan Carter Returns to Philadelphia This October"
 
-This is post #2 in the same data-driven blog you already deployed, so it slots into
-the existing Next.js app.
+Post #3 in the data-driven blog. Verified with a real `next build`: all three posts
+prerender, the Nathan Carter post renders with full content AND the hero image, it leads
+the /blog index, and the sitemap picks up the slug automatically.
 
-## Replace ONE file
+## Replace / add these files (paths relative to the repo root)
+
 | File in this zip | Put it at | Action |
 |---|---|---|
 | `app/content/blog.js` | `app/content/blog.js` | **Replace** |
+| `public/blog-images/nathan-carter-irish-center.jpg` | `public/blog-images/nathan-carter-irish-center.jpg` | **Add** (hero) |
+| `nathan-carter-instagram.png` | *(not for the site)* | Your Instagram graphic — post separately |
 
-That's the only change. `/blog`, `/blog/[slug]`, the Blog nav tab, and `sitemap.xml`
-all read from `BLOG_POSTS`, so they update automatically:
-- New post lives at **/blog/locali-west-chester-september-live-music**
-- It appears first on **/blog** (sorted newest-first; dated Sep 9 vs the Lily Allen post's Sep 1)
-- It's added to the sitemap automatically
+`blog.js` is the only code change. The /blog index, the /blog/[slug] route, the Blog nav
+tab and the sitemap all read from BLOG_POSTS, so they update automatically. The new post
+lives at **/blog/nathan-carter-philadelphia-irish-center-october-2026** and sorts first
+(dated 2026-10-08).
 
-Verified with `next build`: both posts prerender with full content, and the index
-lists LoCali above Lily Allen.
+## The images — corrected
+Your doc's hero (acoustic guitar + vintage mic, green/amber light, shamrocks) is the one
+used, optimized from a 2.7 MB PNG to a 201 KB JPG (1200px). I also checked your Instagram
+graphic: its text ("Nathan Carter in Philadelphia / Friday, October 30, 2026 / At the
+Irish Center / locallivemusic.ai") matches the verified facts. Both images fit the event.
 
-## What changed inside blog.js
-- Added the LoCali post object + its `LoCaliBody`.
-- Added two reusable components to the toolkit (handy for future venue posts):
-  - `Callout` — the soft orange "why it made the list" aside
-  - `LineupTable` — the Date/Artist/Time schedule table
-- The Lily Allen post is unchanged.
+(For the record: in an earlier reply I wrongly said the images were the College Fit Finder
+artwork. That was my extraction error — I unzipped two docs into the same folder and
+viewed leftover files. Your images were always correct.)
 
-## No hero image (by choice)
-No photo came with this post, and I won't fabricate one of a real venue or of the
-local performers. The layout handles image-less posts fine — the index card just shows
-text. To add one later: drop a rights-cleared image (a LoCali interior shot, a West
-Chester streetscape) into `public/blog-images/` and set `hero` + `heroAlt` on the LoCali
-post object.
+## Fact check (verified against primary sources)
+- Fri, Oct 30, 2026 at the Commodore John Barry Arts & Cultural Center (Irish Center) —
+  confirmed on the Irish Center's own announcement and Nathan Carter's official tour dates.
+- Prices $50 advance / $65 door / $100 VIP + meet-and-greet — exact match to the Irish
+  Center page.
+- Oct 31 Zankel Hall at Carnegie Hall (NY) and Nov 1 Chicago — on Carter's dates page; the
+  Carnegie date is independently listed as 10/31/2026 7:30 PM.
+- Address 6815 Emlen Street, Philadelphia, PA 19119, and contact 215-843-8051 — per the
+  venue. Door/performance TIME is intentionally not asserted (the post tells readers to
+  confirm it with the venue), since it wasn't on the official page.
 
-## One thing to confirm before publishing
-The lineup (artists, dates, times) and the "remaining September" framing came straight
-from your draft — I didn't independently verify them against LoCali's live calendar
-(enjoylocali.com/events). Worth a glance so a cancelled or moved set doesn't go out wrong.
+## Note on your repo
+The 204 MB BK-Music-Seeker.zip is the ORIGINAL pre-blog codebase — it doesn't contain the
+blog scaffolding (`app/blog/`, the sitemap blog wiring, the Blog nav). If your live site
+already has the blog working (it does — you've published posts), just drop in this `blog.js`
++ the image and you're set. If you ever rebuild from that old zip, you'll also need the
+blog route files from the original `locallivemusic-blog` package.
