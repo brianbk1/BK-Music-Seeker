@@ -139,6 +139,21 @@ export function CtaButton({ href, children }) {
 
 export const BLOG_POSTS = [
   {
+    slug: "jalen-ngonda-brooklyn-bowl-philadelphia-november-2026",
+    title: "A Soul Discovery at Brooklyn Bowl: Jalen Ngonda in Philadelphia",
+    date: "2026-10-29",
+    dateLabel: "October 29, 2026",
+    city: "Philadelphia, PA",
+    venue: "Brooklyn Bowl Philadelphia",
+    author: "LocalLiveMusic.ai",
+    hero: "/blog-images/jalen-ngonda-brooklyn-bowl-hero.png",
+    heroAlt:
+      "Editorial illustration of a vintage brass ribbon microphone beside a spinning vinyl record under warm amber light, for a soul concert preview.",
+    excerpt:
+      "Looking past the arena headliners? Rising soul singer Jalen Ngonda brings his Doctrine of Love Tour to Brooklyn Bowl in Fishtown on Friday, November 13 — a real discovery in a defining local room.",
+    Body: JalenNgondaBody,
+  },
+  {
     slug: "nathan-carter-philadelphia-irish-center-october-2026",
     title: "Nathan Carter Returns to Philadelphia This October",
     date: "2026-10-08",
@@ -185,6 +200,91 @@ export const BLOG_POSTS = [
 ];
 
 // ── POST BODIES ───────────────────────────────────────────────────────────────
+
+function JalenNgondaBody() {
+  return (
+    <>
+      <p style={{ ...S.p, fontSize: "0.95rem", color: "#334155" }}>
+        November&rsquo;s Philadelphia concert calendar is stacked with arena names.
+        This pick is the opposite kind of night out — a rising voice in a room small
+        enough to feel it.
+      </p>
+      <p style={S.p}>
+        Soul singer <strong style={S.b}>Jalen Ngonda</strong> brings his{" "}
+        <em>Doctrine of Love</em> Tour to <strong style={S.b}>Brooklyn Bowl
+        Philadelphia</strong> in Fishtown on <strong style={S.b}>Friday, November
+        13, 2026</strong>. If you have never heard him, this is exactly the kind of
+        show LocalLiveMusic.ai exists to point you toward: a genuine discovery, in a
+        venue that helps define the city&rsquo;s live scene.
+      </p>
+
+      <Callout label="Why it makes the LocalLiveMusic.ai list:">
+        A critically praised artist you can still catch in a club-sized room, playing
+        a style — classic soul — that rewards a real live band and a real voice over
+        a big production.
+      </Callout>
+
+      <h2 style={S.h2}>Why Jalen Ngonda</h2>
+      <p style={S.p}>
+        Ngonda records for Daptone, the label that has spent two decades reviving
+        deep, analog soul. His 2023 debut, <em>Come Around and Love Me</em>, drew wide
+        acclaim and comparisons to 1960s Motown and Detroit soul — not as an imitation,
+        but as the real thing sung sincerely. The Philadelphia date supports his 2026
+        sophomore album, <em>Doctrine of Love</em>, so expect newer material alongside
+        the songs that built his following.
+      </p>
+      <p style={S.p}>
+        If he is new to you, spend ten minutes with a few recordings before you buy a
+        ticket. Soul is a live music first and a streaming genre second — it is built
+        for a warm room, a tight band and a singer who can actually carry it. That is a
+        better way to decide than any genre tag.
+      </p>
+
+      <h2 style={S.h2}>Why Brooklyn Bowl</h2>
+      <p style={S.p}>
+        Part of what we do here is highlight the place, not just the performer.
+        Brooklyn Bowl Philadelphia sits in Fishtown, the neighborhood that has become
+        the center of the city&rsquo;s independent music life, and it doubles as a
+        bowling alley and a mid-size concert hall. It is a room where you are close to
+        the stage and the night feels like the city it is in — not a generic arena
+        concourse.
+      </p>
+
+      <PickCard
+        rows={[
+          ["Artist", "Jalen Ngonda"],
+          ["City", "Philadelphia, Pennsylvania"],
+          ["Venue", "Brooklyn Bowl Philadelphia (Fishtown)"],
+          ["Date", "Friday, November 13, 2026"],
+          ["Show time", "8:00 PM (doors earlier — confirm with venue)"],
+          ["Tour", "The Doctrine of Love Tour"],
+        ]}
+      />
+
+      <h2 style={S.h2}>Our Local Live Pick</h2>
+      <p style={S.p}>
+        Listen to a couple of tracks, send the show to the friend who still believes
+        in a great live band, and make a plan. Big tours get the headlines, but rooms
+        like Brooklyn Bowl — and artists like Ngonda on the way up — are where a local
+        music scene actually lives.
+      </p>
+      <p style={{ ...S.p, fontWeight: 600, color: "#0f172a" }}>
+        Great voice. Great room. Go see it live.
+      </p>
+
+      <CtaButton href="https://www.livenation.com/event/vvG1FZ_GF5PNbO/jalen-ngonda-doctrine-of-love-tour">
+        See tickets &amp; event details →
+      </CtaButton>
+      <p style={{ ...S.p, fontSize: "0.78rem", color: "#94a3b8", marginTop: "1.25rem", lineHeight: 1.6 }}>
+        <strong style={{ color: "#64748b" }}>Sources:</strong> Date and venue
+        confirmed via the artist&rsquo;s official tour listings and multiple ticketers
+        (Live Nation, AXS) as of October 29, 2026. Album details from Daptone Records
+        and press coverage of <em>Doctrine of Love</em> (2026). Show times and ticket
+        availability change — confirm on the venue&rsquo;s own page before heading out.
+      </p>
+    </>
+  );
+}
 
 function NathanCarterBody() {
   return (
