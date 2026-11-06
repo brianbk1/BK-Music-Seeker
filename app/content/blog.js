@@ -139,6 +139,21 @@ export function CtaButton({ href, children }) {
 
 export const BLOG_POSTS = [
   {
+    slug: "bailen-johnny-brendas-philadelphia-november-2026",
+    title: "Three-Part Harmony in Fishtown: BAILEN at Johnny Brenda's",
+    date: "2026-11-06",
+    dateLabel: "November 6, 2026",
+    city: "Philadelphia, PA",
+    venue: "Johnny Brenda's",
+    author: "LocalLiveMusic.ai",
+    hero: "/blog-images/bailen-johnny-brendas-hero.png",
+    heroAlt:
+      "Editorial illustration of three vintage microphones in a row under warm stage light, evoking a three-part-harmony band.",
+    excerpt:
+      "A weeknight discovery in one of Philly's best small rooms: sibling trio BAILEN brings their harmony-driven indie folk to Johnny Brenda's in Fishtown on Tuesday, November 17.",
+    Body: BailenBody,
+  },
+  {
     slug: "jalen-ngonda-brooklyn-bowl-philadelphia-november-2026",
     title: "A Soul Discovery at Brooklyn Bowl: Jalen Ngonda in Philadelphia",
     date: "2026-10-29",
@@ -200,6 +215,87 @@ export const BLOG_POSTS = [
 ];
 
 // ── POST BODIES ───────────────────────────────────────────────────────────────
+
+function BailenBody() {
+  return (
+    <>
+      <p style={{ ...S.p, fontSize: "0.95rem", color: "#334155" }}>
+        Not every great show is a Friday-night headliner. Some of the best nights
+        out are a Tuesday in a small room, watching a band you'll be glad you caught
+        early.
+      </p>
+      <p style={S.p}>
+        Harmony-driven indie trio <strong style={S.b}>BAILEN</strong> plays{" "}
+        <strong style={S.b}>Johnny Brenda's</strong> in Fishtown on{" "}
+        <strong style={S.b}>Tuesday, November 17, 2026</strong>. If you don't know
+        them yet, that's the point — this is exactly the kind of discovery, in exactly
+        the kind of room, that LocalLiveMusic.ai exists to point you toward.
+      </p>
+
+      <Callout label="Why it makes the LocalLiveMusic.ai list:">
+        A tight, critically liked band you can still see up close — playing music
+        built on real three-part harmony that lands harder live than on a playlist.
+      </Callout>
+
+      <h2 style={S.h2}>Why BAILEN</h2>
+      <p style={S.p}>
+        BAILEN is a sibling band — twins David and Daniel Bailen alongside their
+        sister Julia — and that matters to the sound. Family voices blend in a way
+        that's hard to fake, and BAILEN builds its indie folk-rock around exactly that
+        kind of close, interlocking harmony. They've earned a strong critical following
+        and toured with bigger names, and they've kept releasing new music through
+        2026, so expect fresh material alongside the songs that built their audience.
+      </p>
+      <p style={S.p}>
+        If they're new to you, give a few tracks a listen before buying a ticket.
+        Harmony-forward music is a live-first experience — it's built for a room where
+        you can hear the blend, not for background listening.
+      </p>
+
+      <h2 style={S.h2}>Why Johnny Brenda's</h2>
+      <p style={S.p}>
+        Part of what we do here is highlight the place, not just the performer. Johnny
+        Brenda's is a Fishtown cornerstone — a small, roughly 250-capacity upstairs
+        room above a neighborhood bar and restaurant, and one of the venues that helped
+        make the neighborhood the center of Philadelphia's independent music scene. It
+        has a long history of booking artists on the way up, and it's the kind of place
+        where you're close enough to see the band actually playing to each other.
+      </p>
+
+      <PickCard
+        rows={[
+          ["Artist", "BAILEN"],
+          ["City", "Philadelphia, Pennsylvania"],
+          ["Venue", "Johnny Brenda's (Fishtown)"],
+          ["Date", "Tuesday, November 17, 2026"],
+          ["Good to know", "Doors/show time — confirm with the venue"],
+          ["Genre", "Harmony-driven indie folk-rock"],
+        ]}
+      />
+
+      <h2 style={S.h2}>Our Local Live Pick</h2>
+      <p style={S.p}>
+        Listen to a couple of songs, grab the friend who loves a tight harmony, and
+        make a weeknight of it. Big tours get the headlines, but rooms like Johnny
+        Brenda's — and bands like BAILEN on the way up — are where a local music scene
+        actually lives.
+      </p>
+      <p style={{ ...S.p, fontWeight: 600, color: "#0f172a" }}>
+        Great harmonies. Great room. Go see it live.
+      </p>
+
+      <CtaButton href="https://johnnybrendas.com/events/">
+        See the Johnny Brenda's calendar &amp; tickets →
+      </CtaButton>
+      <p style={{ ...S.p, fontSize: "0.78rem", color: "#94a3b8", marginTop: "1.25rem", lineHeight: 1.6 }}>
+        <strong style={{ color: "#64748b" }}>Sources:</strong> Date and venue from
+        Johnny Brenda's official event calendar; BAILEN tour and background from the
+        band's touring and management listings, as of November 6, 2026. Show times and
+        ticket availability change — confirm on the venue's own page before heading out.
+      </p>
+    </>
+  );
+}
 
 function JalenNgondaBody() {
   return (
